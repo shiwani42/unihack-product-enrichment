@@ -1,0 +1,58 @@
+{
+  "mpn": "R51-GSRA1-THD",
+  "mfr_url": "https://leviton.com/error-pages/404",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Gang Count",
+      "value": "5",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "R5GSRA1THD 15A GFCI Plug",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.65
+    },
+    {
+      "field": "Product Type",
+      "value": "Plug",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "Plug",
+      "extractor": "industrial_parser",
+      "confidence": 0.72
+    },
+    {
+      "field": "Application",
+      "value": "Pipe Fitting",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "Pipe Fitting",
+      "extractor": "industrial_parser",
+      "confidence": 0.72
+    },
+    {
+      "field": "Wattage",
+      "value": "18",
+      "uom": "W",
+      "source_url": "https://leviton.com/error-pages/404",
+      "quote": "18W",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "ELECTRIC",
+      "uom": "",
+      "source_url": "https://leviton.com/error-pages/404",
+      "quote": "ELECTRIC",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

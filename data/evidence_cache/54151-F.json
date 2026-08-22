@@ -1,0 +1,67 @@
+{
+  "mpn": "54151-F",
+  "mfr_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-octagon-bracketed-box-1-1-2-deep-drawn-w-conduit-ko-s-andfixture-ears-3-1-2-o-c-/p/54151-F",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Product Type",
+      "value": "Electrical Wire",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "4x4x1-1/2 Oct Box w/Bracket",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.7
+    },
+    {
+      "field": "Size",
+      "value": "4\" x 4\" x 1-1/2\"",
+      "uom": "in",
+      "source_url": "input:Part_Desc",
+      "quote": "4x4x1-1/2 Oct Box w/Bracket",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.65
+    },
+    {
+      "field": "Length",
+      "value": "4\" x 4\" x 1-1/2\"",
+      "uom": "in",
+      "source_url": "input:Part_Desc",
+      "quote": "4x4x1-1/2 Oct Box w/Bracket",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.65
+    },
+    {
+      "field": "Material",
+      "value": "Aluminum",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-octagon-bracketed-box-1-1-2-deep-drawn-w-conduit-ko-s-andfixture-ears-3-1-2-o-c-/p/54151-F",
+      "quote": "Aluminum",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Color",
+      "value": "Silver",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-octagon-bracketed-box-1-1-2-deep-drawn-w-conduit-ko-s-andfixture-ears-3-1-2-o-c-/p/54151-F",
+      "quote": "Color Silver",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "Gas",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-octagon-bracketed-box-1-1-2-deep-drawn-w-conduit-ko-s-andfixture-ears-3-1-2-o-c-/p/54151-F",
+      "quote": "Gas",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

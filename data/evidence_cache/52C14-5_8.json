@@ -1,0 +1,40 @@
+{
+  "mpn": "52C14-5_8",
+  "mfr_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-one-gang-device-ring-5-8-raised/p/52C14-5/8",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Material",
+      "value": "Aluminum",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-one-gang-device-ring-5-8-raised/p/52C14-5/8",
+      "quote": "Aluminum",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Color",
+      "value": "Silver",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-one-gang-device-ring-5-8-raised/p/52C14-5/8",
+      "quote": "Color Silver",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "Gas",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-one-gang-device-ring-5-8-raised/p/52C14-5/8",
+      "quote": "Gas",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

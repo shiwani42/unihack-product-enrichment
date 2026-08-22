@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxDuration": 60,
+        "includeFiles": "app/static/**"
+      }
+    }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "api/index.py" }
+  ],
+  "env": {
+    "UNILOG_LIVE_FETCH": "0",
+    "UNILOG_OUTPUT_DIR": "/tmp/unilog-output"
+  }
+}

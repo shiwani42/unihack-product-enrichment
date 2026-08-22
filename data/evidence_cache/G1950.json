@@ -1,0 +1,49 @@
+{
+  "mpn": "G1950",
+  "mfr_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-industrial-surface-cover-1-2-raised-2-gfci/p/G1950",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Material",
+      "value": "Aluminum",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-industrial-surface-cover-1-2-raised-2-gfci/p/G1950",
+      "quote": "Aluminum",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Color",
+      "value": "Silver",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-industrial-surface-cover-1-2-raised-2-gfci/p/G1950",
+      "quote": "Color Silver",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "Gas",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-industrial-surface-cover-1-2-raised-2-gfci/p/G1950",
+      "quote": "Gas",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    },
+    {
+      "field": "Diameter",
+      "value": "2",
+      "uom": "in",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-industrial-surface-cover-1-2-raised-2-gfci/p/G1950",
+      "quote": "2IN",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

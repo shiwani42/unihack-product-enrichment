@@ -1,0 +1,49 @@
+{
+  "mpn": "72171-3_4-1W",
+  "mfr_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-11-16-weld-sq-bx-2-1-8-d-3-4-1-ko/p/72171-3/4-1W",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Material",
+      "value": "Aluminum",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-11-16-weld-sq-bx-2-1-8-d-3-4-1-ko/p/72171-3/4-1W",
+      "quote": "Aluminum",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Color",
+      "value": "Silver",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-11-16-weld-sq-bx-2-1-8-d-3-4-1-ko/p/72171-3/4-1W",
+      "quote": "Color Silver",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Wattage",
+      "value": "1",
+      "uom": "W",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-11-16-weld-sq-bx-2-1-8-d-3-4-1-ko/p/72171-3/4-1W",
+      "quote": "1W",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "Gas",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-11-16-weld-sq-bx-2-1-8-d-3-4-1-ko/p/72171-3/4-1W",
+      "quote": "Gas",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

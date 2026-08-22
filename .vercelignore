@@ -1,0 +1,17 @@
+demo_build/
+submission/
+.git/
+.github/
+tests/
+.pytest_cache/
+__pycache__/
+*/__pycache__/
+.venv/
+node_modules/
+guidelines/[EXT] UniHack-Protoype Template .pptx
+guidelines/UniHack Solution Guide.pdf
+output/metrics/
+output/demo_audit.json
+output/golden_report.json
+*.log
+.env

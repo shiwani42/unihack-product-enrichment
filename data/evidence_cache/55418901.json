@@ -1,0 +1,49 @@
+{
+  "mpn": "55418901",
+  "mfr_url": "https://www.southwire.com/wire-cable/600-volt-secondary-distribution/electrical-al-600v-ud/p/55418901",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Product Type",
+      "value": "Electrical Wire",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "Electrical Wire",
+      "extractor": "industrial_parser",
+      "confidence": 0.72
+    },
+    {
+      "field": "Material",
+      "value": "Aluminum",
+      "uom": "",
+      "source_url": "https://www.southwire.com/wire-cable/600-volt-secondary-distribution/electrical-al-600v-ud/p/55418901",
+      "quote": "Aluminum",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Color",
+      "value": "BLACK",
+      "uom": "",
+      "source_url": "https://www.southwire.com/wire-cable/600-volt-secondary-distribution/electrical-al-600v-ud/p/55418901",
+      "quote": "Color BLACK",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "Gas",
+      "uom": "",
+      "source_url": "https://www.southwire.com/wire-cable/600-volt-secondary-distribution/electrical-al-600v-ud/p/55418901",
+      "quote": "Gas",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

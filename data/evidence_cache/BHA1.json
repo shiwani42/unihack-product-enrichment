@@ -1,0 +1,58 @@
+{
+  "mpn": "BHA1",
+  "mfr_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/adjustable-bar-hanger-box-lock-clip-threaded-stud/p/BHA1",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Product Type",
+      "value": "Electrical Wire",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "16-24 Adjust Hanger",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.7
+    },
+    {
+      "field": "Material",
+      "value": "Aluminum",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/adjustable-bar-hanger-box-lock-clip-threaded-stud/p/BHA1",
+      "quote": "Aluminum",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Color",
+      "value": "Silver",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/adjustable-bar-hanger-box-lock-clip-threaded-stud/p/BHA1",
+      "quote": "Color Silver",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "Gas",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/adjustable-bar-hanger-box-lock-clip-threaded-stud/p/BHA1",
+      "quote": "Gas",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    },
+    {
+      "field": "Diameter",
+      "value": "16",
+      "uom": "in",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/adjustable-bar-hanger-box-lock-clip-threaded-stud/p/BHA1",
+      "quote": "16 in",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

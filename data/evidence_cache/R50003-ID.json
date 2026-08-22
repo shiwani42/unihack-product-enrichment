@@ -1,0 +1,58 @@
+{
+  "mpn": "R50003-ID",
+  "mfr_url": "https://www.southwire.com/search?q=R50003-ID",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Length",
+      "value": "500",
+      "uom": "ft",
+      "source_url": "input:Part_Desc",
+      "quote": "16-2 Stranded Wire CL3 500' (Linear Foot)",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.65
+    },
+    {
+      "field": "Size",
+      "value": "500",
+      "uom": "ft",
+      "source_url": "input:Part_Desc",
+      "quote": "16-2 Stranded Wire CL3 500' (Linear Foot)",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.65
+    },
+    {
+      "field": "Product Type",
+      "value": "Electrical Wire",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "Electrical Wire",
+      "extractor": "industrial_parser",
+      "confidence": 0.72
+    },
+    {
+      "field": "Material",
+      "value": "Aluminum",
+      "uom": "",
+      "source_url": "https://www.southwire.com/search?q=R50003-ID",
+      "quote": "Aluminum",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "Gas",
+      "uom": "",
+      "source_url": "https://www.southwire.com/search?q=R50003-ID",
+      "quote": "Gas",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

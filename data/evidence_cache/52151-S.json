@@ -1,0 +1,76 @@
+{
+  "mpn": "52151-S",
+  "mfr_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-box-1-1-2-deep-welded-w-conduit-ko-s/p/52151-S",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Product Type",
+      "value": "Electrical Wire",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "4x4x1-1/2 Square Box",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.7
+    },
+    {
+      "field": "Size",
+      "value": "4\" x 4\" x 1-1/2\"",
+      "uom": "in",
+      "source_url": "input:Part_Desc",
+      "quote": "4x4x1-1/2 Square Box",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.65
+    },
+    {
+      "field": "Length",
+      "value": "4\" x 4\" x 1-1/2\"",
+      "uom": "in",
+      "source_url": "input:Part_Desc",
+      "quote": "4x4x1-1/2 Square Box",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.65
+    },
+    {
+      "field": "Material",
+      "value": "Aluminum",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-box-1-1-2-deep-welded-w-conduit-ko-s/p/52151-S",
+      "quote": "Aluminum",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Color",
+      "value": "Silver",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-box-1-1-2-deep-welded-w-conduit-ko-s/p/52151-S",
+      "quote": "Color Silver",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "Gas",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-box-1-1-2-deep-welded-w-conduit-ko-s/p/52151-S",
+      "quote": "Gas",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    },
+    {
+      "field": "Diameter",
+      "value": "1-1/2",
+      "uom": "in",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-box-1-1-2-deep-welded-w-conduit-ko-s/p/52151-S",
+      "quote": "1-1/2 in",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

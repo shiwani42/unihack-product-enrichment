@@ -1,0 +1,49 @@
+{
+  "mpn": "13093005",
+  "mfr_url": "https://www.southwire.com/wire-cable/building-wire/seu-aluminum-service-entrance/p/13093005",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Product Type",
+      "value": "Electrical Wire",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "Electrical Wire",
+      "extractor": "industrial_parser",
+      "confidence": 0.72
+    },
+    {
+      "field": "Voltage Rating",
+      "value": "600",
+      "uom": "V",
+      "source_url": "https://www.southwire.com/wire-cable/building-wire/seu-aluminum-service-entrance/p/13093005",
+      "quote": "Voltage rating is 600",
+      "extractor": "html_regex",
+      "confidence": 0.85
+    },
+    {
+      "field": "Material",
+      "value": "Aluminum",
+      "uom": "",
+      "source_url": "https://www.southwire.com/wire-cable/building-wire/seu-aluminum-service-entrance/p/13093005",
+      "quote": "Aluminum",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "Gas",
+      "uom": "",
+      "source_url": "https://www.southwire.com/wire-cable/building-wire/seu-aluminum-service-entrance/p/13093005",
+      "quote": "Gas",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

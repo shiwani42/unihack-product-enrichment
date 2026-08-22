@@ -1,104 +1,81 @@
-# UniHack Product Enrichment
+# unilog enrichment engine
 
-Evidence-first product enrichment pipeline for the UniHack / Unilog industrial commerce challenge.
+**Evidence-first product intelligence for industrial commerce.** Six cryptic distributor
+columns in — a validated, source-traced record in Unilog's 252-column delivery format out.
 
-Given minimal distributor input (manufacturer part number, short description, brand placeholders), this project builds commerce-ready records that match the 252-column Unilog delivery format.
+- **Live prototype:** https://unilog-tau.vercel.app
+- **Demo film (3 min):** `demo_build/demo.mp4` (see `demo_build/README.md` for the reproducible Remotion build)
+- **Submission deck:** `submission/UniHack_thExplorers_Prototype.pptx`
+- **Delivery artifacts:** `output/batch_enriched.csv` · `output/batch_enriched.xlsx` · `output/field_provenance.json`
 
-## Goals
+## Measured results
 
-- Manufacturer-first sourcing with marketplace blocklist
-- Uniform cache-first live fetch policy for every category (no category bias)
-- Deterministic extraction before LLM fallback; no fabricated values — blank beats invented
-- Category templates with fixed attribute slots
-- Template-based descriptions (invoice, mobile, short, long, retail)
-- Golden-row regression against provided expected output examples
-- Honest confidence bands: only externally verified evidence can score "high"
-- Reliability primitives: retry/backoff, atomic cache writes, raw-cache eviction, per-run fetch budget
-- Hermetic test suite (offline by default)
+| Metric | Result |
+|---|---|
+| Golden regression vs organizer expected output | **100%** — 134/134 fields, both reference SKUs (PDSH4816AF, WDTS7024RZ) |
+| Input rows classified to a leaf category | **1000 / 1000** (13 leaf templates + generic industrial fallback) |
+| Avg fields populated per row (full online batch) | **39.28** of the fields evidence supports; blank beats invented |
+| Confidence bands | 29 high · 25 medium · 946 review — "high" requires external manufacturer evidence |
+| Hermetic test suite | **77 tests, ~2s**, offline by default |
+| Compute cost | **≈ $0.0004/SKU** rules path (1000 rows ≈ 60s, zero API calls); LLM last-mile capped, off by default |
+
+## How it works
+
+```
+Input CSV (6 cols: MPN, desc, brand placeholders)
+  │
+  ├─ ingest/        input analysis, placeholder filtering, dedup merge
+  ├─ identity/      brand resolution: aliases → DIB/E1 → desc regex → MPN prefix rules
+  ├─ classify/      leaf-level routing (rules + templates, 13 categories)
+  ├─ sources/       manufacturer-first URL discovery, marketplace blocklist,
+  │                 cache-first fetch: retry/backoff, budget, optional Playwright on 403
+  ├─ extract/       HTML specs · JSON-LD/microdata (extruct) · PDF datasheets
+  │                 · evidence cache · honest desc parsing · optional LLM last-mile
+  ├─ normalize/     units, LOV, canonical brand casing, attribute slot mapping
+  ├─ compose/       5 governed descriptions + delivery-convention asset names
+  ├─ validate/      LOV/char-limit/sanity rules, confidence bands, golden harness
+  │
+  └─ output/        252-col CSV/XLSX + per-value provenance JSON (source URL per cell)
+```
+
+Every populated value carries a **source URL** (`output/field_provenance.json`); the web UI
+exposes it in a per-SKU provenance drawer. Values without external evidence cite
+`input:Part_Desc` and can never reach the "high" confidence band.
+
+## Integrity guarantees (enforced by tests)
+
+- No fabricated values — blank beats invented; brand-name material invention removed
+- `Actual Image (Yes/No)` is "Yes" only with verifiable manufacturer imagery evidence
+- Amazon/eBay/Walmart/Home Depot/Lowe's/Target are blocked as sources
+- Uniform cache-first fetch policy for every category; `UNILOG_LIVE_FETCH=0` kills network
+- Explicit units preserved verbatim; bare numbers never auto-labeled volts
 
 ## Quick start
 
-See **`AGENT_HANDOFF.md`** for full agent/developer documentation, metrics workflow, and improvement rules.
-
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# Golden regression (100% on both reference SKUs, cache-first, no network needed)
-python3 cli.py golden
-
-# Build taxonomy index and distributor crosswalk
-PYTHONPATH=. python3 scripts/build_taxonomy_index.py
-PYTHONPATH=. python3 scripts/build_crosswalk.py
-
-# Pre-warm manufacturer evidence cache (run before online batch)
-PYTHONPATH=. python3 scripts/prewarm_cache.py --filter branded --workers 4
-
-# Full batch with dedup merge + parallel workers
-PYTHONPATH=. python3 cli.py enrich --dedupe --workers 4 --xlsx --provenance output/field_provenance.json
-
-# Optional LLM fallback for cryptic rows with unknown brand (off by default)
-export UNILOG_LLM_ENABLED=1
-export OPENAI_API_KEY=sk-your-key
-export UNILOG_LLM_MODEL=gpt-4o-mini   # cheapest; ~$0.02 for 50 rows
-export UNILOG_LLM_MAX_CALLS=50        # hard cap per run
-PYTHONPATH=. python3 cli.py enrich --limit 50
-
-# Run tests (hermetic, offline by default; ~2s)
-pytest -q
-
-# Measure quality (offline-deterministic by default)
-PYTHONPATH=. python3 scripts/measure.py --compare baseline latest
-
-# Run API
-uvicorn app.main:app --reload
+PYTHONPATH=. python3 cli.py golden          # 100% deterministic, zero network
+PYTHONPATH=. pytest -q                      # 77 hermetic tests, ~2s
+PYTHONPATH=. python3 cli.py batch --filter all --xlsx --workers 4 \
+    --provenance output/field_provenance.json
+uvicorn app.main:app --port 8000            # web UI at http://localhost:8000
 ```
 
-## Project layout
+Deployed on Vercel (`vercel.json`, `api/index.py`): offline mode, delivery artifacts seeded,
+SSE live-enrichment stream, per-value provenance drawer, CSV/XLSX/provenance downloads.
 
-```text
-app/                 FastAPI entrypoint and config
-ingest/              CSV I/O and placeholder handling
-identity/            Brand and manufacturer resolution
-classify/            Category routing and templates
-sources/             URL discovery and browser fetch fallback
-extract/             HTML, PDF, cache, and desc parsing
-normalize/           Attribute mapping
-compose/             Descriptions and asset filenames
-validate/            Rules, golden diff, batch reports
-pipeline.py          Row enrichment orchestration
-cli.py               Command line interface
-data/evidence_cache/ Manufacturer evidence cache (seed + live updates)
-guidelines/          Challenge input, expected output, solution guide
-```
+## Repository map
 
-## Supported categories
-
-| Category | Template | Source strategy |
-|----------|----------|-----------------|
-| Built-in dishwashers | `built_in_dishwasher` | Manufacturer HTML + PDF + evidence cache |
-| Metal cut-off discs | `metal_cutoff_disc` | Part description parsing + brand routing |
-
-## Commands
-
-| Command | Purpose |
-|---------|---------|
-| `python3 cli.py golden` | Compare golden rows (PDSH4816AF, WDTS7024RZ) |
-| `python3 cli.py enrich` | Batch enrich CSV |
-| `python3 cli.py batch --filter dishwasher` | Enrich subset with JSON validation report |
-| `uvicorn app.main:app --reload` | Upload and download API |
-
-## Validation
-
-Golden scoring compares non-empty expected fields only. Internal distributor IDs such as `PART_NUMBER` and `SKU - MY_PART_NUMBER` are not available in the input file and may remain blank.
-
-Integrity rules enforced by the pipeline:
-- Values without manufacturer/cache evidence cite `input:Part_Desc` and can never reach the "high" confidence band
-- `Actual Image (Yes/No)` is "Yes" only when verifiable manufacturer imagery evidence exists
-- Live fetching is uniform across categories, cache-first, budgeted (`UNILOG_FETCH_BUDGET`, default 150), with kill switch (`UNILOG_LIVE_FETCH=0`)
-
-Optional Playwright browser fetch is used when manufacturer pages return HTTP 403.
+| Path | Purpose |
+|---|---|
+| `pipeline.py` | Row orchestration, fail-safe per row |
+| `app/` | FastAPI + redesigned web UI (Enrich / Batch / Catalog / Quality / Export) |
+| `scripts/` | measure, compliance, deck builder, artifact restore, reference importer |
+| `demo_build/` | Reproducible 3-minute demo film (Remotion + verified UI capture) |
+| `guidelines/` | Challenge input, expected output format, solution guide |
+| `tests/` | 77 hermetic tests incl. integrity, uniform-fetch, units-honesty |
 
 ## License
 

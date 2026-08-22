@@ -1,0 +1,58 @@
+{
+  "mpn": "174-0CSB3-15W",
+  "mfr_url": "https://leviton.com/error-pages/404",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Product Type",
+      "value": "Industrial Product",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "174-OCSB3-15A Toggle 3-Way Switch White",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.55
+    },
+    {
+      "field": "Finish",
+      "value": "White",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "174-OCSB3-15A Toggle 3-Way Switch White",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.65
+    },
+    {
+      "field": "Color",
+      "value": "White",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "174-OCSB3-15A Toggle 3-Way Switch White",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.65
+    },
+    {
+      "field": "Wattage",
+      "value": "18",
+      "uom": "W",
+      "source_url": "https://leviton.com/error-pages/404",
+      "quote": "18W",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "ELECTRIC",
+      "uom": "",
+      "source_url": "https://leviton.com/error-pages/404",
+      "quote": "ELECTRIC",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

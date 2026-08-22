@@ -21,3 +21,13 @@ data/raw/
 guidelines/.~lock.*
 *.lock
 .DS_Store
+.vercel
+demo_build/recordings/
+demo_build/public/
+demo_build/node_modules/
+demo_build/demo.mp4
+demo_build/.wsl*
+!output/batch_enriched.csv
+!output/batch_enriched.xlsx
+!output/batch_report.json
+!output/field_provenance.json

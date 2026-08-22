@@ -1,0 +1,49 @@
+{
+  "mpn": "161-04720-00C",
+  "mfr_url": "https://leviton.com/error-pages/404",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Product Type",
+      "value": "Industrial Product",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "1610472000C 15A 125V Cord Conn",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.55
+    },
+    {
+      "field": "Voltage Rating",
+      "value": "125",
+      "uom": "V",
+      "source_url": "input:Part_Desc",
+      "quote": "1610472000C 15A 125V Cord Conn",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.7
+    },
+    {
+      "field": "Wattage",
+      "value": "18",
+      "uom": "W",
+      "source_url": "https://leviton.com/error-pages/404",
+      "quote": "18W",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "ELECTRIC",
+      "uom": "",
+      "source_url": "https://leviton.com/error-pages/404",
+      "quote": "ELECTRIC",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

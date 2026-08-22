@@ -1,0 +1,76 @@
+{
+  "mpn": "G1941",
+  "mfr_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-industrial-surface-cover-1-2-raised-duplex-toggle/p/G1941",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Product Type",
+      "value": "Electrical Wire",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "G1941UPC 4\" Sq Cover Sw/Outlet",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.7
+    },
+    {
+      "field": "Length",
+      "value": "4",
+      "uom": "in",
+      "source_url": "input:Part_Desc",
+      "quote": "G1941UPC 4\" Sq Cover Sw/Outlet",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.65
+    },
+    {
+      "field": "Size",
+      "value": "4",
+      "uom": "in",
+      "source_url": "input:Part_Desc",
+      "quote": "G1941UPC 4\" Sq Cover Sw/Outlet",
+      "extractor": "generic_desc_parser",
+      "confidence": 0.65
+    },
+    {
+      "field": "Material",
+      "value": "Aluminum",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-industrial-surface-cover-1-2-raised-duplex-toggle/p/G1941",
+      "quote": "Aluminum",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Color",
+      "value": "Silver",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-industrial-surface-cover-1-2-raised-duplex-toggle/p/G1941",
+      "quote": "Color Silver",
+      "extractor": "html_regex",
+      "confidence": 0.75
+    },
+    {
+      "field": "Fuel Type",
+      "value": "Gas",
+      "uom": "",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-industrial-surface-cover-1-2-raised-duplex-toggle/p/G1941",
+      "quote": "Gas",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    },
+    {
+      "field": "Diameter",
+      "value": "4",
+      "uom": "in",
+      "source_url": "https://www.southwire.com/electrical-components/steel-boxes-covers-accessories/4-square-industrial-surface-cover-1-2-raised-duplex-toggle/p/G1941",
+      "quote": "4 in",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

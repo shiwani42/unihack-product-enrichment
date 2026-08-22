@@ -1,4 +1,5 @@
 import json
+import shutil
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
@@ -21,6 +22,27 @@ LAST_REPORT_PATH = OUTPUT_DIR / "last_report.json"
 TEMPLATES_DIR = Path(__file__).resolve().parents[1] / "classify" / "templates"
 
 app.mount("/assets", StaticFiles(directory=STATIC_DIR), name="assets")
+
+_SEED_FILES = ("batch_enriched.csv", "batch_enriched.xlsx", "enriched.xlsx",
+               "field_provenance.json", "last_report.json")
+
+
+def _seed_output_dir() -> None:
+    """Serverless cold start: /tmp is empty, so copy bundled delivery artifacts."""
+    if OUTPUT_DIR == Path(__file__).resolve().parents[1] / "output":
+        return
+    try:
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        for name in _SEED_FILES:
+            src = Path(__file__).resolve().parents[1] / "output" / name
+            dst = OUTPUT_DIR / name
+            if src.exists() and not dst.exists():
+                shutil.copy2(src, dst)
+    except Exception:
+        pass
+
+
+_seed_output_dir()
 
 
 PRESETS = [
@@ -413,6 +435,8 @@ def download_csv() -> FileResponse:
     if not path.exists():
         path = OUTPUT_DIR / "enriched.csv"
     if not path.exists():
+        path = OUTPUT_DIR / "batch_enriched.csv"
+    if not path.exists():
         headers = load_output_headers()
         rows = read_input_rows(DEFAULT_INPUT)[:10]
         enriched, _ = _enrich_rows(rows)
@@ -423,6 +447,8 @@ def download_csv() -> FileResponse:
 @app.get("/download/xlsx")
 def download_xlsx() -> FileResponse:
     path = OUTPUT_DIR / "enriched.xlsx"
+    if not path.exists():
+        path = OUTPUT_DIR / "batch_enriched.xlsx"
     if not path.exists():
         csv_path = OUTPUT_DIR / "upload_output.csv"
         if not csv_path.exists():

@@ -26,7 +26,7 @@ RAW_CACHE_TTL_DAYS = int(os.environ.get("UNILOG_RAW_CACHE_TTL_DAYS", "30"))
 PDF_MAX_BYTES = 4_000_000
 USER_AGENT = "UniHack-Enrichment/1.0 (+https://github.com/shiwani42/unihack-product-enrichment)"
 
-OUTPUT_DIR = ROOT / "output"
+OUTPUT_DIR = Path(os.environ.get("UNILOG_OUTPUT_DIR", str(ROOT / "output")))
 CACHE_DIR = ROOT / "data" / "cache"
 RAW_CACHE_DIR = ROOT / "data" / "raw"
 TAXONOMY_PATH = ROOT / "data" / "taxonomy" / "leaves.json"

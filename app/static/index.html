@@ -9,30 +9,27 @@
 <body>
   <header class="topnav">
     <div class="topnav-inner">
-      <a class="wordmark" href="#" data-nav="playground">
+      <a class="wordmark" href="#/enrich">
         <span class="wordmark-mark"></span>
         Unilog
       </a>
-      <nav class="topnav-links">
-        <button class="nav-item active" data-page="playground" type="button">Enrich</button>
-        <button class="nav-item" data-page="enrich" type="button">Batch</button>
-        <button class="nav-item" data-page="results" type="button">Catalog</button>
-        <button class="nav-item" data-page="taxonomy" type="button">Quality</button>
-        <button class="nav-item" data-page="export" type="button">Export</button>
+      <nav class="topnav-links" aria-label="Primary">
+        <button class="nav-item active" data-page="enrich" type="button" aria-current="page">Enrich</button>
+        <button class="nav-item" data-page="catalog" type="button">Catalog</button>
       </nav>
       <div class="topnav-status">
-        <span class="status-pulse"></span>
-        <span id="nav-golden">100% golden</span>
+        <span id="nav-golden" hidden></span>
       </div>
     </div>
   </header>
 
   <main class="main">
     <!-- ============ ENRICH ============ -->
-    <section id="page-playground" class="page active">
+    <section id="page-enrich" class="page active">
       <div class="hero">
         <h1 class="hero-title">Six columns in.<br />252 out.</h1>
-        <p class="hero-sub">Deterministic catalog enrichment. Every field traced to its source, every value validated against the delivery standard.</p>
+        <p class="hero-sub">Deterministic catalog enrichment. Every field traced to its source, every value validated against the delivery standard. Blank beats invented.</p>
+        <p id="proof-band" class="proof-band" hidden></p>
       </div>
 
       <div class="workbench">
@@ -50,24 +47,27 @@
               <label for="sb_desc">Description</label>
               <textarea id="sb_desc" name="Part_Desc" rows="3" placeholder="Built-In Dishwasher 24 in 49 dBA 120 V 15 A Leg" required></textarea>
             </div>
-            <div class="field-pair">
-              <div class="field">
-                <label for="sb_dib">DIB brand</label>
-                <input id="sb_dib" name="DIB_Brand" type="text" placeholder="FRIGIDAIRE GALLERY" />
+            <details class="brand-hints">
+              <summary>Brand hints <span class="hint-note">optional — distributor brand columns</span></summary>
+              <div class="field-pair">
+                <div class="field">
+                  <label for="sb_dib">DIB brand</label>
+                  <input id="sb_dib" name="DIB_Brand" type="text" placeholder="FRIGIDAIRE GALLERY" />
+                </div>
+                <div class="field">
+                  <label for="sb_e1">E1 brand</label>
+                  <input id="sb_e1" name="E1_Brand" type="text" placeholder="DIB" />
+                </div>
+                <div class="field">
+                  <label for="sb_unilog">Unilog brand</label>
+                  <input id="sb_unilog" name="Unilog_Brand" type="text" placeholder="FRIGIDAIRE" />
+                </div>
+                <div class="field">
+                  <label for="sb_manuf">Manufacturer</label>
+                  <input id="sb_manuf" name="Part_Manuf" type="text" placeholder="APPDE" />
+                </div>
               </div>
-              <div class="field">
-                <label for="sb_e1">E1 brand</label>
-                <input id="sb_e1" name="E1_Brand" type="text" placeholder="DIB" />
-              </div>
-              <div class="field">
-                <label for="sb_unilog">Unilog brand</label>
-                <input id="sb_unilog" name="Unilog_Brand" type="text" placeholder="FRIGIDAIRE" />
-              </div>
-              <div class="field">
-                <label for="sb_manuf">Manufacturer</label>
-                <input id="sb_manuf" name="Part_Manuf" type="text" placeholder="APPDE" />
-              </div>
-            </div>
+            </details>
             <div class="wb-actions">
               <button id="sbEnrichBtn" class="btn btn-primary" type="submit">Enrich</button>
               <button id="playgroundResetBtn" class="btn btn-ghost" type="button">Reset</button>
@@ -88,90 +88,84 @@
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- ============ BATCH ============ -->
-    <section id="page-enrich" class="page">
-      <div class="page-head">
-        <h2 class="page-title">Batch</h2>
-        <p class="page-sub">Stream the catalog through the pipeline, or upload your own file.</p>
-      </div>
+      <hr class="rule" />
 
-      <div class="batch-controls">
-        <div class="field">
-          <label for="sampleLimit">Rows</label>
-          <select id="sampleLimit">
-            <option value="10" selected>10</option>
-            <option value="25">25</option>
-            <option value="100">100</option>
-            <option value="1000">1,000</option>
-          </select>
+      <div class="run-panel">
+        <div class="section-head">
+          <h3 class="section-title">Batch</h3>
+          <p class="section-sub">Stream the sample catalog through the pipeline, or bring your own CSV.</p>
         </div>
-        <div class="field">
-          <label for="sampleFilter">Segment</label>
-          <select id="sampleFilter">
-            <option value="" selected>All</option>
-            <option value="dishwasher">Dishwashers</option>
-            <option value="abrasive">Abrasives</option>
-            <option value="fan">Fans</option>
-            <option value="pipe">Pipe fittings</option>
-          </select>
-        </div>
-        <div class="batch-controls-actions">
-          <button id="liveBtn" class="btn btn-primary" type="button">Run batch</button>
-        </div>
-      </div>
 
-      <div class="upload-row">
-        <input id="file" type="file" accept=".csv" />
-        <input id="limit" type="number" min="0" max="1000" value="0" placeholder="Limit (0 = all)" />
-        <button id="uploadBtn" class="btn btn-secondary" type="button">Upload &amp; enrich</button>
-      </div>
+        <div class="run-controls">
+          <div class="run-sample">
+            <div class="field">
+              <label for="sampleLimit">Rows</label>
+              <select id="sampleLimit">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="100">100</option>
+                <option value="1000">1,000</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="sampleFilter">Segment</label>
+              <select id="sampleFilter">
+                <option value="" selected>All</option>
+                <option value="dishwasher">Dishwashers</option>
+                <option value="appde">APPDE brands</option>
+              </select>
+            </div>
+            <button id="liveBtn" class="btn btn-primary" type="button">Run batch</button>
+          </div>
 
-      <div class="batch-progress">
-        <div class="batch-counter-row">
-          <span id="progress-message" class="batch-status">Ready.</span>
-          <div class="batch-stats">
-            <div class="bstat"><span id="stat-rows" class="bstat-num">0</span><span class="bstat-lbl">processed</span></div>
-            <div class="bstat"><span id="stat-filled" class="bstat-num">—</span><span class="bstat-lbl">fields / SKU</span></div>
-            <div class="bstat"><span id="stat-high" class="bstat-num">0</span><span class="bstat-lbl">high confidence</span></div>
-            <div class="bstat"><span id="stat-issues" class="bstat-num">0</span><span class="bstat-lbl">flagged</span></div>
+          <span class="run-or">or</span>
+
+          <div class="run-upload">
+            <input id="file" type="file" accept=".csv" hidden />
+            <label id="dropzone" for="file" class="dropzone" tabindex="0" role="button" aria-label="Upload CSV file">
+              <span id="dropzone-label" class="dropzone-label">Drop a CSV here, or browse</span>
+            </label>
+            <button id="uploadBtn" class="btn btn-secondary" type="button" disabled>Enrich file</button>
           </div>
         </div>
 
-        <div class="progress-bar-wrap"><div id="progress-fill" class="progress-fill"></div></div>
+        <div id="batch-progress" class="batch-progress" hidden>
+          <div class="batch-counter-row">
+            <span id="progress-message" class="batch-status">Ready.</span>
+            <div class="batch-stats">
+              <div class="bstat"><span id="stat-rows" class="bstat-num">0</span><span class="bstat-lbl">processed</span></div>
+              <div class="bstat"><span id="stat-filled" class="bstat-num">—</span><span class="bstat-lbl">fields / SKU</span></div>
+              <div class="bstat"><span id="stat-high" class="bstat-num">0</span><span class="bstat-lbl">high confidence</span></div>
+              <div class="bstat"><span id="stat-issues" class="bstat-num">0</span><span class="bstat-lbl">flagged</span></div>
+            </div>
+          </div>
 
-        <div id="active-sku-ticker" class="active-sku-ticker" style="display:none"></div>
+          <div class="progress-bar-wrap"><div id="progress-fill" class="progress-fill"></div></div>
 
-        <div class="stepper" id="pipeline-stepper">
-          <div class="step-badge" data-step="0"><span>1</span>Ingest</div>
-          <div class="step-badge" data-step="1"><span>2</span>Resolve</div>
-          <div class="step-badge" data-step="2"><span>3</span>Classify</div>
-          <div class="step-badge" data-step="3"><span>4</span>Source</div>
-          <div class="step-badge" data-step="4"><span>5</span>Extract</div>
-          <div class="step-badge" data-step="5"><span>6</span>Normalize</div>
-          <div class="step-badge" data-step="6"><span>7</span>Compose</div>
-          <div class="step-badge" data-step="7"><span>8</span>Validate</div>
-        </div>
-
-        <pre id="progress-log" class="progress-log"></pre>
-        <div class="log-foot">
-          <span id="last-op"></span>
-          <button id="clearLogBtn" class="btn btn-ghost btn-xs" type="button">Clear log</button>
+          <details class="log-details">
+            <summary>Details</summary>
+            <pre id="progress-log" class="progress-log"></pre>
+          </details>
         </div>
       </div>
     </section>
 
     <!-- ============ CATALOG ============ -->
-    <section id="page-results" class="page">
+    <section id="page-catalog" class="page">
       <div class="page-head page-head-row">
         <div>
           <h2 class="page-title">Catalog</h2>
           <p class="page-sub">Every enriched record, ready for PIM upload. Select a row for the full view.</p>
         </div>
         <div class="page-actions">
+          <span class="export-group">
+            <span class="microlabel">Export</span>
+            <a class="btn btn-secondary btn-sm" href="/download/csv" download>CSV</a>
+            <a class="btn btn-secondary btn-sm" href="/download/xlsx" download>Excel</a>
+            <a class="btn btn-ghost btn-sm" href="/download/provenance" download>Provenance</a>
+          </span>
           <button id="refreshBtn" class="btn btn-ghost btn-sm" type="button">Refresh</button>
-          <a class="btn btn-secondary btn-sm" href="/download/csv" download>Download CSV</a>
         </div>
       </div>
 
@@ -182,13 +176,6 @@
         <div class="filter-group">
           <select id="categoryFilter" class="filter-select">
             <option value="">All categories</option>
-            <option value="builtin_dishwasher">Built-in Dishwashers</option>
-            <option value="metal_cutoff_disc">Metal Cut-off Discs</option>
-            <option value="abrasive_disc">Abrasive Grip Discs</option>
-            <option value="ceiling_fan">Ceiling Fans</option>
-            <option value="electric_range">Electric Ranges</option>
-            <option value="lighting_fixture">Pendant Lighting</option>
-            <option value="pipe_nipple">Pipe Fittings</option>
           </select>
           <select id="confidenceFilter" class="filter-select">
             <option value="">All confidence</option>
@@ -220,7 +207,7 @@
               <td colspan="7">
                 <div class="empty">
                   <h4>No records yet</h4>
-                  <p>Run a batch to populate the catalog.</p>
+                  <p>Run an enrichment to populate the catalog.</p>
                 </div>
               </td>
             </tr>
@@ -228,140 +215,11 @@
         </table>
       </div>
     </section>
-
-    <!-- ============ QUALITY ============ -->
-    <section id="page-taxonomy" class="page">
-      <div class="page-head page-head-row">
-        <div>
-          <h2 class="page-title">Quality</h2>
-          <p class="page-sub">Benchmarked against the golden delivery standard, field by field.</p>
-        </div>
-        <div class="page-actions">
-          <button id="refreshGoldenBtn" class="btn btn-ghost btn-sm" type="button">Re-evaluate</button>
-        </div>
-      </div>
-
-      <div class="golden-row">
-        <div class="golden-hero">
-          <span id="golden-avg" class="golden-num">—</span>
-          <span class="golden-cap">average field accuracy</span>
-        </div>
-        <div id="golden-grid" class="golden-grid"></div>
-      </div>
-
-      <div class="rule"></div>
-
-      <div class="section-head">
-        <h3 class="section-title">Pipeline</h3>
-        <p class="section-sub">Eight deterministic stages. No black boxes.</p>
-      </div>
-      <ol class="stages">
-        <li><strong>Ingest</strong><span>Normalize the six distributor columns</span></li>
-        <li><strong>Resolve</strong><span>Waterfall brand resolution, canonical clusters</span></li>
-        <li><strong>Classify</strong><span>Leaf taxonomy across 14 templates</span></li>
-        <li><strong>Source</strong><span>Manufacturer-direct evidence only</span></li>
-        <li><strong>Extract</strong><span>HTML, JSON-LD and PDF spec parsing</span></li>
-        <li><strong>Normalize</strong><span>Standardized values, units, crosswalks</span></li>
-        <li><strong>Compose</strong><span>Five commercial descriptions</span></li>
-        <li><strong>Validate</strong><span>LOV, sanity and provenance checks</span></li>
-      </ol>
-
-      <div class="rule"></div>
-
-      <div class="section-head">
-        <h3 class="section-title">Taxonomy</h3>
-        <p class="section-sub" id="templateCountSub"></p>
-      </div>
-      <div id="taxonomy-templates-list" class="tax-list"></div>
-
-      <div class="rule"></div>
-
-      <div class="section-head">
-        <h3 class="section-title">List of values</h3>
-        <p class="section-sub">Permissible values enforced at validation.</p>
-      </div>
-      <div class="lov-groups">
-        <div class="lov-block">
-          <h4>Dishwasher finishes</h4>
-          <div class="lov-tags">
-            <span class="lov-pill">Stainless Steel</span>
-            <span class="lov-pill">Black Stainless Steel</span>
-            <span class="lov-pill">White</span>
-            <span class="lov-pill">Black</span>
-            <span class="lov-pill">Panel Ready</span>
-          </div>
-        </div>
-        <div class="lov-block">
-          <h4>Tub materials</h4>
-          <div class="lov-tags">
-            <span class="lov-pill">Stainless Steel</span>
-            <span class="lov-pill">Plastic</span>
-            <span class="lov-pill">Hybrid</span>
-          </div>
-        </div>
-        <div class="lov-block">
-          <h4>Standard units</h4>
-          <div class="lov-tags">
-            <span class="lov-pill">dBA</span>
-            <span class="lov-pill">in / mm</span>
-            <span class="lov-pill">RPM</span>
-            <span class="lov-pill">CFM</span>
-            <span class="lov-pill">V / A</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ EXPORT ============ -->
-    <section id="page-export" class="page">
-      <div class="page-head">
-        <h2 class="page-title">Export</h2>
-        <p class="page-sub">Deliverables in the standard 252-column format.</p>
-      </div>
-
-      <div class="export-list">
-        <a class="export-row" href="/download/csv" download>
-          <div>
-            <h3>CSV</h3>
-            <p>Standard 252-column delivery format.</p>
-          </div>
-          <span class="export-go">Download</span>
-        </a>
-        <a class="export-row" href="/download/xlsx" download>
-          <div>
-            <h3>Excel</h3>
-            <p>Formatted workbook with styled headers and quality sheet.</p>
-          </div>
-          <span class="export-go">Download</span>
-        </a>
-        <a class="export-row" href="/download/provenance" download>
-          <div>
-            <h3>Provenance</h3>
-            <p>Field-to-source citation graph, as JSON.</p>
-          </div>
-          <span class="export-go">Download</span>
-        </a>
-      </div>
-
-      <div class="rule"></div>
-
-      <div class="section-head">
-        <h3 class="section-title">Delivery standard</h3>
-      </div>
-      <ul class="standards">
-        <li>Golden accuracy — exact match on both reference SKUs</li>
-        <li>252 columns, original order and headers preserved</li>
-        <li>Five descriptions within character limits</li>
-        <li>50 attribute slots with standardized units</li>
-        <li>Manufacturer-direct sourcing only</li>
-        <li>100% row processing, no silent failures</li>
-      </ul>
-    </section>
   </main>
 
   <!-- ============ DRAWER ============ -->
   <div id="drawerBackdrop" class="drawer-backdrop"></div>
-  <aside id="drawer" class="drawer">
+  <aside id="drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerMpn">
     <div class="drawer-head">
       <div>
         <div class="drawer-mpn-row">
@@ -374,30 +232,19 @@
     </div>
 
     <div class="drawer-tabs">
-      <button class="drawer-tab active" data-dtab="overview" type="button">Diff</button>
-      <button class="drawer-tab" data-dtab="specs" type="button">Attributes</button>
-      <button class="drawer-tab" data-dtab="descriptions" type="button">Descriptions</button>
-      <button class="drawer-tab" data-dtab="storefront" type="button">Storefront</button>
-      <button class="drawer-tab" data-dtab="sources" type="button">Sources</button>
-      <button class="drawer-tab" data-dtab="assets" type="button">Assets</button>
-      <button class="drawer-tab" data-dtab="validation" type="button">Validation</button>
-      <button class="drawer-tab" data-dtab="raw" type="button">Raw record</button>
+      <button class="drawer-tab active" data-dtab="record" type="button">Record</button>
+      <button class="drawer-tab" data-dtab="evidence" type="button">Evidence</button>
+      <button class="drawer-tab" data-dtab="audit" type="button">Audit</button>
     </div>
 
     <div class="drawer-body">
-      <div id="dtab-overview" class="drawer-panel active"></div>
-      <div id="dtab-specs" class="drawer-panel"></div>
-      <div id="dtab-descriptions" class="drawer-panel"></div>
-      <div id="dtab-storefront" class="drawer-panel"></div>
-      <div id="dtab-sources" class="drawer-panel"></div>
-      <div id="dtab-assets" class="drawer-panel"></div>
-      <div id="dtab-validation" class="drawer-panel"></div>
-      <div id="dtab-raw" class="drawer-panel"></div>
+      <div id="dtab-record" class="drawer-panel active"></div>
+      <div id="dtab-evidence" class="drawer-panel"></div>
+      <div id="dtab-audit" class="drawer-panel"></div>
     </div>
   </aside>
 
-  <div id="toast" class="toast"></div>
-  <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="/assets/app.js"></script>
 </body>
 </html>
