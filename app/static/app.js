@@ -213,7 +213,6 @@ el("presetSelect").addEventListener("change", () => {
 function resetResultPanel() {
   el("wbOutput").hidden = true;
   el("sb-result-container").innerHTML = "";
-  el("sb-status-sub").textContent = "";
   el("sbOpenDrawerBtn").hidden = true;
 }
 
@@ -226,7 +225,6 @@ async function runSandboxEnrichment() {
   currentSandboxPreview = null;
   el("wbOutput").hidden = false;
   el("sbOpenDrawerBtn").hidden = true;
-  el("sb-status-sub").textContent = "";
 
   container.innerHTML =
     '<div class="skeleton skeleton-line short" style="height:22px;margin-bottom:0.75rem"></div>' +
@@ -255,7 +253,6 @@ async function runSandboxEnrichment() {
     currentSandboxPreview = data.preview;
     renderSandboxOutput(data.preview);
     el("sbOpenDrawerBtn").hidden = false;
-    el("sb-status-sub").textContent = `${data.preview.filled_fields} / ${TOTAL_COLUMNS} fields \u00b7 ${data.preview.completeness_pct}%`;
   } catch (err) {
     resetResultPanel();
     showToast("Enrichment failed: " + err.message, true);
@@ -280,7 +277,6 @@ function renderSandboxOutput(p) {
       </div>
       <div class="result-figures">
         <span class="result-conf">${escapeHtml(p.confidence_band)}</span>
-        <span class="result-fields">${p.filled_fields} / ${TOTAL_COLUMNS} fields</span>
       </div>
     </div>
 
