@@ -250,3 +250,31 @@ Independent audit found dishwasher-bias, fabricated values, self-cited provenanc
 - **Test Suite**: `tests/test_api.py` with 5 new unit tests (28 total tests).
 
 ---
+
+## 2026-08-23 — Change #9: First-principles UI redesign (less is more)
+
+| Metric | Before | After | Delta | Kept? |
+|--------|--------|-------|-------|-------|
+| Golden avg % | **100%** | **100%** | 0 (held) | KEEP |
+| Top-level pages | 5 (Enrich / Batch / Catalog / Quality / Export) | 2 (Enrich / Catalog) + 3-tab drawer | −3 pages | KEEP |
+| Drawer tabs | 8 (with duplication + empty states) | 3 (Record / Evidence / Audit) | −5 tabs | KEEP |
+| Batch feedback elements | 7 (status, stats, bar, ticker, stepper, log, clear) | 3 (status + bar + stats; log behind disclosure) | −4 | KEEP |
+| Fake signals | 8-step stepper cycling per row `(i-1) % 8`; pulsing status dot; hardcoded "100% golden" | None — progress reflects real events; proof band renders only after `/api/golden` succeeds | honesty | KEEP |
+| Offline resilience | Google Fonts CDN | Self-hosted Inter / JetBrains Mono variable woff2 | hermetic | KEEP |
+| Deep linking | None (refresh loses place) | Hash router: `#/enrich`, `#/catalog`, `#/record/<mpn>` | +deep links | KEEP |
+
+**Verdict:** KEEP
+
+**Rationale:** every element must (a) get input in, (b) show the transformation with receipts, or (c) hand off the output. Everything else was decoration.
+
+**Changed:**
+- **Merged input flow**: single-row sandbox and batch (sample stream or CSV dropzone) live on one Enrich page; brand placeholder fields collapsed under "Brand hints".
+- **Catalog as home base**: results land here; Export is a button group (CSV / XLSX / Provenance) instead of a page.
+- **Drawer restructured to three question-based tabs**: Record (diff, descriptions, attributes, storefront — each rendered once), Evidence (manufacturer sources + the honest-blanks statement: "N of 252 columns are intentionally blank — no manufacturer evidence was found"), Audit (validation findings + raw 252-column table). Escape closes; focus trapped and restored; `role="dialog"`.
+- **Honest progress**: stepper-theater and dark terminal log removed; completion no longer force-navigates or triple-notifies (toast is errors-only).
+- **Golden proof promoted** from a buried Quality page into the Enrich hero as clickable reference-SKU chips that re-run the enrichment.
+- **Copy buttons** moved to a registry + event delegation (no inline onclick string-escaping); single acknowledgment (button morph, no toast).
+- **Removed**: confetti canvas, dead `quickDemoBtn` listener, hardcoded LOV/taxonomy reference sections, hardcoded category filter options (now derived from `/api/taxonomy`).
+- **Demo film re-recorded** (91.8 s, 2754 frames) against the new UI; storyboard timings synced to land at exactly 178.0 s; vitest contracts green (12/12).
+
+---

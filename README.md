@@ -71,7 +71,7 @@ SSE live-enrichment stream, per-value provenance drawer, CSV/XLSX/provenance dow
 | Path | Purpose |
 |---|---|
 | `pipeline.py` | Row orchestration, fail-safe per row |
-| `app/` | FastAPI + redesigned web UI (Enrich / Batch / Catalog / Quality / Export) |
+| `app/` | FastAPI + redesigned web UI (Enrich / Catalog; record drawer: Record / Evidence / Audit) |
 | `scripts/` | measure, compliance, deck builder, artifact restore, reference importer |
 | `demo_build/` | Reproducible 3-minute demo film (Remotion + verified UI capture) |
 | `guidelines/` | Challenge input, expected output format, solution guide |

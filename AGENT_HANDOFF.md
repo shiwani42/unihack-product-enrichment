@@ -206,13 +206,18 @@ Routing rules: `classify/routing_rules.json` (ordered, first match wins; generic
 
 **URL:** http://127.0.0.1:8000 (when uvicorn running)
 
-Screens: Dashboard (golden scores), Live Enrichment (SSE stream), Catalog Grid, Export.
+Screens: **Enrich** (hero with golden proof band, single-row sandbox with presets, batch stream with honest progress — bar + counters, log behind a "Details" disclosure) and **Catalog** (search/filter, per-row drawer, export group: CSV / XLSX / Provenance). Hash-routed: `#/enrich`, `#/catalog`, `#/record/<mpn>` (deep-linkable drawer).
+
+The record drawer has three tabs — **Record** (input→output diff, descriptions, attributes, storefront preview), **Evidence** (manufacturer sources + honest-blanks statement) and **Audit** (validation findings + raw 252-column record). Escape closes it; focus is trapped and restored.
 
 API endpoints:
-- `GET /api/golden` — golden benchmark scores
+- `GET /api/presets` — sample SKUs for the sandbox
+- `GET /api/golden` — golden benchmark scores (feeds the proof band; hidden on failure, never hardcoded)
+- `GET /api/taxonomy` — category templates (feeds the catalog filter)
+- `GET /api/last-run` — persisted batch results
 - `GET /api/enrich/stream?limit=5&filter=dishwasher` — SSE live enrichment
-- `POST /enrich/sample`, `POST /enrich` — batch enrich
-- `GET /download/latest` — CSV download
+- `POST /api/enrich/single`, `POST /enrich/sample`, `POST /enrich` — single / sample batch / uploaded-file batch
+- `GET /download/latest` (or `/download/csv`), `/download/xlsx`, `/download/provenance` — delivery artifacts
 
 ---
 

@@ -13,7 +13,7 @@ URLs, and exports a delivery-ready 252-column record — proven, not promised.
 |---|----|--------|---------|
 | S1 | cold-open | 520 | dark card: "Distributors hand you six columns." + cryptic row `DCB518ASTS06G — Diablo 1/2x18 Sanding Belt` |
 | S2 | mechanism | 690 | 5 pipeline cards; "Rules first. LLM only for the last mile. Blank beats invented." |
-| S3 | live-proof | 2700 | recorded walkthrough in a browser frame with slow zooms + captions: intro → live enrich → provenance drawer → batch stream → golden 100% → export |
+| S3 | live-proof | 2700 | recorded walkthrough in a browser frame with slow zooms + captions: intro → live enrich → evidence drawer → batch stream → golden proof band → catalog export |
 | S4 | trust | 842 | stat cards: 134/134 fields vs organizer expected output (2 reference SKUs), 1000/1000 rows classified, 77 hermetic tests, high-confidence evidence rule |
 | S5 | close | 660 | unilog wordmark, tagline, GitHub URL, thExplorers; final frame holds ~3 s |
 
@@ -22,11 +22,13 @@ Total = 5412 scene frames − 4×18 transition overlap = 5340 frames = 178.00 s.
 ## Real evidence
 
 - `recordings/walkthrough.mp4` — one continuous 1920x1080 30 fps CFR Playwright
-  recording (110.633 s, h264/yuv420p, 3319 frames) of the real app at
-  http://localhost:8000: hero load → type MPN/brand/description → Enrich →
-  Catalog row → drawer → Sources tab → Batch run to completion (1000 rows) →
-  Quality → Export CSV download. Validated by `scripts/validate_recording.py`
-  and re-validated inside `tests/storyboard.test.ts` via ffprobe.
+  recording (91.800 s, h264/yuv420p, 2754 frames) of the real app at
+  http://localhost:8000: hero load with the golden proof band → type MPN +
+  description → Enrich → Catalog row → drawer Evidence tab (closed via Escape) →
+  batch run to completion (1000 rows) → golden SKU re-enriched from the proof
+  band → CSV download from the catalog export group. Validated by
+  `scripts/validate_recording.py` and re-validated inside
+  `tests/storyboard.test.ts` via ffprobe.
 - `screenshots/*.png` — six 1920x1080 stills of the same live app (hero,
   enrich result, catalog table, drawer evidence, golden proof band,
   catalog export group). All stills were visually inspected at full
@@ -56,8 +58,10 @@ npm run assets         # validates captures, copies into public/, fetches fonts,
 `npm run assets` runs `scripts/validate_recording.py` (exact codec/dims/fps/
 frame-count) and `scripts/validate_screenshots.py`, copies canonical assets
 into `public/`, downloads Inter + JetBrains Mono woff2 into `public/fonts/`
-(`scripts/fetch_fonts.py`, offline after first run) and renders the
-deterministic ambient score (`scripts/generate_score.py`, 178.5 s @ 96 BPM).
+(`scripts/fetch_fonts.py`, offline after first run), renders the
+deterministic ambient score (`scripts/generate_score.py`, 178.5 s @ 96 BPM),
+and builds the timed documentary voiceover (`scripts/generate_voiceover.py`,
+OpenAI `gpt-4o-mini-tts`, mixed under the score as `public/audio/mix.wav`).
 
 ## Preview
 
@@ -96,11 +100,16 @@ ffmpeg -hide_banner -i demo.mp4 -map 0:a:0 -af volumedetect -f null - 2>&1 | gre
 ffmpeg -v error -i demo.mp4 -vf "fps=1/7.7,scale=480:-1,tile=4x6" -frames:v 1 contact_sheet_final.png
 ```
 
-Last verified output (2026-08-23):
+Last verified output (2026-08-24):
 
 - video: h264, yuv420p, 1920x1080, r_frame_rate 30/1, avg 30/1, 5340 frames
-- audio: aac, 48000 Hz, 2 channels (score mean −26.0 dB, peak −12.4 dB — no clipping)
-- duration 178.048 s, size 37,202,624 bytes, overall bit_rate 1.67 Mb/s
+- audio: aac, 48000 Hz, 2 channels — documentary VO (en-US-AndrewNeural) mixed under the score
+  (mean −20.2 dB, peak −3.4 dB — no clipping)
+- duration 178.048 s, size 41,674,355 bytes, overall bit_rate 1.87 Mb/s
+
+> **Pending re-render:** the walkthrough recording and storyboard were updated to the
+> redesigned two-page UI (91.8 s source, timings above); the rendered `demo.mp4` still
+> shows the previous UI until `npm run render` is re-run.
 
 Two-pass process: 23 representative stills (`stills/`) tiled into
 `contact_sheet_stills.png` and inspected before the full render; the encoded
