@@ -48,7 +48,7 @@ _seed_output_dir()
 PRESETS = [
     {
         "id": "frigidaire_dishwasher",
-        "name": "Frigidaire Dishwasher (Reference)",
+        "name": "Frigidaire Dishwasher",
         "badge": "Appliances",
         "Mfg_Part_Num": "PDSH4816AF",
         "Part_Desc": "Built-In Dishwasher 24 in 49 dBA 120 V 15 A Leg",
@@ -59,7 +59,7 @@ PRESETS = [
     },
     {
         "id": "whirlpool_dishwasher",
-        "name": "Whirlpool Eco Dishwasher (Reference)",
+        "name": "Whirlpool Eco Dishwasher",
         "badge": "Appliances",
         "Mfg_Part_Num": "WDTS7024RZ",
         "Part_Desc": "Eco Series Built-in Dishwasher 41 dBA 120V 10A SST",

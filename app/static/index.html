@@ -17,75 +17,70 @@
         <button class="nav-item active" data-page="enrich" type="button" aria-current="page">Enrich</button>
         <button class="nav-item" data-page="catalog" type="button">Catalog</button>
       </nav>
-      <div class="topnav-status">
-        <span id="nav-reference" hidden></span>
-      </div>
     </div>
   </header>
 
   <main class="main">
     <!-- ============ ENRICH ============ -->
     <section id="page-enrich" class="page active">
-      <div class="hero">
-        <h1 class="hero-title">Six columns in.<br />252 out.</h1>
-        <p class="hero-sub">Deterministic catalog enrichment. Every field traced to its source, every value validated against the delivery standard. Blank beats invented.</p>
-        <p id="proof-band" class="proof-band" hidden></p>
+      <div class="page-head">
+        <h2 class="page-title">Enrich</h2>
+        <p class="page-sub">Choose a sample to load its part number and distributor fields. The enriched record appears below.</p>
       </div>
 
       <div class="workbench">
         <div class="wb-input">
-          <div class="presets-row">
-            <span class="microlabel">Samples</span>
-            <div id="presets-list" class="presets-pills"></div>
-          </div>
           <form id="playgroundForm" class="wb-form">
             <div class="field">
-              <label for="sb_mpn">Part number</label>
-              <input id="sb_mpn" name="Mfg_Part_Num" type="text" placeholder="PDSH4816AF" required />
+              <label for="presetSelect">Sample</label>
+              <select id="presetSelect">
+                <option value="">Select a sample…</option>
+              </select>
             </div>
-            <div class="field">
-              <label for="sb_desc">Description</label>
-              <textarea id="sb_desc" name="Part_Desc" rows="3" placeholder="Built-In Dishwasher 24 in 49 dBA 120 V 15 A Leg" required></textarea>
-            </div>
-            <details class="brand-hints">
-              <summary>Brand hints <span class="hint-note">optional — distributor brand columns</span></summary>
+            <div id="dynamicFields" hidden>
+              <div class="field-pair">
+                <div class="field">
+                  <label for="sb_mpn">Part number</label>
+                  <input id="sb_mpn" name="Mfg_Part_Num" type="text" placeholder="Part number" required />
+                </div>
+                <div class="field">
+                  <label for="sb_desc">Description</label>
+                  <textarea id="sb_desc" name="Part_Desc" rows="2" placeholder="Distributor description" required></textarea>
+                </div>
+              </div>
               <div class="field-pair">
                 <div class="field">
                   <label for="sb_dib">DIB brand</label>
-                  <input id="sb_dib" name="DIB_Brand" type="text" placeholder="FRIGIDAIRE GALLERY" />
+                  <input id="sb_dib" name="DIB_Brand" type="text" placeholder="Optional" />
                 </div>
                 <div class="field">
                   <label for="sb_e1">E1 brand</label>
-                  <input id="sb_e1" name="E1_Brand" type="text" placeholder="DIB" />
+                  <input id="sb_e1" name="E1_Brand" type="text" placeholder="Optional" />
                 </div>
                 <div class="field">
                   <label for="sb_unilog">Unilog brand</label>
-                  <input id="sb_unilog" name="Unilog_Brand" type="text" placeholder="FRIGIDAIRE" />
+                  <input id="sb_unilog" name="Unilog_Brand" type="text" placeholder="Optional" />
                 </div>
                 <div class="field">
                   <label for="sb_manuf">Manufacturer</label>
-                  <input id="sb_manuf" name="Part_Manuf" type="text" placeholder="APPDE" />
+                  <input id="sb_manuf" name="Part_Manuf" type="text" placeholder="Optional" />
                 </div>
               </div>
-            </details>
-            <div class="wb-actions">
-              <button id="sbEnrichBtn" class="btn btn-primary" type="submit">Enrich</button>
-              <button id="playgroundResetBtn" class="btn btn-ghost" type="button">Reset</button>
+              <div class="wb-actions">
+                <button id="sbEnrichBtn" class="btn btn-primary" type="submit">Enrich</button>
+                <button id="playgroundResetBtn" class="btn btn-ghost" type="button">Reset</button>
+              </div>
             </div>
           </form>
         </div>
 
-        <div class="wb-output">
+        <div id="wbOutput" class="wb-output" hidden>
           <div class="wb-output-head">
             <span class="microlabel">Result</span>
             <span id="sb-status-sub" class="wb-output-sub"></span>
-            <button id="sbOpenDrawerBtn" class="btn btn-ghost btn-sm" style="display:none" type="button">Full record</button>
+            <button id="sbOpenDrawerBtn" class="btn btn-ghost btn-sm" type="button" hidden>Full record</button>
           </div>
-          <div id="sb-result-container" class="wb-result">
-            <div class="wb-empty">
-              <p>Run an enrichment to see the complete record.</p>
-            </div>
-          </div>
+          <div id="sb-result-container" class="wb-result"></div>
         </div>
       </div>
 
@@ -224,7 +219,7 @@
       <div>
         <div class="drawer-mpn-row">
           <h2 id="drawerMpn">—</h2>
-          <span id="drawerConfidenceBadge" class="badge high">high</span>
+          <span id="drawerConfidenceBadge" class="drawer-conf"></span>
         </div>
         <div id="drawerMeta" class="drawer-meta"></div>
       </div>

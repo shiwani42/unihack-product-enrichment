@@ -133,51 +133,7 @@ document.addEventListener("click", (e) => {
   }, 1600);
 });
 
-// ---------- Reference proof ----------
-
-function runPresetByMpn(mpn) {
-  const idx = presetsData.findIndex((p) => p.Mfg_Part_Num === mpn);
-  if (idx < 0) return;
-  applyPreset(idx);
-  go("#/enrich");
-  runSandboxEnrichment();
-}
-
-async function loadReference() {
-  let data;
-  try {
-    const res = await fetch("/api/reference");
-    data = await res.json();
-  } catch (_) {
-    return;
-  }
-  const benchmarks = data.benchmarks || [];
-  if (!benchmarks.length) return;
-
-  const navEl = el("nav-reference");
-  navEl.hidden = false;
-  navEl.textContent = `${data.average_pct}% reference`;
-
-  const band = el("proof-band");
-  band.hidden = false;
-  band.textContent = "";
-  const check = document.createElement("span");
-  check.textContent = "\u2713";
-  band.appendChild(check);
-  band.appendChild(
-    document.createTextNode(`${data.average_pct}% field accuracy against the delivery standard \u00b7 verified on `)
-  );
-  benchmarks.forEach((b, i) => {
-    if (i > 0) band.appendChild(document.createTextNode(" \u00b7 "));
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.textContent = b.mpn;
-    chip.addEventListener("click", () => runPresetByMpn(b.mpn));
-    band.appendChild(chip);
-  });
-}
-
-// ---------- Dashboard stats ----------
+// ---------- Dashboard ----------
 
 function renderDashboard() {
   const summary = lastData.summary || {};
@@ -190,6 +146,16 @@ function renderDashboard() {
 
 // ---------- Presets ----------
 
+function showDynamicFields(visible) {
+  el("dynamicFields").hidden = !visible;
+}
+
+function clearFormFields() {
+  ["sb_mpn", "sb_desc", "sb_dib", "sb_e1", "sb_unilog", "sb_manuf"].forEach((id) => {
+    el(id).value = "";
+  });
+}
+
 async function loadPresets() {
   try {
     const res = await fetch("/api/presets");
@@ -197,26 +163,18 @@ async function loadPresets() {
   } catch (err) {
     return;
   }
-  const container = el("presets-list");
-  container.innerHTML = "";
+  const select = el("presetSelect");
+  select.innerHTML = '<option value="">Select a sample…</option>';
   presetsData.forEach((p, idx) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = `preset-pill${idx === 0 ? " active" : ""}`;
-    const name = document.createElement("span");
-    name.textContent = p.name;
-    const tag = document.createElement("span");
-    tag.className = "preset-cat-tag";
-    tag.textContent = p.badge;
-    btn.append(name, tag);
-    btn.addEventListener("click", () => {
-      container.querySelectorAll(".preset-pill").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      applyPreset(idx);
-    });
-    container.appendChild(btn);
+    const opt = document.createElement("option");
+    opt.value = String(idx);
+    opt.textContent = p.name;
+    select.appendChild(opt);
   });
-  if (presetsData.length > 0) applyPreset(0);
+  const custom = document.createElement("option");
+  custom.value = "custom";
+  custom.textContent = "Custom part";
+  select.appendChild(custom);
 }
 
 function applyPreset(idx) {
@@ -230,13 +188,33 @@ function applyPreset(idx) {
   el("sb_manuf").value = p.Part_Manuf || "";
 }
 
+el("presetSelect").addEventListener("change", () => {
+  const idx = el("presetSelect").value;
+  if (idx === "") {
+    clearFormFields();
+    showDynamicFields(false);
+    resetResultPanel();
+    return;
+  }
+  if (idx === "custom") {
+    clearFormFields();
+    showDynamicFields(true);
+    resetResultPanel();
+    el("sb_mpn").focus();
+    return;
+  }
+  applyPreset(Number(idx));
+  showDynamicFields(true);
+  resetResultPanel();
+});
+
 // ---------- Single enrichment ----------
 
 function resetResultPanel() {
-  el("sb-result-container").innerHTML =
-    '<div class="wb-empty"><p>Run an enrichment to see the complete record.</p></div>';
-  el("sbOpenDrawerBtn").style.display = "none";
+  el("wbOutput").hidden = true;
+  el("sb-result-container").innerHTML = "";
   el("sb-status-sub").textContent = "";
+  el("sbOpenDrawerBtn").hidden = true;
 }
 
 async function runSandboxEnrichment() {
@@ -245,6 +223,10 @@ async function runSandboxEnrichment() {
 
   btn.disabled = true;
   btn.textContent = "Enriching\u2026";
+  currentSandboxPreview = null;
+  el("wbOutput").hidden = false;
+  el("sbOpenDrawerBtn").hidden = true;
+  el("sb-status-sub").textContent = "";
 
   container.innerHTML =
     '<div class="skeleton skeleton-line short" style="height:22px;margin-bottom:0.75rem"></div>' +
@@ -272,7 +254,7 @@ async function runSandboxEnrichment() {
     const data = await res.json();
     currentSandboxPreview = data.preview;
     renderSandboxOutput(data.preview);
-    el("sbOpenDrawerBtn").style.display = "inline-flex";
+    el("sbOpenDrawerBtn").hidden = false;
     el("sb-status-sub").textContent = `${data.preview.filled_fields} / ${TOTAL_COLUMNS} fields \u00b7 ${data.preview.completeness_pct}%`;
   } catch (err) {
     resetResultPanel();
@@ -294,46 +276,56 @@ function renderSandboxOutput(p) {
     <div class="result-head">
       <div>
         <div class="result-mpn">${escapeHtml(p.mpn)}</div>
-        <div class="result-brand">${escapeHtml(brand)} \u00b7 ${escapeHtml(cat)}</div>
+        <div class="result-brand">${escapeHtml(brand)} · ${escapeHtml(cat)}</div>
       </div>
       <div class="result-figures">
-        <span class="badge ${badgeClass(p.confidence_band)}">${escapeHtml(p.confidence_band)}</span>
+        <span class="result-conf">${escapeHtml(p.confidence_band)}</span>
         <span class="result-fields">${p.filled_fields} / ${TOTAL_COLUMNS} fields</span>
       </div>
     </div>
 
-    <div class="microlabel" style="margin-bottom:0.4rem">Descriptions</div>
-    <div class="desc-list">
-      ${descs
-        .slice(0, 3)
-        .map(
-          (d) => `
-        <div class="desc-row">
-          <span class="desc-row-label">${escapeHtml(d.title)}</span>
-          <span class="desc-row-text">${escapeHtml(d.value)}</span>
-          <span class="desc-row-meta">
-            <span class="char-count ${d.valid ? "" : "bad"}">${d.length}${d.max_len ? " / " + d.max_len : ""}</span>
-            <button class="copy-btn" type="button" data-copy-key="${regCopy(d.value)}">Copy</button>
-          </span>
-        </div>`
-        )
-        .join("")}
-    </div>
+    ${
+      descs.length
+        ? `<table class="result-table">
+      <caption>Descriptions</caption>
+      <tbody>
+        ${descs
+          .slice(0, 5)
+          .map(
+            (d) => `
+          <tr>
+            <th>${escapeHtml(d.title)}</th>
+            <td>${escapeHtml(d.value)}</td>
+          </tr>`
+          )
+          .join("")}
+      </tbody>
+    </table>`
+        : ""
+    }
 
-    <div class="microlabel" style="margin-bottom:0.4rem">Attributes \u00b7 ${specs.length} populated</div>
-    <dl class="spec-rows">
-      ${specs
-        .slice(0, 8)
-        .map(
-          (s) => `
-        <div class="spec-row">
-          <dt>${escapeHtml(s.label)}</dt>
-          <dd>${escapeHtml(s.display)}</dd>
-          <span class="source-tag" title="${escapeHtml(s.source)}">${escapeHtml(s.source)}</span>
-        </div>`
-        )
-        .join("")}
-    </dl>
+    ${
+      specs.length
+        ? `<table class="result-table" style="margin-top:1.75rem">
+      <caption>Attributes · ${specs.length} populated</caption>
+      <tbody>
+        ${specs
+          .slice(0, 16)
+          .map(
+            (s) => `
+          <tr>
+            <th>${escapeHtml(s.label)}</th>
+            <td>
+              ${escapeHtml(s.display)}
+              ${s.source ? `<span class="result-source">${escapeHtml(s.source)}</span>` : ""}
+            </td>
+          </tr>`
+          )
+          .join("")}
+      </tbody>
+    </table>`
+        : ""
+    }
   `;
 }
 
@@ -344,6 +336,9 @@ el("playgroundForm").addEventListener("submit", (e) => {
 
 el("playgroundResetBtn").addEventListener("click", () => {
   el("playgroundForm").reset();
+  el("presetSelect").value = "";
+  clearFormFields();
+  showDynamicFields(false);
   resetResultPanel();
   currentSandboxPreview = null;
 });
@@ -441,7 +436,7 @@ function renderResults() {
         <td class="cell-dim">${row.evidence_count}</td>
         <td><span class="conf-text ${row.confidence_band}">${escapeHtml(row.confidence_band)}</span></td>
         <td style="text-align:right">
-          <button class="btn btn-secondary btn-xs inspect-btn" type="button">Inspect</button>
+          <button class="btn btn-ghost btn-sm inspect-btn" type="button">Inspect</button>
         </td>
       </tr>`;
     })
@@ -506,7 +501,7 @@ function openDrawer(row, { silent = false } = {}) {
   el("drawerMeta").textContent = `${brand} \u2022 ${cat} \u2022 ${row.filled_fields} / ${TOTAL_COLUMNS} fields (${row.completeness_pct}%)`;
 
   const confBadge = el("drawerConfidenceBadge");
-  confBadge.className = `badge ${badgeClass(row.confidence_band)}`;
+  confBadge.className = "drawer-conf";
   confBadge.textContent = row.confidence_band;
 
   renderRecordTab(row);
@@ -563,89 +558,101 @@ drawer.addEventListener("keydown", (e) => {
   }
 });
 
+function kvTable(rows) {
+  return `
+    <table class="drawer-table">
+      <tbody>
+        ${rows
+          .map(
+            ([k, v]) => `
+          <tr>
+            <th>${escapeHtml(k)}</th>
+            <td>${escapeHtml(v || "—")}</td>
+          </tr>`
+          )
+          .join("")}
+      </tbody>
+    </table>`;
+}
+
 function renderRecordTab(p) {
   const brand = p.identity.BRAND_NAME || p.identity.MANUFACTURER_NAME || "Manufacturer Direct";
   const descs = p.descriptions_list || [];
   const features = p.features || [];
   const specs = p.specs || [];
 
-  el("dtab-record").innerHTML = `
-    <div class="compare-grid">
-      <div class="compare-col before">
-        <h4>Sparse distributor input</h4>
-        ${Object.entries(p.input || {})
-          .map(
-            ([k, v]) => `
-          <div class="kv-row"><div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v || "-")}</div></div>`
-          )
-          .join("")}
-      </div>
-      <div class="compare-col after">
-        <h4>Enriched delivery highlights</h4>
-        <div class="kv-row"><div class="k">Brand / Mfr</div><div class="v"><strong>${escapeHtml(brand)}</strong> / ${escapeHtml(p.identity.MANUFACTURER_NAME || "-")}</div></div>
-        <div class="kv-row"><div class="k">Classpath</div><div class="v">${escapeHtml(p.taxonomy.Classpath || "-")}</div></div>
-        <div class="kv-row"><div class="k">Density</div><div class="v"><strong>${p.filled_fields} / ${TOTAL_COLUMNS} columns</strong> (${p.completeness_pct}%)</div></div>
-        <div class="kv-row"><div class="k">Evidence</div><div class="v">${p.evidence_count} manufacturer citations</div></div>
-        <div class="kv-row"><div class="k">Confidence</div><div class="v"><span class="badge ${badgeClass(p.confidence_band)}">${escapeHtml(p.confidence_band)}</span></div></div>
-      </div>
-    </div>
+  const inputRows = Object.entries(p.input || {});
+  const enrichedRows = [
+    ["Brand / manufacturer", `${brand} / ${p.identity.MANUFACTURER_NAME || "—"}`],
+    ["Category", p.taxonomy.Classpath || "—"],
+    ["Fields filled", `${p.filled_fields} / ${TOTAL_COLUMNS}`],
+    ["Sources", String(p.evidence_count)],
+    ["Confidence", p.confidence_band],
+  ];
 
-    <div class="microlabel">Descriptions</div>
-    ${
-      descs.length
-        ? descs
-            .map(
-              (d) => `
-      <div class="desc-card">
-        <div class="desc-card-head">
-          <h4>${escapeHtml(d.title)}</h4>
-          <div class="desc-head-right">
-            <span class="desc-char-badge ${d.valid ? "valid" : "invalid"}">${d.length}${d.max_len ? " / " + d.max_len : ""} chars ${d.valid ? "\u2713 compliant" : "\u26a0 out of range"}</span>
-            <button class="btn btn-ghost btn-xs" type="button" data-copy-key="${regCopy(d.value)}">Copy</button>
+  el("dtab-record").innerHTML = `
+    <section class="drawer-section">
+      <h3>Input</h3>
+      ${kvTable(inputRows)}
+    </section>
+    <section class="drawer-section">
+      <h3>Enriched</h3>
+      ${kvTable(enrichedRows)}
+    </section>
+    <section class="drawer-section">
+      <h3>Descriptions</h3>
+      ${
+        descs.length
+          ? descs
+              .map(
+                (d) => `
+        <div class="drawer-block">
+          <div class="drawer-block-head">
+            <span>${escapeHtml(d.title)}</span>
+            <span class="drawer-block-meta">${d.length}${d.max_len ? " / " + d.max_len : ""}</span>
+            <button class="copy-btn" type="button" data-copy-key="${regCopy(d.value)}">Copy</button>
           </div>
-        </div>
-        <div class="desc-card-body">${escapeHtml(d.value)}</div>
-      </div>`
-            )
-            .join("")
-        : '<div class="empty"><p>No descriptions generated.</p></div>'
-    }
+          <p>${escapeHtml(d.value)}</p>
+        </div>`
+              )
+              .join("")
+          : "<p>No descriptions generated.</p>"
+      }
+    </section>
     ${
       features.length
         ? `
-    <div class="drawer-subhead">Item features (${features.length})</div>
-    <ul class="feature-list">${features.map((f) => `<li>${escapeHtml(f)}</li>`).join("")}</ul>`
+    <section class="drawer-section">
+      <h3>Item features</h3>
+      <ul class="feature-list">${features.map((f) => `<li>${escapeHtml(f)}</li>`).join("")}</ul>
+    </section>`
         : ""
     }
-
-    <div class="drawer-subhead">Attributes \u00b7 ${specs.length} of 50 slots</div>
-    ${
-      specs.length
-        ? `
-    <table class="specs-table">
-      <thead>
-        <tr><th style="width:60px">Slot</th><th>Attribute</th><th>Value</th><th>Unit</th><th>Source</th></tr>
-      </thead>
-      <tbody>
-        ${specs
-          .map(
-            (s) => `
-          <tr>
-            <td class="slot-num">#${s.slot}</td>
-            <td style="font-weight:550">${escapeHtml(s.label)}</td>
-            <td>${escapeHtml(s.value)}</td>
-            <td class="attr-pill">${escapeHtml(s.uom || "\u2014")}</td>
-            <td><span class="source-tag" title="${escapeHtml(s.source)}">${escapeHtml(s.source)}</span></td>
-          </tr>`
-          )
-          .join("")}
-      </tbody>
-    </table>`
-        : '<div class="empty"><p>No category attributes populated for this SKU.</p></div>'
-    }
-
-    <div class="drawer-subhead">Storefront preview</div>
-    ${renderStorefrontPDP(p)}
+    <section class="drawer-section">
+      <h3>Attributes</h3>
+      ${
+        specs.length
+          ? `
+      <table class="drawer-table">
+        <thead>
+          <tr><th>Attribute</th><th>Value</th><th>Source</th></tr>
+        </thead>
+        <tbody>
+          ${specs
+            .map(
+              (s) => `
+            <tr>
+              <th>${escapeHtml(s.label)}</th>
+              <td>${escapeHtml(s.display)}</td>
+              <td>${s.source ? escapeHtml(s.source) : "—"}</td>
+            </tr>`
+            )
+            .join("")}
+        </tbody>
+      </table>`
+          : "<p>No attributes populated for this part.</p>"
+      }
+    </section>
   `;
 }
 
@@ -654,33 +661,27 @@ function renderEvidenceTab(p) {
   const blanks = TOTAL_COLUMNS - p.filled_fields;
 
   el("dtab-evidence").innerHTML = `
-    <div class="blanks-note">
-      <span class="compliance-icon" style="background:var(--ink)">i</span>
-      <span>
-        <span class="blanks-num">${blanks} of ${TOTAL_COLUMNS}</span> columns are intentionally blank \u2014 no manufacturer evidence was found, so no value was invented.
-        Only externally verified values can reach the high-confidence band.
-      </span>
-    </div>
+    <p class="drawer-note">${blanks} of ${TOTAL_COLUMNS} columns are blank because no manufacturer evidence was found.</p>
     ${
       sources.length
         ? `
-    <div class="src-verified">
-      <span class="compliance-icon">\u2713</span>
-      <span>Sourced exclusively from official manufacturer and technical-document domains.</span>
-    </div>
-    ${sources
-      .map(
-        ([k, v]) => `
-      <div class="src-row">
-        <div>
-          <div class="src-k">${escapeHtml(k)}</div>
-          <a class="src-url" href="${escapeHtml(v)}" target="_blank" rel="noopener noreferrer">${escapeHtml(v)}</a>
-        </div>
-        <a class="btn btn-ghost btn-xs" href="${escapeHtml(v)}" target="_blank" rel="noopener noreferrer">Open</a>
-      </div>`
-      )
-      .join("")}`
-        : '<div class="empty"><p>No source URLs captured for this record.</p></div>'
+    <table class="drawer-table">
+      <thead>
+        <tr><th>Source</th><th>URL</th></tr>
+      </thead>
+      <tbody>
+        ${sources
+          .map(
+            ([k, v]) => `
+          <tr>
+            <th>${escapeHtml(k)}</th>
+            <td><a href="${escapeHtml(v)}" target="_blank" rel="noopener noreferrer">${escapeHtml(v)}</a></td>
+          </tr>`
+          )
+          .join("")}
+      </tbody>
+    </table>`
+        : "<p>No source URLs captured for this record.</p>"
     }
   `;
 }
@@ -690,33 +691,33 @@ function renderAuditTab(p) {
   const popFields = p.populated_fields || [];
 
   el("dtab-audit").innerHTML = `
-    <div class="verdict ${issues.length ? "warn" : "good"}">
-      <h4>${issues.length ? `${issues.length} validation finding${issues.length > 1 ? "s" : ""}` : "Fully compliant"}</h4>
-      <p>${issues.length ? "Review the flagged items before publication." : "All list-of-values, unit and character-limit rules passed."}</p>
-    </div>
-    ${issues.map((i) => `<div class="issue">${escapeHtml(i)}</div>`).join("")}
+    <p class="drawer-note">${
+      issues.length
+        ? `${issues.length} finding${issues.length > 1 ? "s" : ""} to review before publishing.`
+        : "No validation issues. List-of-values, unit, and character-limit checks passed."
+    }</p>
+    ${issues.map((i) => `<p class="drawer-issue">${escapeHtml(i)}</p>`).join("")}
 
-    <div class="drawer-subhead">Raw record \u00b7 ${popFields.length} populated columns</div>
-    <div class="specs-toolbar">
-      <span class="specs-toolbar-title">Delivery columns</span>
-      <input type="search" class="raw-filter" placeholder="Filter headers\u2026" aria-label="Filter raw columns" />
-    </div>
-    <table class="specs-table raw-table">
-      <thead>
-        <tr><th style="width:45%">Column</th><th>Value</th></tr>
-      </thead>
-      <tbody>
-        ${popFields
-          .map(
-            (f) => `
-          <tr>
-            <td class="cell-mpn" style="font-size:0.76rem">${escapeHtml(f.field)}</td>
-            <td>${escapeHtml(f.value)}</td>
-          </tr>`
-          )
-          .join("")}
-      </tbody>
-    </table>
+    <section class="drawer-section">
+      <h3>Populated columns · ${popFields.length}</h3>
+      <input type="search" class="raw-filter" placeholder="Filter columns…" aria-label="Filter columns" />
+      <table class="drawer-table raw-table">
+        <thead>
+          <tr><th>Column</th><th>Value</th></tr>
+        </thead>
+        <tbody>
+          ${popFields
+            .map(
+              (f) => `
+            <tr>
+              <th>${escapeHtml(f.field)}</th>
+              <td>${escapeHtml(f.value)}</td>
+            </tr>`
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </section>
   `;
 
   const filterInput = el("dtab-audit").querySelector(".raw-filter");
@@ -728,52 +729,6 @@ function renderAuditTab(p) {
         tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none";
       });
   });
-}
-
-function renderStorefrontPDP(row) {
-  const crumbs = [row.taxonomy.Dept, row.taxonomy.Class, row.taxonomy.Fine].filter(Boolean).join(" \u203a ");
-  const specs = (row.specs || []).slice(0, 8);
-  const features = (row.features || []).slice(0, 6);
-  const brand = row.identity.BRAND_NAME || row.identity.MANUFACTURER_NAME || "";
-
-  return `
-    <div class="storefront-mockup">
-      <div class="store-header">
-        <span>Storefront preview</span>
-        <span class="store-badge">Commercial ready</span>
-      </div>
-      <div class="store-body">
-        <div class="store-crumbs">${escapeHtml(crumbs || "Industrial Products")}</div>
-        <h1 class="store-h1">${escapeHtml(row.storefront_title)}</h1>
-        <div class="store-pdp-meta">
-          <span>MPN ${escapeHtml(row.mpn)}</span>
-          \u00b7 <span>${escapeHtml(brand)}</span>
-          \u00b7 <span>${escapeHtml(row.identity.MANUFACTURER_NAME || "\u2014")}</span>
-        </div>
-        <div class="store-marketing">${escapeHtml(row.storefront_summary || row.long_desc || "Full commercial product data available.")}</div>
-        ${
-          features.length
-            ? `
-        <div class="drawer-subhead">Key features</div>
-        <ul class="store-features-list">
-          ${features.map((f) => `<li>${escapeHtml(f)}</li>`).join("")}
-        </ul>`
-            : ""
-        }
-        ${
-          specs.length
-            ? `
-        <div class="drawer-subhead">Specifications</div>
-        <table class="specs-table">
-          <tbody>
-            ${specs.map((s) => `<tr><th style="width:40%">${escapeHtml(s.label)}</th><td>${escapeHtml(s.display)}</td></tr>`).join("")}
-          </tbody>
-        </table>`
-            : ""
-        }
-      </div>
-    </div>
-  `;
 }
 
 // ---------- Batch: sample stream ----------
@@ -960,6 +915,5 @@ el("uploadBtn").addEventListener("click", runUpload);
 
 route();
 loadPresets();
-loadReference();
 loadTaxonomyOptions();
 loadLastRun();
