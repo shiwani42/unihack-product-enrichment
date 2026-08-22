@@ -239,7 +239,7 @@ function renderSandboxOutput(p) {
     <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:1.15rem;margin-bottom:1.15rem;display:flex;justify-content:space-between;align-items:center;">
       <div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:1.18rem;font-weight:800;color:var(--ink)">${escapeHtml(p.mpn)}</div>
-        <div style="color:var(--brand);font-size:0.86rem;font-weight:700;margin-top:0.2rem">${escapeHtml(brand)} &bull; ${escapeHtml(cat)}</div>
+        <div style="color:var(--ink-muted);font-size:0.86rem;font-weight:600;margin-top:0.2rem">${escapeHtml(brand)} • ${escapeHtml(cat)}</div>
       </div>
       <div style="text-align:right">
         <span class="badge ${badgeClass(p.confidence_band)}">${p.confidence_band} Confidence</span>
@@ -767,7 +767,7 @@ async function loadTaxonomy() {
     const res = await fetch("/api/taxonomy");
     const data = await res.json();
     const container = document.getElementById("taxonomy-templates-list");
-    document.getElementById("templateCountSub").textContent = `${data.template_count} Category Templates &bull; ${data.leaf_count} Indexed Leaf Nodes`;
+    document.getElementById("templateCountSub").textContent = `${data.template_count} Category Templates • ${data.leaf_count} Indexed Leaf Nodes`;
 
     container.innerHTML = (data.templates || []).map(t => `
       <div class="template-card">
