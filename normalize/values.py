@@ -140,5 +140,9 @@ def cleanse_output_row(row: dict[str, str], category_id: str) -> None:
 
     impute_related_attributes(row)
 
-    for field in ("MOBILE_DESC", "SHORT_DESC", "LONG_DESC1", "RETAIL_DESC", "INVOICE_DESC"):
+    for field in ("MOBILE_DESC", "SHORT_DESC", "LONG_DESC1", "RETAIL_DESC"):
         row[field] = re.sub(r"\s+", " ", row.get(field, "")).strip()
+
+    invoice = re.sub(r"\s+", " ", row.get("INVOICE_DESC", "")).strip()
+    # House style: the invoice description is published fully uppercase.
+    row["INVOICE_DESC"] = invoice.upper()

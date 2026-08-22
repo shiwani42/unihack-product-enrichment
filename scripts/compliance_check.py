@@ -34,14 +34,68 @@ UOM_NO_SPACE_RE = re.compile(r"\d(in|inch|inches|v|a|w|dba|ft|mm|cm)\b", re.I)
 
 def _load_lov_values() -> set[str]:
     lov_path = ROOT / "validate" / "lov.json"
+    reference_path = ROOT / "data" / "reference" / "lov_values.json"
     values: set[str] = set()
-    if not lov_path.exists():
-        return values
-    data = json.loads(lov_path.read_text(encoding="utf-8"))
-    for category_rules in data.values():
-        for allowed in category_rules.values():
+    if lov_path.exists():
+        data = json.loads(lov_path.read_text(encoding="utf-8"))
+        for category_rules in data.values():
+            for allowed in category_rules.values():
+                values.update(str(v).lower() for v in allowed)
+    if reference_path.exists():
+        payload = json.loads(reference_path.read_text(encoding="utf-8"))
+        for allowed in payload.get("values_by_label", {}).values():
             values.update(str(v).lower() for v in allowed)
     return values
+
+
+def _uom_standard_violations(rows: list[dict[str, str]]) -> dict:
+    """ATTRIBUTE_UOM values outside the approved abbreviation set (when imported)."""
+    uom_path = ROOT / "data" / "reference" / "uom_standards.json"
+    if not uom_path.exists():
+        return {"available": False}
+    standards = json.loads(uom_path.read_text(encoding="utf-8"))
+    approved = {str(v).lower() for v in standards.get("abbreviations", {}).values()}
+    total = checked = 0
+    violations: list[tuple[str, str]] = []
+    for row in rows:
+        for index in range(1, 51):
+            uom = (row.get(f"ATTRIBUTE_UOM {index}") or "").strip()
+            if not uom:
+                continue
+            checked += 1
+            if uom.lower() not in approved:
+                violations.append((row.get("Mfg_Part_Num", ""), uom))
+                total += 1
+    return {
+        "available": True,
+        "approved_count": len(approved),
+        "checked": checked,
+        "violations": total,
+        "examples": violations[:10],
+    }
+
+
+def _fraction_style(rows: list[dict[str, str]]) -> int:
+    """Decimal inches must be published as fractions (0.5 -> 1/2, 50.25 -> 50-1/4)."""
+    bad = 0
+    decimal_inch = re.compile(r"^\d+\.\d+$")
+    for row in rows:
+        for index in range(1, 51):
+            value = (row.get(f"ATTRIBUTE_VALUE {index}") or "").strip()
+            uom = (row.get(f"ATTRIBUTE_UOM {index}") or "").strip().lower()
+            if value and uom == "in" and decimal_inch.fullmatch(value):
+                bad += 1
+    return bad
+
+
+def _invoice_caps_compliance(rows: list[dict[str, str]]) -> dict:
+    populated = [r["INVOICE_DESC"] for r in rows if (r.get("INVOICE_DESC") or "").strip()]
+    non_caps = [v for v in populated if v != v.upper()]
+    return {
+        "populated": len(populated),
+        "non_uppercase": len(non_caps),
+        "compliant_pct": round((len(populated) - len(non_caps)) / len(populated) * 100, 2) if populated else None,
+    }
 
 
 def _lov_compliance(rows: list[dict[str, str]]) -> dict:
@@ -192,7 +246,10 @@ def main() -> None:
         "file": str(path),
         "rows": len(rows),
         "char_limit_compliance": _char_limits(rows),
+        "invoice_caps": _invoice_caps_compliance(rows),
         "lov_compliance": _lov_compliance(rows),
+        "uom_standards": _uom_standard_violations(rows),
+        "fraction_style_violations": _fraction_style(rows),
         "placeholder_leaks": _placeholder_leakage(rows, headers),
         "uom_style": _uom_style(rows),
         "source_url_coverage": _source_url_coverage(rows),

@@ -10,7 +10,70 @@ MANUFACTURER_PATH = Path(__file__).resolve().parent / "manufacturer_map.json"
 ALIASES_PATH = Path(__file__).resolve().parent / "brand_aliases.json"
 HINTS_PATH = Path(__file__).resolve().parent / "manufacturer_hints.json"
 
+REFERENCE_MANUFACTURERS_PATH = Path(__file__).resolve().parents[1] / "data" / "reference" / "manufacturers.json"
+
 COOP_CODES = {"APPDE", "UNILOG", "COOP"}
+
+_reference_index_cache: dict[str, dict] | None = None
+
+
+def _reference_manufacturer_index() -> dict[str, dict]:
+    """Case-insensitive index of the organizer manufacturer/brand list (if imported).
+
+    Maps lowercase MANUFACTURER_NAME / BRAND_NAME -> canonical entry with exact
+    legal casing and ® / ™ symbols, per the UniCat list.
+    """
+    global _reference_index_cache
+    if _reference_index_cache is None:
+        index: dict[str, dict] = {}
+        if REFERENCE_MANUFACTURERS_PATH.exists():
+            try:
+                payload = json.loads(REFERENCE_MANUFACTURERS_PATH.read_text(encoding="utf-8"))
+                for entry in payload.get("entries", []):
+                    for key in ("manufacturer_name", "brand_name"):
+                        name = (entry.get(key) or "").strip()
+                        if name:
+                            index.setdefault(name.lower(), entry)
+            except (json.JSONDecodeError, OSError):
+                index = {}
+        _reference_index_cache = index
+    return _reference_index_cache
+
+
+def canonicalize_with_reference(identity: "Identity", part_manuf: str = "") -> "Identity":
+    """Upgrade brand casing to the exact legal form using the organizer list.
+
+    Conservative by design (exact case-insensitive matches only):
+      - brand_name is upgraded to the canonical form (® / ™ preserved)
+      - manufacturer_name is only FILLED when empty - never overwritten,
+        because ground truth contains intentional mfr/brand mismatches
+        (e.g. Rheem Manufacturing / FRIGIDAIRE®) that we must reproduce.
+    """
+    index = _reference_manufacturer_index()
+    if not index:
+        return identity
+    candidates = [identity.brand_name, identity.manufacturer_name]
+    part_manuf_clean = clean_brand(part_manuf)
+    if part_manuf_clean:
+        stripped = re.sub(r"\s*\(\d+\)\s*$", "", part_manuf_clean).strip()
+        candidates.extend([part_manuf_clean, stripped])
+    for candidate in candidates:
+        if not candidate:
+            continue
+        entry = index.get(candidate.lower())
+        if not entry:
+            continue
+        brand = entry.get("brand_name") or identity.brand_name
+        mfr = identity.manufacturer_name or entry.get("manufacturer_name", "")
+        return Identity(
+            brand_key=identity.brand_key or (brand or "").replace("®", "").replace("™", ""),
+            brand_name=brand,
+            manufacturer_name=mfr,
+            domains=identity.domains,
+            confidence=max(identity.confidence, 0.9),
+            method=f"{identity.method}+unicat",
+        )
+    return identity
 
 
 @dataclass
@@ -103,6 +166,18 @@ def resolve_identity(
     part_manuf: str = "",
     unilog_brand: str = "",
 ) -> Identity:
+    identity = _resolve_identity_impl(mpn, part_desc, e1_brand, dib_brand, part_manuf, unilog_brand)
+    return canonicalize_with_reference(identity, part_manuf)
+
+
+def _resolve_identity_impl(
+    mpn: str,
+    part_desc: str,
+    e1_brand: str,
+    dib_brand: str,
+    part_manuf: str = "",
+    unilog_brand: str = "",
+) -> Identity:
     prefix_rules = _load_json(RULES_PATH)
     manufacturer_map = _load_json(MANUFACTURER_PATH)
 
@@ -172,7 +247,7 @@ def resolve_identity(
     from_prefix = brand_from_mpn_prefix(mpn, prefix_rules, part_desc, manufacturer_map)
     if from_prefix:
         meta = manufacturer_map.get(from_prefix, {})
-        return Identity(
+        identity = Identity(
             brand_key=from_prefix,
             brand_name=meta.get("brand_name", from_prefix),
             manufacturer_name=meta.get("manufacturer_name", from_prefix),
@@ -180,8 +255,9 @@ def resolve_identity(
             confidence=0.7,
             method="mpn_prefix",
         )
+        return canonicalize_with_reference(identity, part_manuf)
 
-    return Identity(
+    identity = Identity(
         brand_key="",
         brand_name="",
         manufacturer_name="",
@@ -189,3 +265,4 @@ def resolve_identity(
         confidence=0.0,
         method="unknown",
     )
+    return canonicalize_with_reference(identity, part_manuf)

@@ -60,5 +60,18 @@ Verified against `guidelines/UniHack Solution Guide.pdf` (extracted via pdfplumb
 | `Decimal_Fraction.xlsx` | 63 inch conversions — we implement the common subset in code. |
 | `FAUCETS_LOV.xlsx` / `Fittings_LOV.xlsx` | Guide's recommended "depth beats breadth" demo categories (fittings = many-to-one normalization showcase). |
 
-**Action:** download these from the dashboard Resources section into `guidelines/`; then extend `scripts/compliance_check.py` to load the real LOV/UOM tables and add a 200-row golden scorer.
+**Action — one-time, 2 minutes:** download the files from the dashboard Resources page into
+`guidelines/references/`, then run `PYTHONPATH=. python3 scripts/import_references.py`.
+The pipeline auto-activates them: LOV validation uses the real value lists, compliance reports
+approved-UOM violations, brand names upgrade to exact legal casing, and
+`scripts/score_ground_truth.py` scores all 200 rows field-by-field. See
+`guidelines/references/README.md`. Note: the guide itself warns the ground truth contains an
+intentional manufacturer/brand mismatch row ("Rheem Manufacturing" for a FRIGIDAIRE® product) —
+canonicalization deliberately never overwrites an existing manufacturer name so such quirks
+reproduce faithfully.
+
+**Per challenge.txt, these references are supporting material only:** "The relevant information
+from these references is already represented within the columns of the provided datasets" — our
+internal standards are therefore mined from the golden Delivery Format rows and the guide's worked
+example, and the pipeline is fully functional without the downloads.
 

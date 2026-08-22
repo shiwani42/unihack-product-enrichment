@@ -5,6 +5,25 @@ from pathlib import Path
 from app.config import ECOMMERCE_BLOCKLIST
 
 LOV_PATH = Path(__file__).resolve().parent / "lov.json"
+REFERENCE_LOV_PATH = Path(__file__).resolve().parents[1] / "data" / "reference" / "lov_values.json"
+
+_reference_values_cache: dict | None = None
+
+
+def _load_reference_values() -> dict[str, list[str]]:
+    """Organizer LOV (imported by scripts/import_references.py), label -> allowed values."""
+    global _reference_values_cache
+    if _reference_values_cache is None:
+        cache: dict[str, list[str]] = {}
+        if REFERENCE_LOV_PATH.exists():
+            try:
+                payload = json.loads(REFERENCE_LOV_PATH.read_text(encoding="utf-8"))
+                raw = payload.get("values_by_label", {})
+                cache = {str(k): [str(v) for v in vs] for k, vs in raw.items()}
+            except (json.JSONDecodeError, OSError):
+                cache = {}
+        _reference_values_cache = cache
+    return _reference_values_cache
 
 
 @dataclass
@@ -62,7 +81,7 @@ def validate_row(row: dict[str, str], category_id: str = "") -> list[ValidationI
 
         if label == "Mounting Type":
             normalized = _normalize_mounting(value)
-            allowed = lov.get("Mounting Type", [])
+            allowed = lov.get("Mounting Type", []) or _load_reference_values().get("Mounting Type", [])
             if allowed and normalized not in allowed and value not in allowed:
                 issues.append(
                     ValidationIssue(
