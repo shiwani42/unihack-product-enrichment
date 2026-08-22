@@ -1,6 +1,34 @@
 const TOTAL_COLUMNS = 252;
 
+const URL_MEMORY_KEY = "unilog:url_memory";
+
+function loadUrlMemory() {
+  try {
+    const raw = localStorage.getItem(URL_MEMORY_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+    if (!parsed.known_urls && !parsed.search_paths) return null;
+    return parsed;
+  } catch (_err) {
+    return null;
+  }
+}
+
+function saveUrlMemory(memory) {
+  if (!memory || typeof memory !== "object") return;
+  try {
+    localStorage.setItem(URL_MEMORY_KEY, JSON.stringify(memory));
+  } catch (_err) {
+    // Quota or private mode: in-memory session overlay still works for this tab.
+  }
+}
+
 let lastData = { summary: { rows: 0 }, previews: [] };
+let lastDelivery = [];
+let urlMemory = loadUrlMemory();
+let lastHeaders = [];
+let lastReports = [];
 let presetsData = [];
 let taxonomyTemplates = [];
 let currentSandboxPreview = null;
@@ -383,6 +411,39 @@ async function loadTaxonomyOptions() {
     taxonomyTemplates = [];
   }
   rebuildCategoryOptions();
+  rebuildSegmentOptions();
+}
+
+function rebuildSegmentOptions() {
+  const sel = el("sampleFilter");
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = "";
+  const all = document.createElement("option");
+  all.value = "";
+  all.textContent = "All";
+  sel.appendChild(all);
+
+  const labeled = taxonomyTemplates
+    .filter((t) => t.category_id)
+    .map((t) => ({
+      id: t.category_id,
+      label: t.product_name || t.fine || t.category_id,
+    }))
+    .sort((a, b) => {
+      if (a.id === "generic_industrial") return 1;
+      if (b.id === "generic_industrial") return -1;
+      return a.label.localeCompare(b.label);
+    });
+
+  labeled.forEach((t) => {
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.textContent = t.label;
+    sel.appendChild(opt);
+  });
+
+  if ([...sel.options].some((o) => o.value === current)) sel.value = current;
 }
 
 function renderResults() {
@@ -416,9 +477,14 @@ function renderResults() {
 
   body.innerHTML = previews
     .map((row) => {
-      const cat = row.taxonomy.Fine || row.taxonomy.Classpath || "Generic Industrial";
+      const cat = row.timed_out
+        ? "Timed out"
+        : row.taxonomy.Fine || row.taxonomy.Classpath || "Generic Industrial";
+      const rowClass = [row.timed_out ? "timed-out" : "", row.just_added ? "just-added" : ""]
+        .filter(Boolean)
+        .join(" ");
       return `
-      <tr data-mpn="${escapeHtml(row.mpn)}">
+      <tr data-mpn="${escapeHtml(row.mpn)}" class="${rowClass}">
         <td>
           <div class="cell-mpn">${escapeHtml(row.mpn)}</div>
           <div class="cell-brand">${escapeHtml(row.identity.BRAND_NAME || row.identity.Part_Manuf || "\u2014")}</div>
@@ -740,73 +806,275 @@ function setProgressMessage(html) {
   el("progress-message").innerHTML = html;
 }
 
-async function runLiveEnrichment() {
-  const limit = el("sampleLimit").value || "10";
-  const filter = el("sampleFilter").value;
+async function readSse(url, onEvent, init = {}) {
+  const res = await fetch(url, init);
+  if (!res.ok || !res.body) throw new Error(`Stream failed (HTTP ${res.status})`);
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let sawComplete = false;
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const chunks = buffer.split("\n\n");
+    buffer = chunks.pop() || "";
+    for (const chunk of chunks) {
+      const line = chunk.split("\n").find((part) => part.startsWith("data: "));
+      if (!line) continue;
+      const payload = JSON.parse(line.slice(6));
+      if (payload.type === "complete") sawComplete = true;
+      onEvent(payload);
+    }
+  }
+  if (!sawComplete) throw new Error("Stream ended before the window finished");
+}
+
+async function readSseWithRetry(url, onEvent, attempts = 3, init = {}) {
+  let lastErr;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      await readSse(url, onEvent, init);
+      return;
+    } catch (err) {
+      lastErr = err;
+      appendLog("RETRY", `window failed (${err.message}), attempt ${attempt}/${attempts}`);
+    }
+  }
+  throw lastErr;
+}
+
+function csvEscape(value) {
+  const text = String(value ?? "");
+  if (/[",\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+  return text;
+}
+
+function downloadBlob(filename, blob) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function downloadDeliveryCsv() {
+  if (!lastHeaders.length || !lastDelivery.length) {
+    showToast("Run a batch first", true);
+    return false;
+  }
+  const lines = [lastHeaders.map(csvEscape).join(",")];
+  lastDelivery.forEach((row) => {
+    lines.push(lastHeaders.map((header) => csvEscape(row[header])).join(","));
+  });
+  downloadBlob("unilog-delivery.csv", new Blob(["\ufeff" + lines.join("\n")], { type: "text/csv;charset=utf-8" }));
+  return true;
+}
+
+function downloadProvenanceJson() {
+  if (!lastReports.length) {
+    showToast("Run a batch first", true);
+    return false;
+  }
+  downloadBlob(
+    "unilog-provenance.json",
+    new Blob([JSON.stringify(lastReports, null, 2)], { type: "application/json" })
+  );
+  return true;
+}
+
+function wireClientExports() {
+  document.querySelectorAll('a[href="/download/csv"]').forEach((link) => {
+    link.addEventListener("click", (event) => {
+      if (!lastDelivery.length) return;
+      event.preventDefault();
+      downloadDeliveryCsv();
+    });
+  });
+  document.querySelectorAll('a[href="/download/provenance"]').forEach((link) => {
+    link.addEventListener("click", (event) => {
+      if (!lastReports.length) return;
+      event.preventDefault();
+      downloadProvenanceJson();
+    });
+  });
+}
+
+function summaryFromReports(reports, previews) {
+  const rows = previews.length;
+  if (!rows) return { rows: 0 };
+  const filled = previews.reduce((sum, item) => sum + (item.filled_fields || 0), 0);
+  const evidence = previews.reduce((sum, item) => sum + (item.evidence_count || 0), 0);
+  const breakdown = {};
+  previews.forEach((item) => {
+    const band = item.confidence_band || "review";
+    breakdown[band] = (breakdown[band] || 0) + 1;
+  });
+  const issueCount = reports.length
+    ? reports.filter((item) => (item.issue_count || (item.issues || []).length) > 0).length
+    : previews.filter((item) => item.timed_out || (item.issue_count || 0) > 0).length;
+  return {
+    rows,
+    avg_filled_fields: Math.round((filled / rows) * 100) / 100,
+    avg_evidence_count: Math.round((evidence / rows) * 100) / 100,
+    confidence_breakdown: breakdown,
+    rows_with_issues: issueCount,
+  };
+}
+
+function stubTimedOutPreview(mpn, reason) {
+  return {
+    mpn,
+    confidence_band: "review",
+    evidence_count: 0,
+    filled_fields: 0,
+    completeness_pct: 0,
+    issue_count: 1,
+    issues: [reason],
+    category_id: "timed_out",
+    timed_out: true,
+    input: { Mfg_Part_Num: mpn, Part_Desc: "", E1_Brand: "", Unilog_Brand: "", DIB_Brand: "", Part_Manuf: "" },
+    identity: { Mfg_Part_Num: mpn, Part_Desc: "", MANUFACTURER_NAME: "", BRAND_NAME: "", MANUFACTURER_PART_NUMBER: mpn, Part_Manuf: "" },
+    taxonomy: {},
+    attributes: {},
+    specs: [],
+    descriptions: {},
+    descriptions_list: [],
+    features: [],
+    sources: {},
+    assets: [],
+    commercial_ids: [],
+    populated_fields: [],
+    storefront_title: mpn,
+    storefront_summary: reason,
+    long_desc: "",
+  };
+}
+
+function publishLiveCatalog(previews, highlightMpn) {
+  lastData = {
+    ...lastData,
+    summary: summaryFromReports(lastReports, previews),
+    previews,
+    rows: previews.length,
+  };
+  renderDashboard();
+  rebuildCategoryOptions();
+  renderResults();
+  if (highlightMpn) {
+    const escaped = window.CSS && CSS.escape ? CSS.escape(highlightMpn) : highlightMpn.replace(/"/g, '\\"');
+    const tr = document.querySelector(`#results-body tr[data-mpn="${escaped}"]`);
+    if (tr) {
+      tr.classList.add("just-added");
+      tr.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }
+}
+
+async function runWindowedBatch({ totalHint, label, requestWindow }) {
   const btn = el("liveBtn");
   const uploadBtn = el("uploadBtn");
-  const progressWrap = el("batch-progress");
-
+  const windowSize = 1;
   btn.disabled = true;
   uploadBtn.disabled = true;
-  progressWrap.hidden = false;
+  el("batch-progress").hidden = false;
   el("progress-log").textContent = "";
-  setProgressMessage(`Starting batch \u2014 ${limit} rows${filter ? `, segment: ${filter}` : ""}\u2026`);
+  setProgressMessage(`${label}. One SKU per request so Vercel stays under 5 minutes.`);
   el("progress-fill").style.width = "0%";
   el("stat-rows").textContent = "0";
 
+  const previews = [];
+  const reports = [];
+  const delivery = [];
+  lastDelivery = [];
+  lastReports = [];
+  lastData = { filter: label, summary: { rows: 0 }, previews: [], rows: 0 };
+  renderResults();
+  let openedCatalog = false;
+  let pendingMpn = "";
+
   try {
-    const res = await fetch(`/api/enrich/stream?limit=${encodeURIComponent(limit)}&filter=${encodeURIComponent(filter)}`);
-    if (!res.ok || !res.body) throw new Error(`Stream failed (HTTP ${res.status})`);
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const chunks = buffer.split("\n\n");
-      buffer = chunks.pop() || "";
-
-      for (const chunk of chunks) {
-        const line = chunk.split("\n").find((part) => part.startsWith("data: "));
-        if (!line) continue;
-        const payload = JSON.parse(line.slice(6));
-
-        if (payload.type === "start") {
-          appendLog("START", `Batch initialized for ${payload.total} distributor SKUs`);
-        }
-
-        if (payload.type === "step") {
-          setProgressMessage(`${escapeHtml(payload.mpn)} \u00b7 ${payload.current} / ${payload.total}`);
-          el("progress-fill").style.width = `${Math.round(((payload.current - 0.5) / payload.total) * 100)}%`;
-        }
-
-        if (payload.type === "row") {
-          appendLog("ENRICHED", `${payload.mpn} -> ${payload.brand || "MFR"} | ${payload.category || "classified"} (${payload.filled} fields, ${payload.confidence})`);
-          el("stat-rows").textContent = payload.current;
-          el("progress-fill").style.width = `${Math.round((payload.current / payload.total) * 100)}%`;
-        }
-
-        if (payload.type === "complete") {
-          el("progress-fill").style.width = "100%";
-          lastData = {
-            filter: payload.filter,
-            summary: payload.summary,
-            previews: payload.previews,
-            rows: payload.rows,
-          };
-          renderDashboard();
-          rebuildCategoryOptions();
-          renderResults();
-          appendLog("SUCCESS", "Delivery written: upload_output.csv, enriched.xlsx, field_provenance.json");
-          setProgressMessage(
-            `Complete \u2014 ${payload.rows} SKUs enriched into the 252-column delivery format. <a href="#/catalog">View catalog</a>`
-          );
+    let total = Number(totalHint) || 0;
+    let offset = 0;
+    while (offset < (total || 1)) {
+      pendingMpn = "";
+      let gotRow = false;
+      try {
+        await requestWindow(offset, windowSize, (payload) => {
+          if (payload.type === "start") {
+            total = payload.total || total;
+            if (payload.headers && payload.headers.length) lastHeaders = payload.headers;
+            if (offset === 0) appendLog("START", `Batch initialized for ${total} SKUs (1 per request)`);
+          }
+          if (payload.type === "step") {
+            pendingMpn = payload.mpn || pendingMpn;
+            setProgressMessage(`${escapeHtml(payload.mpn)} \u00b7 ${payload.current} / ${payload.total}`);
+            el("progress-fill").style.width = `${Math.round(((payload.current - 0.5) / payload.total) * 100)}%`;
+          }
+          if (payload.type === "row") {
+            gotRow = true;
+            if (payload.preview) previews.push(payload.preview);
+            appendLog("ENRICHED", `${payload.mpn} -> ${payload.brand || "MFR"} | ${payload.category || "classified"} (${payload.filled} fields, ${payload.confidence})`);
+            el("stat-rows").textContent = String(previews.length);
+            el("progress-fill").style.width = `${Math.round((payload.current / payload.total) * 100)}%`;
+            if (!openedCatalog) {
+              openedCatalog = true;
+              go("#/catalog");
+            }
+            publishLiveCatalog(previews, payload.mpn);
+          }
+          if (payload.type === "complete") {
+            reports.push(...(payload.reports || []));
+            delivery.push(...(payload.delivery || []));
+            lastReports = reports;
+            lastDelivery = delivery;
+            if (payload.url_memory) {
+              urlMemory = payload.url_memory;
+              saveUrlMemory(urlMemory);
+            }
+          }
+        });
+      } catch (err) {
+        appendLog("SKIP", `${pendingMpn || `offset ${offset}`} timed out after retries: ${err.message}`);
+        if (!gotRow) {
+          const stub = stubTimedOutPreview(pendingMpn || `offset-${offset}`, `Timed out: ${err.message}`);
+          previews.push(stub);
+          if (!openedCatalog) {
+            openedCatalog = true;
+            go("#/catalog");
+          }
+          publishLiveCatalog(previews, stub.mpn);
         }
       }
+      offset += windowSize;
+      if (total && offset >= total) break;
     }
+
+    lastDelivery = delivery;
+    lastReports = reports;
+    const summary = summaryFromReports(reports, previews);
+    try {
+      await fetch("/api/enrich/commit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filter: label, summary, rows: reports, previews, delivery }),
+      });
+    } catch (err) {
+      appendLog("WARN", `Server save skipped (${err.message}); download from this browser instead.`);
+    }
+
+    el("progress-fill").style.width = "100%";
+    lastData = { filter: label, summary, previews, rows: reports.length };
+    renderDashboard();
+    rebuildCategoryOptions();
+    renderResults();
+    appendLog("SUCCESS", `${delivery.length} rows ready. Use Catalog \u2192 Export (CSV is built in the browser).`);
+    setProgressMessage(
+      `Complete \u2014 ${previews.length} SKUs in the catalog. Timed-out SKUs stay as review rows.`
+    );
   } catch (err) {
     setProgressMessage(`Error: ${escapeHtml(err.message)}`);
     appendLog("ERROR", err.message);
@@ -817,7 +1085,31 @@ async function runLiveEnrichment() {
   }
 }
 
+async function runLiveEnrichment() {
+  const limit = el("sampleLimit").value || "10";
+  const filter = el("sampleFilter").value;
+  await runWindowedBatch({
+    totalHint: limit,
+    label: `Starting batch \u2014 ${limit} rows${filter ? `, segment: ${filter}` : ""}`,
+    requestWindow: (offset, windowSize, onEvent) => {
+      return readSseWithRetry("/api/enrich/stream", onEvent, 3, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          limit: Number(limit) || 10,
+          filter,
+          offset,
+          window: windowSize,
+          save: 0,
+          url_memory: urlMemory,
+        }),
+      });
+    },
+  });
+}
+
 el("liveBtn").addEventListener("click", runLiveEnrichment);
+wireClientExports();
 
 // ---------- Batch: CSV upload ----------
 
@@ -869,40 +1161,57 @@ async function runUpload() {
     showToast("Choose a CSV file first", true);
     return;
   }
-  const uploadBtn = el("uploadBtn");
-  const liveBtn = el("liveBtn");
-  uploadBtn.disabled = true;
-  liveBtn.disabled = true;
+  const file = fileInput.files[0];
+  setProgressMessage(`Parsing ${escapeHtml(file.name)}\u2026`);
   el("batch-progress").hidden = false;
-  el("progress-log").textContent = "";
-  setProgressMessage("Uploading and processing batch\u2026");
-  el("progress-fill").style.width = "35%";
-
   const form = new FormData();
-  form.append("file", fileInput.files[0]);
+  form.append("file", file);
   form.append("limit", "0");
 
+  let parsed;
   try {
-    const res = await fetch("/enrich", { method: "POST", body: form });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "Upload failed");
-    lastData = data;
-    renderDashboard();
-    rebuildCategoryOptions();
-    renderResults();
-    el("progress-fill").style.width = "100%";
-    setProgressMessage(
-      `Complete \u2014 ${data.rows} SKUs enriched from your file. <a href="#/catalog">View catalog</a>`
-    );
-    appendLog("SUCCESS", `Uploaded file enriched (${data.rows} rows)`);
+    const res = await fetch("/api/enrich/parse", { method: "POST", body: form });
+    parsed = await res.json();
+    if (!res.ok) throw new Error(parsed.detail || "Could not parse CSV");
   } catch (err) {
-    el("progress-fill").style.width = "0%";
     setProgressMessage(`Error: ${escapeHtml(err.message)}`);
     showToast("Upload failed: " + err.message, true);
-  } finally {
-    uploadBtn.disabled = false;
-    liveBtn.disabled = false;
+    return;
   }
+  if (!parsed.rows || !parsed.rows.length) {
+    showToast("No catalog rows in that CSV", true);
+    return;
+  }
+  if (parsed.headers && parsed.headers.length) lastHeaders = parsed.headers;
+  if (parsed.truncated) {
+    appendLog("WARN", `File capped at ${parsed.cap} rows for this run.`);
+  }
+  appendLog("PARSE", `${file.name}: ${parsed.total} rows queued`);
+
+  const rows = parsed.rows;
+  await runWindowedBatch({
+    totalHint: rows.length,
+    label: `Uploaded file \u2014 ${parsed.total} rows`,
+    requestWindow: (offset, windowSize, onEvent) => {
+      const slice = rows.slice(offset, offset + windowSize);
+      return readSseWithRetry(
+        "/api/enrich/window",
+        onEvent,
+        3,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rows: slice,
+            offset,
+            total: rows.length,
+            filter: "upload",
+            url_memory: urlMemory,
+          }),
+        }
+      );
+    },
+  });
 }
 
 el("uploadBtn").addEventListener("click", runUpload);

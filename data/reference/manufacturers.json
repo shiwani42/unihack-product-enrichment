@@ -1,0 +1,500 @@
+{
+  "origin": "mined_sample",
+  "source_file": "Unihack_ Expected Output - Delivery Format.csv+Unihack_ Sample Dataset - Input.csv",
+  "count": 140,
+  "entries": [
+    {
+      "manufacturer_name": "Rheem Manufacturing",
+      "brand_name": "FRIGIDAIRE®"
+    },
+    {
+      "manufacturer_name": "Whirlpool Corporation",
+      "brand_name": "Whirlpool®"
+    },
+    {
+      "manufacturer_name": "GE Appliances",
+      "brand_name": "GE®"
+    },
+    {
+      "manufacturer_name": "Whirlpool Corporation",
+      "brand_name": "KitchenAid®"
+    },
+    {
+      "manufacturer_name": "LG Electronics",
+      "brand_name": "LG®"
+    },
+    {
+      "manufacturer_name": "GE Appliances",
+      "brand_name": "Café®"
+    },
+    {
+      "manufacturer_name": "Speed Queen",
+      "brand_name": "Speed Queen®"
+    },
+    {
+      "manufacturer_name": "Diablo Tools",
+      "brand_name": "Diablo®"
+    },
+    {
+      "manufacturer_name": "Milwaukee Tool",
+      "brand_name": "Milwaukee®"
+    },
+    {
+      "manufacturer_name": "DEWALT",
+      "brand_name": "DEWALT®"
+    },
+    {
+      "manufacturer_name": "3M Company",
+      "brand_name": "3M™"
+    },
+    {
+      "manufacturer_name": "Kichler Lighting",
+      "brand_name": "Kichler®"
+    },
+    {
+      "manufacturer_name": "Hunter Fan Company",
+      "brand_name": "Hunter®"
+    },
+    {
+      "manufacturer_name": "Leviton Manufacturing",
+      "brand_name": "Leviton®"
+    },
+    {
+      "manufacturer_name": "Southwire Company",
+      "brand_name": "Southwire®"
+    },
+    {
+      "manufacturer_name": "Satco Products",
+      "brand_name": "Satco®"
+    },
+    {
+      "manufacturer_name": "Signify North America",
+      "brand_name": "Philips®"
+    },
+    {
+      "manufacturer_name": "Element Electronics",
+      "brand_name": "Element®"
+    },
+    {
+      "manufacturer_name": "Samsung Electronics",
+      "brand_name": "Samsung®"
+    },
+    {
+      "manufacturer_name": "Sharp Electronics",
+      "brand_name": "Sharp®"
+    },
+    {
+      "manufacturer_name": "Beko Home Appliances",
+      "brand_name": "Beko®"
+    },
+    {
+      "manufacturer_name": "U-Line Corporation",
+      "brand_name": "U-Line®"
+    },
+    {
+      "manufacturer_name": "Whirlpool Corporation",
+      "brand_name": "Amana®"
+    },
+    {
+      "manufacturer_name": "Mirka USA Inc.",
+      "brand_name": "Mirka®"
+    },
+    {
+      "manufacturer_name": "Makita USA Inc.",
+      "brand_name": "Makita®"
+    },
+    {
+      "manufacturer_name": "Gilmour Manufacturing",
+      "brand_name": "Gilmour®"
+    },
+    {
+      "manufacturer_name": "Trex Company",
+      "brand_name": "Trex®"
+    },
+    {
+      "manufacturer_name": "AZEK Building Products",
+      "brand_name": "TimberTech®"
+    },
+    {
+      "manufacturer_name": "Festool USA",
+      "brand_name": "Festool®"
+    },
+    {
+      "manufacturer_name": "Feit Electric Company",
+      "brand_name": "Feit Electric®"
+    },
+    {
+      "manufacturer_name": "Schneider Electric",
+      "brand_name": "Square D®"
+    },
+    {
+      "manufacturer_name": "Robert Bosch Tool Corporation",
+      "brand_name": "Dremel®"
+    },
+    {
+      "manufacturer_name": "Kreg Tool Company",
+      "brand_name": "Kreg®"
+    },
+    {
+      "manufacturer_name": "Andersen Corporation",
+      "brand_name": "Andersen®"
+    },
+    {
+      "manufacturer_name": "James Hardie Building Products",
+      "brand_name": "James Hardie®"
+    },
+    {
+      "manufacturer_name": "Hager Companies",
+      "brand_name": "Hager®"
+    },
+    {
+      "manufacturer_name": "ProVia",
+      "brand_name": "ProVia®"
+    },
+    {
+      "manufacturer_name": "Louisiana-Pacific Corporation",
+      "brand_name": "LP® SmartSide®"
+    },
+    {
+      "manufacturer_name": "Freud Inc"
+    },
+    {
+      "manufacturer_name": "Mirka Abrasives Inc"
+    },
+    {
+      "manufacturer_name": "Milwaukee Accessory"
+    },
+    {
+      "manufacturer_name": "3M",
+      "brand_name": "3M"
+    },
+    {
+      "manufacturer_name": "3 M Co"
+    },
+    {
+      "manufacturer_name": "Emseal Joint Systems Ltd"
+    },
+    {
+      "manufacturer_name": "V & V Appliance Parts Inc"
+    },
+    {
+      "manufacturer_name": "Wera Tools NA Inc"
+    },
+    {
+      "manufacturer_name": "Rees Cast Stone Company"
+    },
+    {
+      "manufacturer_name": "TREX",
+      "brand_name": "TREX"
+    },
+    {
+      "manufacturer_name": "TIMBERTECH",
+      "brand_name": "TIMBERTECH"
+    },
+    {
+      "manufacturer_name": "DSI Westbury",
+      "brand_name": "DSI Westbury"
+    },
+    {
+      "manufacturer_name": "AJM",
+      "brand_name": "AJM"
+    },
+    {
+      "manufacturer_name": "A J Manufacturing Inc"
+    },
+    {
+      "manufacturer_name": "United Window & Door",
+      "brand_name": "United Window & Door"
+    },
+    {
+      "manufacturer_name": "United Window & Door Manufacturing"
+    },
+    {
+      "manufacturer_name": "Velux America Inc"
+    },
+    {
+      "manufacturer_name": "PROVIA",
+      "brand_name": "PROVIA"
+    },
+    {
+      "manufacturer_name": "ProVia"
+    },
+    {
+      "manufacturer_name": "Certainteed Gypsum"
+    },
+    {
+      "manufacturer_name": "HAGER",
+      "brand_name": "HAGER"
+    },
+    {
+      "manufacturer_name": "Hager Hinge Co"
+    },
+    {
+      "manufacturer_name": "Huber Eng Wood LLC"
+    },
+    {
+      "manufacturer_name": "Premier Metals"
+    },
+    {
+      "manufacturer_name": "JAMESHARDIE",
+      "brand_name": "JAMESHARDIE"
+    },
+    {
+      "manufacturer_name": "LP SMARTSIDE",
+      "brand_name": "LP SMARTSIDE"
+    },
+    {
+      "manufacturer_name": "MillerTech Energy Solutions"
+    },
+    {
+      "manufacturer_name": "Schumacher",
+      "brand_name": "Schumacher"
+    },
+    {
+      "manufacturer_name": "StealthMounts",
+      "brand_name": "StealthMounts"
+    },
+    {
+      "manufacturer_name": "Metalmark Industrial Inc"
+    },
+    {
+      "manufacturer_name": "Southwire",
+      "brand_name": "Southwire"
+    },
+    {
+      "manufacturer_name": "Southwire/g Turner"
+    },
+    {
+      "manufacturer_name": "Carlon",
+      "brand_name": "Carlon"
+    },
+    {
+      "manufacturer_name": "Thomas & Betts"
+    },
+    {
+      "manufacturer_name": "Cooper Wiring Devices"
+    },
+    {
+      "manufacturer_name": "Fenton Bros Electric Inc"
+    },
+    {
+      "manufacturer_name": "Leviton",
+      "brand_name": "Leviton"
+    },
+    {
+      "manufacturer_name": "Leviton Mfg Co"
+    },
+    {
+      "manufacturer_name": "Prime",
+      "brand_name": "Prime"
+    },
+    {
+      "manufacturer_name": "Prime Wire & Cable"
+    },
+    {
+      "manufacturer_name": "Satco Prod Inc"
+    },
+    {
+      "manufacturer_name": "Satco",
+      "brand_name": "Satco"
+    },
+    {
+      "manufacturer_name": "Kichler Lighting"
+    },
+    {
+      "manufacturer_name": "Cooper Lighting"
+    },
+    {
+      "manufacturer_name": "Wiz",
+      "brand_name": "Wiz"
+    },
+    {
+      "manufacturer_name": "Phillips Lighting"
+    },
+    {
+      "manufacturer_name": "Philips",
+      "brand_name": "Philips"
+    },
+    {
+      "manufacturer_name": "Lithonia Lighting"
+    },
+    {
+      "manufacturer_name": "Feit Electric",
+      "brand_name": "Feit Electric"
+    },
+    {
+      "manufacturer_name": "Feit Electric"
+    },
+    {
+      "manufacturer_name": "GT-Lite",
+      "brand_name": "GT-Lite"
+    },
+    {
+      "manufacturer_name": "Keystone"
+    },
+    {
+      "manufacturer_name": "Maxsa Innovations"
+    },
+    {
+      "manufacturer_name": "DEWALT",
+      "brand_name": "DEWALT"
+    },
+    {
+      "manufacturer_name": "Black & Decker/dewlt"
+    },
+    {
+      "manufacturer_name": "Streamlight"
+    },
+    {
+      "manufacturer_name": "ACG Brands"
+    },
+    {
+      "manufacturer_name": "Police Security",
+      "brand_name": "Police Security"
+    },
+    {
+      "manufacturer_name": "Police Security"
+    },
+    {
+      "manufacturer_name": "Square D Con Prod Dv"
+    },
+    {
+      "manufacturer_name": "Square D",
+      "brand_name": "Square D"
+    },
+    {
+      "manufacturer_name": "Woods Wire Southwire"
+    },
+    {
+      "manufacturer_name": "Senco Products Inc"
+    },
+    {
+      "manufacturer_name": "National Nail Corp"
+    },
+    {
+      "manufacturer_name": "Prebena"
+    },
+    {
+      "manufacturer_name": "Hunter Fan Co"
+    },
+    {
+      "manufacturer_name": "Hunter",
+      "brand_name": "Hunter"
+    },
+    {
+      "manufacturer_name": "Makita Usa Inc"
+    },
+    {
+      "manufacturer_name": "Sabre"
+    },
+    {
+      "manufacturer_name": "ANDERSEN",
+      "brand_name": "ANDERSEN"
+    },
+    {
+      "manufacturer_name": "Marshalltown Trowel"
+    },
+    {
+      "manufacturer_name": "Edge Eyewear Inc"
+    },
+    {
+      "manufacturer_name": "Ohio Firewatch Protection Inc"
+    },
+    {
+      "manufacturer_name": "First Alert",
+      "brand_name": "First Alert"
+    },
+    {
+      "manufacturer_name": "First Alert - B R K Brands"
+    },
+    {
+      "manufacturer_name": "BRK",
+      "brand_name": "BRK"
+    },
+    {
+      "manufacturer_name": "Tech Gear 5.7 Inc"
+    },
+    {
+      "manufacturer_name": "Radians"
+    },
+    {
+      "manufacturer_name": "Woodpeckers Inc"
+    },
+    {
+      "manufacturer_name": "Robt Bosch Tool Corp"
+    },
+    {
+      "manufacturer_name": "U S Tape Company"
+    },
+    {
+      "manufacturer_name": "CENTURY COMPONENTS",
+      "brand_name": "CENTURY COMPONENTS"
+    },
+    {
+      "manufacturer_name": "Amana Tool Corp"
+    },
+    {
+      "manufacturer_name": "Whiteside Machine & Repair Co"
+    },
+    {
+      "manufacturer_name": "Nicholson",
+      "brand_name": "Nicholson"
+    },
+    {
+      "manufacturer_name": "Vessel Tools USA Inc"
+    },
+    {
+      "manufacturer_name": "Malco Prod"
+    },
+    {
+      "manufacturer_name": "Diablo",
+      "brand_name": "Diablo"
+    },
+    {
+      "manufacturer_name": "Irwin",
+      "brand_name": "Irwin"
+    },
+    {
+      "manufacturer_name": "Irwin Industrial Tools"
+    },
+    {
+      "manufacturer_name": "Milwaukee",
+      "brand_name": "Milwaukee"
+    },
+    {
+      "manufacturer_name": "Kreg Tool Company"
+    },
+    {
+      "manufacturer_name": "King Canada Inc"
+    },
+    {
+      "manufacturer_name": "Festool USA"
+    },
+    {
+      "manufacturer_name": "CMT USA Inc"
+    },
+    {
+      "manufacturer_name": "JPW Industries"
+    },
+    {
+      "manufacturer_name": "Woodstock Intl"
+    },
+    {
+      "manufacturer_name": "Bow Products"
+    },
+    {
+      "manufacturer_name": "Saw Stop LLC"
+    },
+    {
+      "manufacturer_name": "Dremel",
+      "brand_name": "Dremel"
+    },
+    {
+      "manufacturer_name": "Oliver Machinery Company"
+    },
+    {
+      "manufacturer_name": "J&G Machinery"
+    }
+  ],
+  "note": "Legal names from gold rows plus observed sample brands. Not UniCat 27k."
+}

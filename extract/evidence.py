@@ -24,6 +24,8 @@ class EvidenceBundle:
     warranty: str = ""
     product_ids: dict[str, str] = field(default_factory=dict)
     image_urls: list[str] = field(default_factory=list)
+    fetched_at: str = ""
+    content_hash: str = ""
 
     def get(self, field: str) -> Evidence | None:
         for item in self.items:

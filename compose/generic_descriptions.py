@@ -33,7 +33,7 @@ def build_generic_descriptions(
     short_parts = [part for part in [brand, mpn, type_text, size_text, finish_text] if part]
     row["SHORT_DESC"] = ", ".join(short_parts)
 
-    row["INVOICE_DESC"] = " ".join(part for part in [type_text.upper(), size_text.replace('"', "IN")] if part)[:40]
+    row["INVOICE_DESC"] = " ".join(part for part in [type_text.upper(), size_text.replace('"', "IN")] if part).upper()[:40]
 
     long_parts = [part for part in [brand, type_text, mpn, size_text, finish_text] if part]
     if part_desc and part_desc not in row["SHORT_DESC"]:

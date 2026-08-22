@@ -1,0 +1,73 @@
+{
+  "origin": "mined_sample",
+  "source_file": "Unihack_ Expected Output - Delivery Format.csv",
+  "labels": 7,
+  "row_count": 41,
+  "values_by_label": {
+    "Application": [
+      "Metal Cut Off Disc",
+      "Metal Cut-Off Disc",
+      "Sanding Belt",
+      "Stikit Film",
+      "Abranet"
+    ],
+    "Color": [
+      "Stainless Steel",
+      "Black",
+      "White",
+      "Bronze",
+      "Brass",
+      "Aluminum",
+      "PVC"
+    ],
+    "Color Temperature": [
+      "2700K",
+      "3000K",
+      "3500K",
+      "4000K",
+      "5000K",
+      "Multi CCT"
+    ],
+    "Finish": [
+      "Grooved",
+      "Smooth",
+      "Black",
+      "White",
+      "Stainless Steel",
+      "Bronze",
+      "Brass",
+      "Aluminum",
+      "PVC"
+    ],
+    "Material": [
+      "Stainless Steel",
+      "Composite",
+      "PVC",
+      "Wood",
+      "Brass",
+      "Bronze",
+      "Steel",
+      "Aluminum"
+    ],
+    "Mounting Type": [
+      "Leg",
+      "Built-in",
+      "Built-In",
+      "Freestanding"
+    ],
+    "Plug Type": [
+      "Hardwired",
+      "Corded"
+    ]
+  },
+  "enumerated_labels": [
+    "Application",
+    "Color",
+    "Color Temperature",
+    "Finish",
+    "Material",
+    "Mounting Type",
+    "Plug Type"
+  ],
+  "note": "Observed enumerated values only. Not a substitute for Unicat_Lov."
+}

@@ -12,12 +12,12 @@
   "GE": {
     "manufacturer_name": "GE Appliances",
     "brand_name": "GE®",
-    "domains": ["geappliances.com"]
+    "domains": ["geappliances.com", "products.geappliances.com"]
   },
   "KitchenAid": {
     "manufacturer_name": "Whirlpool Corporation",
     "brand_name": "KitchenAid®",
-    "domains": ["kitchenaid.com"]
+    "domains": ["kitchenaid.com", "learnwhirlpool.com"]
   },
   "LG": {
     "manufacturer_name": "LG Electronics",
@@ -27,7 +27,7 @@
   "Cafe": {
     "manufacturer_name": "GE Appliances",
     "brand_name": "Café®",
-    "domains": ["cafeappliances.com"]
+    "domains": ["cafeappliances.com", "geappliances.com", "products.geappliances.com"]
   },
   "Speed Queen": {
     "manufacturer_name": "Speed Queen",
@@ -112,7 +112,7 @@
   "Amana": {
     "manufacturer_name": "Whirlpool Corporation",
     "brand_name": "Amana®",
-    "domains": ["amana.com"]
+    "domains": ["amana.com", "learnwhirlpool.com"]
   },
   "Mirka": {
     "manufacturer_name": "Mirka USA Inc.",
@@ -128,5 +128,65 @@
     "manufacturer_name": "Gilmour Manufacturing",
     "brand_name": "Gilmour®",
     "domains": ["gilmour.com"]
+  },
+  "Trex": {
+    "manufacturer_name": "Trex Company",
+    "brand_name": "Trex®",
+    "domains": ["trex.com"]
+  },
+  "TimberTech": {
+    "manufacturer_name": "AZEK Building Products",
+    "brand_name": "TimberTech®",
+    "domains": ["timbertech.com", "azek.com"]
+  },
+  "Festool": {
+    "manufacturer_name": "Festool USA",
+    "brand_name": "Festool®",
+    "domains": ["festoolusa.com"]
+  },
+  "Feit Electric": {
+    "manufacturer_name": "Feit Electric Company",
+    "brand_name": "Feit Electric®",
+    "domains": ["feit.com"]
+  },
+  "Square D": {
+    "manufacturer_name": "Schneider Electric",
+    "brand_name": "Square D®",
+    "domains": ["se.com"]
+  },
+  "Dremel": {
+    "manufacturer_name": "Robert Bosch Tool Corporation",
+    "brand_name": "Dremel®",
+    "domains": ["dremel.com"]
+  },
+  "Kreg": {
+    "manufacturer_name": "Kreg Tool Company",
+    "brand_name": "Kreg®",
+    "domains": ["kregtool.com"]
+  },
+  "Andersen": {
+    "manufacturer_name": "Andersen Corporation",
+    "brand_name": "Andersen®",
+    "domains": ["andersenwindows.com"]
+  },
+  "James Hardie": {
+    "manufacturer_name": "James Hardie Building Products",
+    "brand_name": "James Hardie®",
+    "domains": ["jameshardie.com"]
+  },
+  "Hager": {
+    "manufacturer_name": "Hager Companies",
+    "brand_name": "Hager®",
+    "domains": ["hagerco.com"]
+  },
+  "ProVia": {
+    "manufacturer_name": "ProVia",
+    "brand_name": "ProVia®",
+    "domains": ["provia.com"]
+  },
+  "LP SmartSide": {
+    "manufacturer_name": "Louisiana-Pacific Corporation",
+    "brand_name": "LP® SmartSide®",
+    "domains": ["lpcorp.com"]
   }
 }

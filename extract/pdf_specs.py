@@ -8,6 +8,7 @@ import pdfplumber
 
 from app.config import PDF_MAX_BYTES, REQUEST_TIMEOUT, USER_AGENT
 from extract.evidence import Evidence, EvidenceBundle
+from sources.finder import is_blocked_url
 
 SPEC_PAGE_KEYWORDS = (
     "specification",
@@ -132,7 +133,7 @@ def fetch_pdf_evidence(urls: Iterable[str]) -> EvidenceBundle:
     bundle = EvidenceBundle()
     with httpx.Client(timeout=REQUEST_TIMEOUT, follow_redirects=True, headers=HEADERS) as client:
         for url in urls:
-            if not url.lower().endswith(".pdf"):
+            if not url.lower().endswith(".pdf") or is_blocked_url(url):
                 continue
             try:
                 head = _pdf_request(client, url, "head")
@@ -142,8 +143,11 @@ def fetch_pdf_evidence(urls: Iterable[str]) -> EvidenceBundle:
                 response = _pdf_request(client, url, "get")
                 if response.status_code >= 400 or not response.content:
                     continue
-                page_bundle = extract_from_pdf_bytes(response.content, str(response.url))
-                bundle.ref_urls.append(str(response.url))
+                final_url = str(response.url)
+                if is_blocked_url(final_url):
+                    continue
+                page_bundle = extract_from_pdf_bytes(response.content, final_url)
+                bundle.ref_urls.append(final_url)
                 for item in page_bundle.items:
                     bundle.set(item)
                 if page_bundle.approvals:

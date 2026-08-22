@@ -28,6 +28,8 @@ class CategoryTemplate:
 
 def load_template(category_id: str) -> CategoryTemplate:
     path = TEMPLATE_DIR / f"{category_id}.json"
+    if not path.exists():
+        path = TEMPLATE_DIR / "generic_industrial.json"
     data = json.loads(path.read_text(encoding="utf-8"))
     return CategoryTemplate(
         category_id=data["category_id"],

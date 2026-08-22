@@ -3,7 +3,7 @@
 import asyncio
 import json
 
-from extract.cache import cache_path, load_cached_bundle, save_cached_bundle
+from extract.cache import load_cached_bundle, save_cached_bundle
 from io_utils import atomic_write_text, safe_filename
 from sources.raw_cache import load_raw_html, save_raw_html
 from sources.retry import call_with_retry
@@ -41,6 +41,55 @@ def test_save_and_load_roundtrip_with_image_urls(tmp_path, monkeypatch):
     assert loaded.mfr_url.endswith("/X1")
     assert loaded.image_urls == ["https://acme.com/x1.jpg"]
     assert loaded.get("Color").value == "Black"
+    assert loaded.fetched_at
+    assert loaded.content_hash
+
+
+def test_evidence_cache_rejects_tampered_hash(tmp_path, monkeypatch):
+    from extract.evidence import Evidence, EvidenceBundle
+
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    bundle = EvidenceBundle(mfr_url="https://acme.com/p/X1")
+    bundle.set(Evidence(field="Color", value="Black", source_url="https://acme.com/p/X1", extractor="html", confidence=0.9))
+    save_cached_bundle("X1", bundle)
+
+    path = tmp_path / "X1.json"
+    payload = json.loads(path.read_text())
+    payload["evidence"][0]["value"] = "Red"
+    path.write_text(json.dumps(payload, indent=2))
+    assert load_cached_bundle("X1") is None
+
+
+def test_evidence_cache_ttl_expires_stale_entries(tmp_path, monkeypatch):
+    from datetime import datetime, timedelta, timezone
+
+    from extract.evidence import Evidence, EvidenceBundle
+
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setattr("extract.cache.EVIDENCE_CACHE_TTL_DAYS", 7)
+    bundle = EvidenceBundle(mfr_url="https://acme.com/p/OLD")
+    bundle.set(Evidence(field="Color", value="Black", source_url="https://acme.com/p/OLD", extractor="html", confidence=0.9))
+    stale = (datetime.now(timezone.utc) - timedelta(days=40)).isoformat()
+    save_cached_bundle("OLD1", bundle, fetched_at=stale)
+    assert load_cached_bundle("OLD1") is None
+
+    save_cached_bundle("NEW1", bundle)
+    assert load_cached_bundle("NEW1") is not None
+
+
+def test_evidence_cache_unstamped_never_loads(tmp_path, monkeypatch):
+    import os
+
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setattr("extract.cache.EVIDENCE_CACHE_TTL_DAYS", 7)
+    path = tmp_path / "LEGACY.json"
+    path.write_text(json.dumps({
+        "mpn": "LEGACY",
+        "mfr_url": "https://acme.com/p/LEGACY",
+        "evidence": [{"field": "Color", "value": "Black", "uom": "", "source_url": "https://acme.com/p/LEGACY", "quote": "black finish", "extractor": "html", "confidence": 0.8}],
+    }))
+    os.utime(path, None)
+    assert load_cached_bundle("LEGACY") is None
 
 
 def test_call_with_retry_recovers_from_transient_failures(monkeypatch):

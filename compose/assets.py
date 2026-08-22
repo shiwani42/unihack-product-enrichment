@@ -1,11 +1,9 @@
 """Stage 8: Digital asset filename conventions for all enriched products.
 
 Filenames follow the Unilog delivery convention (assets are transferred as a
-separate package keyed by these names). ``Actual Image (Yes/No)`` is only
-"Yes" when the enrichment bundle contains verifiable manufacturer imagery
-evidence (image URL captured from the manufacturer page, or a resolved
-manufacturer product page). Rows without any manufacturer evidence honestly
-report "No".
+separate package keyed by these names). ``Actual Image (Yes/No)`` is "Yes"
+only when a manufacturer image URL was captured. A product page URL or
+attribute count is not image evidence.
 """
 
 import re
@@ -31,11 +29,7 @@ def brand_asset_prefix(brand_name: str) -> str:
 def has_image_evidence(bundle) -> bool:
     if bundle is None:
         return False
-    if getattr(bundle, "image_urls", None):
-        return True
-    if getattr(bundle, "mfr_url", ""):
-        return True
-    return len(getattr(bundle, "items", [])) >= 5
+    return any(str(url).strip() for url in getattr(bundle, "image_urls", []) or [])
 
 
 def apply_asset_fields(row: dict[str, str], mpn: str, bundle=None) -> None:

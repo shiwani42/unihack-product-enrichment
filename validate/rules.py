@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from app.config import ECOMMERCE_BLOCKLIST
+from sources.finder import is_blocked_url
 
 LOV_PATH = Path(__file__).resolve().parent / "lov.json"
 REFERENCE_LOV_PATH = Path(__file__).resolve().parents[1] / "data" / "reference" / "lov_values.json"
@@ -79,14 +79,22 @@ def validate_row(row: dict[str, str], category_id: str = "") -> list[ValidationI
         if not value:
             continue
 
-        if label == "Mounting Type":
-            normalized = _normalize_mounting(value)
-            allowed = lov.get("Mounting Type", []) or _load_reference_values().get("Mounting Type", [])
-            if allowed and normalized not in allowed and value not in allowed:
+        constrained = {
+            "Mounting Type",
+            "Plug Type",
+            "Color Temperature",
+        }
+        if label in constrained:
+            check_value = _normalize_mounting(value) if label == "Mounting Type" else value
+            allowed = list(lov.get(label, []) or [])
+            for candidate in _load_reference_values().get(label, []):
+                if candidate not in allowed:
+                    allowed.append(candidate)
+            if allowed and check_value not in allowed and value not in allowed:
                 issues.append(
                     ValidationIssue(
                         f"ATTRIBUTE_VALUE {index}",
-                        f"Mounting Type '{value}' not in LOV",
+                        f"{label} '{value}' not in LOV",
                         "warning",
                     )
                 )
@@ -113,7 +121,7 @@ def validate_row(row: dict[str, str], category_id: str = "") -> list[ValidationI
 
     for field in ("MFR URL", "Ref URL 1", "Ref URL 2", "Ref URL 3", "Ref URL 4", "Ref URL 5"):
         url = (row.get(field) or "").lower()
-        if url and any(block in url for block in ECOMMERCE_BLOCKLIST):
+        if url and is_blocked_url(url):
             issues.append(ValidationIssue(field, "blocked ecommerce source URL", "error"))
 
     if row.get("Product Name") and not row.get("Classpath"):

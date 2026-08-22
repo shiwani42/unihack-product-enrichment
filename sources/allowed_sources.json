@@ -1,0 +1,26 @@
+{
+  "brand_families": [
+    ["whirlpool.com", "kitchenaid.com", "maytag.com", "amana.com", "jennair.com", "learnwhirlpool.com"],
+    ["geappliances.com", "cafeappliances.com", "hotpoint.com", "products.geappliances.com"],
+    ["frigidaire.com", "electrolux.com", "electroluxappliances.com", "support.frigidaire.com"]
+  ],
+  "third_party": {
+    "energystar.gov": [
+      "https://www.energystar.gov/productfinder/?search_text={mpn}"
+    ],
+    "icecat.us": [
+      "https://icecat.us/?q={mpn}"
+    ],
+    "icecat.biz": [
+      "https://icecat.biz/search?keyword={mpn}"
+    ]
+  },
+  "distributors": {
+    "grainger.com": [
+      "https://www.grainger.com/search?searchQuery={mpn}"
+    ],
+    "mscdirect.com": [
+      "https://www.mscdirect.com/browse/tn/?searchterm={mpn}"
+    ]
+  }
+}

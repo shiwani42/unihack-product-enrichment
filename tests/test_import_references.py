@@ -100,3 +100,100 @@ def test_missing_reference_dir_is_noop(tmp_path):
     sys.argv = ["import_references.py", "--src", str(tmp_path / "empty")]
     import_main()
     assert True
+
+
+def test_header_columns_identify_renamed_workbooks(tmp_path):
+    _write_xlsx(
+        tmp_path / "dashboard_export.xlsx",
+        "Sheet1",
+        [
+            ["Classpath", "Attribute Label", "Attribute Values"],
+            ["A>B>C", "Finish", "Chrome"],
+        ],
+    )
+    _write_xlsx(
+        tmp_path / "brands_from_judge.xlsx",
+        "List",
+        [
+            ["MANUFACTURER_NAME", "BRAND_NAME"],
+            ["Whirlpool Corporation", "Whirlpool®"],
+        ],
+    )
+    assert import_references.classify_workbook(tmp_path / "dashboard_export.xlsx") == "lov"
+    assert import_references.classify_workbook(tmp_path / "brands_from_judge.xlsx") == "manufacturers"
+    lov = json.loads(import_references.import_lov(tmp_path).read_text())
+    assert lov["values_by_label"]["Finish"] == ["Chrome"]
+    brands = json.loads(import_references.import_manufacturers(tmp_path).read_text())
+    assert brands["entries"][0]["brand_name"] == "Whirlpool®"
+
+
+def test_fuzzy_lov_filename_still_imports(tmp_path):
+    _write_xlsx(
+        tmp_path / "Unicat_Lov_updated_with_remarks.xlsx",
+        "LOV",
+        [
+            ["Classpath", "Attribute Label", "Attribute Values"],
+            ["A>B>C", "Mounting Type", "Leg"],
+        ],
+    )
+    out = import_references.import_lov(tmp_path)
+    payload = json.loads(out.read_text())
+    assert payload["values_by_label"]["Mounting Type"] == ["Leg"]
+
+
+def test_extra_faucets_lov_merges_into_values(tmp_path):
+    _write_xlsx(
+        tmp_path / "Unicat_Lov_v1_0_Updated_With_Remarks.xlsx",
+        "LOV",
+        [
+            ["Classpath", "Attribute Label", "Attribute Values"],
+            ["A>B>C", "Finish", "Chrome"],
+        ],
+    )
+    _write_xlsx(
+        tmp_path / "FAUCETS_LOV.xlsx",
+        "LOV",
+        [
+            ["Attribute Label", "Attribute Values"],
+            ["Finish", "Brushed Nickel"],
+            ["Handle Type", "Lever"],
+        ],
+    )
+    out = import_references.import_lov(tmp_path)
+    payload = json.loads(out.read_text())
+    assert "Chrome" in payload["values_by_label"]["Finish"]
+    assert "Brushed Nickel" in payload["values_by_label"]["Finish"]
+    assert payload["values_by_label"]["Handle Type"] == ["Lever"]
+
+
+def test_ensure_imports_workbook_a_judge_dropped(tmp_path, monkeypatch):
+    refs = tmp_path / "refs"
+    refs.mkdir()
+    _write_xlsx(
+        refs / "Decimal_Fraction.xlsx",
+        "Sheet1",
+        [["Fraction", "Decimal"], ["1/2", 0.5]],
+    )
+    monkeypatch.setattr(import_references, "OUT_DIR", tmp_path / "out")
+    monkeypatch.setattr(import_references, "reference_search_dirs", lambda: [refs])
+    import identity.brand_resolver as brand_resolver
+    import normalize.units as units
+    import validate.rules as rules
+
+    previous = (
+        rules.REFERENCE_LOV_PATH,
+        brand_resolver.REFERENCE_MANUFACTURERS_PATH,
+        units.FRACTION_TABLE,
+    )
+    import_references.reset_ensure_for_tests()
+    try:
+        found = import_references.ensure_official_references()
+        assert found.get("fractions")
+        mapping = json.loads((tmp_path / "out" / "fraction_inch.json").read_text())["decimal_to_fraction"]
+        assert mapping["0.5"] == "1/2"
+    finally:
+        rules.REFERENCE_LOV_PATH, brand_resolver.REFERENCE_MANUFACTURERS_PATH, units.FRACTION_TABLE = previous
+        rules._reference_values_cache = None
+        brand_resolver._reference_index_cache = None
+        units._fraction_table.cache_clear()
+        import_references.reset_ensure_for_tests()

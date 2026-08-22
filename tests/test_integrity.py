@@ -57,12 +57,20 @@ def test_actual_image_honest_without_evidence():
     assert row["Actual Image (Yes/No)"] == "No"
 
 
-def test_actual_image_yes_with_manufacturer_evidence():
+def test_actual_image_no_with_only_manufacturer_page():
     row = {"BRAND_NAME": "ACME"}
     bundle = EvidenceBundle(mfr_url="https://acme.com/p/MPN-1")
     apply_asset_fields(row, "MPN-1", bundle)
-    assert row["Actual Image (Yes/No)"] == "Yes"
+    assert row["Actual Image (Yes/No)"] == "No"
     assert row["Product Image"] == "ACME_MPN-1.jpg"
+
+
+def test_actual_image_yes_with_manufacturer_image_url():
+    row = {"BRAND_NAME": "ACME"}
+    bundle = EvidenceBundle(mfr_url="https://acme.com/p/MPN-1")
+    bundle.image_urls = ["https://acme.com/img.jpg"]
+    apply_asset_fields(row, "MPN-1", bundle)
+    assert row["Actual Image (Yes/No)"] == "Yes"
 
 
 def test_has_image_evidence_via_captured_image_urls():

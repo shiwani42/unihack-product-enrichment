@@ -1,13 +1,16 @@
 """Leaf-level taxonomy matching via keyword/pattern scoring."""
 
 import json
+import os
 import re
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 from app.config import TAXONOMY_PATH
 
 TOKEN_RE = re.compile(r"[a-z0-9]+")
+OFFICIAL_LEAVES_PATH = Path(__file__).resolve().parents[1] / "data" / "taxonomy" / "official_leaves.json"
 
 
 @dataclass
@@ -23,10 +26,46 @@ class TaxonomyMatch:
     confidence: float
 
 
-def _load_leaves() -> list[dict]:
-    if not TAXONOMY_PATH.exists():
-        return []
-    return json.loads(TAXONOMY_PATH.read_text(encoding="utf-8"))
+def reset_leaf_cache() -> None:
+    _load_leaves.cache_clear()
+
+
+def _official_leaves_path() -> Path:
+    override = os.environ.get("UNILOG_OFFICIAL_LEAVES", "").strip()
+    return Path(override) if override else OFFICIAL_LEAVES_PATH
+
+
+@lru_cache(maxsize=1)
+def _load_leaves() -> tuple:
+    bundled: list[dict] = []
+    if TAXONOMY_PATH.exists():
+        try:
+            bundled = json.loads(TAXONOMY_PATH.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            bundled = []
+        if not isinstance(bundled, list):
+            bundled = []
+    official: list[dict] = []
+    official_path = _official_leaves_path()
+    if official_path.exists():
+        try:
+            payload = json.loads(official_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            payload = {}
+        if isinstance(payload, list):
+            official = payload
+        elif isinstance(payload, dict):
+            official = payload.get("leaves") or []
+    by_cp: dict[str, dict] = {}
+    for leaf in bundled:
+        key = str(leaf.get("classpath") or leaf.get("leaf_id") or "")
+        if key:
+            by_cp[key] = leaf
+    for leaf in official:
+        key = str(leaf.get("classpath") or leaf.get("leaf_id") or "")
+        if key:
+            by_cp[key] = leaf
+    return tuple(by_cp.values())
 
 
 def _tokens(text: str) -> set[str]:

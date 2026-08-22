@@ -21,10 +21,30 @@
   </header>
 
   <main class="main">
+    <div id="batch-progress" class="batch-progress" hidden>
+      <div class="batch-counter-row">
+        <span id="progress-message" class="batch-status">Ready.</span>
+        <div class="batch-stats">
+          <div class="bstat"><span id="stat-rows" class="bstat-num">0</span><span class="bstat-lbl">processed</span></div>
+          <div class="bstat"><span id="stat-filled" class="bstat-num">—</span><span class="bstat-lbl">fields / SKU</span></div>
+          <div class="bstat"><span id="stat-high" class="bstat-num">0</span><span class="bstat-lbl">high confidence</span></div>
+          <div class="bstat"><span id="stat-issues" class="bstat-num">0</span><span class="bstat-lbl">flagged</span></div>
+        </div>
+      </div>
+
+      <div class="progress-bar-wrap"><div id="progress-fill" class="progress-fill"></div></div>
+
+      <details class="log-details">
+        <summary>Details</summary>
+        <pre id="progress-log" class="progress-log"></pre>
+      </details>
+    </div>
+
     <!-- ============ ENRICH ============ -->
     <section id="page-enrich" class="page active">
       <div class="page-head">
         <h2 class="page-title">Enrich</h2>
+        <p class="page-sub">Choose a sample to load its part number and distributor fields.</p>
       </div>
 
       <div class="workbench">
@@ -105,8 +125,6 @@
               <label for="sampleFilter">Segment</label>
               <select id="sampleFilter">
                 <option value="" selected>All</option>
-                <option value="dishwasher">Dishwashers</option>
-                <option value="appde">APPDE brands</option>
               </select>
             </div>
             <button id="liveBtn" class="btn btn-primary" type="button">Run batch</button>
@@ -122,25 +140,6 @@
             <button id="uploadBtn" class="btn btn-secondary" type="button" disabled>Enrich file</button>
           </div>
         </div>
-
-        <div id="batch-progress" class="batch-progress" hidden>
-          <div class="batch-counter-row">
-            <span id="progress-message" class="batch-status">Ready.</span>
-            <div class="batch-stats">
-              <div class="bstat"><span id="stat-rows" class="bstat-num">0</span><span class="bstat-lbl">processed</span></div>
-              <div class="bstat"><span id="stat-filled" class="bstat-num">—</span><span class="bstat-lbl">fields / SKU</span></div>
-              <div class="bstat"><span id="stat-high" class="bstat-num">0</span><span class="bstat-lbl">high confidence</span></div>
-              <div class="bstat"><span id="stat-issues" class="bstat-num">0</span><span class="bstat-lbl">flagged</span></div>
-            </div>
-          </div>
-
-          <div class="progress-bar-wrap"><div id="progress-fill" class="progress-fill"></div></div>
-
-          <details class="log-details">
-            <summary>Details</summary>
-            <pre id="progress-log" class="progress-log"></pre>
-          </details>
-        </div>
       </div>
     </section>
 
@@ -149,7 +148,7 @@
       <div class="page-head page-head-row">
         <div>
           <h2 class="page-title">Catalog</h2>
-          <p class="page-sub">Every enriched record, ready for PIM upload. Select a row for the full view.</p>
+          <p class="page-sub">Every enriched record, ready for PIM upload. Rows appear here as each SKU finishes. Select a row for the full view.</p>
         </div>
         <div class="page-actions">
           <span class="export-group">

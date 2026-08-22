@@ -5,7 +5,7 @@
       "src": "api/index.py",
       "use": "@vercel/python",
       "config": {
-        "maxDuration": 60,
+        "maxDuration": 300,
         "includeFiles": "app/static/**"
       }
     }
@@ -14,7 +14,17 @@
     { "src": "/(.*)", "dest": "api/index.py" }
   ],
   "env": {
-    "UNILOG_LIVE_FETCH": "0",
-    "UNILOG_OUTPUT_DIR": "/tmp/unilog-output"
+    "UNILOG_LIVE_FETCH": "1",
+    "UNILOG_WEB_SEARCH": "1",
+    "UNILOG_OUTPUT_DIR": "/tmp/unilog-output",
+    "UNILOG_FETCH_TIMEOUT": "8",
+    "UNILOG_FETCH_URL_LIMIT": "4",
+    "UNILOG_FOLLOW_URL_LIMIT": "3",
+    "UNILOG_SEARCH_URL_LIMIT": "4",
+    "UNILOG_SECONDARY_URL_LIMIT": "4",
+    "UNILOG_THIRD_PARTY_URL_LIMIT": "2",
+    "UNILOG_DISTRIBUTOR_URL_LIMIT": "2",
+    "UNILOG_PDF_URL_LIMIT": "2",
+    "UNILOG_HTTP_RETRIES": "1"
   }
 }

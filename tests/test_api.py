@@ -25,6 +25,21 @@ def test_taxonomy_endpoint():
     assert data["template_count"] >= 10
 
 
+def test_batch_segment_filters_by_template():
+    from app.main import _filter_rows
+    from ingest.csv_io import read_input_rows
+    from app.config import DEFAULT_INPUT
+
+    rows = read_input_rows(DEFAULT_INPUT)
+    dishwashers = _filter_rows(rows, "built_in_dishwasher")
+    fans = _filter_rows(rows, "ceiling_fan")
+    assert dishwashers
+    assert all("dishwasher" in r["Part_Desc"].lower() for r in dishwashers)
+    assert fans
+    assert not any("dishwasher" in r["Part_Desc"].lower() for r in fans)
+    assert _filter_rows(rows, "dishwasher") == dishwashers
+
+
 def test_enrich_single_endpoint():
     payload = {
         "Mfg_Part_Num": "49-94-3000",
@@ -49,3 +64,105 @@ def test_downloads_endpoints():
     prov_resp = client.get("/download/provenance")
     assert prov_resp.status_code == 200
     assert "application/json" in prov_resp.headers.get("content-type", "")
+
+
+def test_enrich_parse_does_not_enrich():
+    csv_text = 'Mfg_Part_Num,Part_Desc,E1_Brand,Unilog_Brand,DIB_Brand,Part_Manuf\n"X,1","Widget, SS",,-- No Unilog Brand --,Acme,Acme Corp\n'
+    response = client.post(
+        "/api/enrich/parse",
+        files={"file": ("parts.csv", csv_text, "text/csv")},
+        data={"limit": "0"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] == 1
+    assert data["rows"][0]["Mfg_Part_Num"] == "X,1"
+    assert data["rows"][0]["Part_Desc"] == "Widget, SS"
+    assert "Classpath" not in data["rows"][0]
+    assert "summary" not in data
+
+
+def test_enrich_post_is_parse_only():
+    csv_text = "Mfg_Part_Num,Part_Desc,E1_Brand,Unilog_Brand,DIB_Brand,Part_Manuf\nX1,Widget SS,,-- No Unilog Brand --,Acme,Acme Corp\n"
+    response = client.post(
+        "/enrich",
+        files={"file": ("parts.csv", csv_text, "text/csv")},
+        data={"limit": "0"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total"] == 1
+    assert data["rows"][0]["Mfg_Part_Num"] == "X1"
+    assert "summary" not in data
+    assert "Classpath" not in data["rows"][0]
+
+
+def test_enrich_window_returns_url_memory():
+    response = client.post(
+        "/api/enrich/window",
+        json={
+            "offset": 0,
+            "total": 1,
+            "rows": [
+                {
+                    "Mfg_Part_Num": "49-94-3000",
+                    "Part_Desc": '3" x 0.040" x 3/8" Metal Cut Off Wheel',
+                    "DIB_Brand": "MILWAUKEE",
+                }
+            ],
+        },
+    )
+    assert response.status_code == 200
+    assert '"url_memory"' in response.text
+
+
+def test_url_memory_restore_keeps_learned_product_url():
+    from sources.known_urls import known_urls_for, remember_urls, _reset_cache
+    from sources.url_store import restore, snapshot
+
+    remember_urls("LEARNED-1", ["https://www.milwaukeetool.com/en-us/LEARNED-1"])
+    memory = snapshot()
+    assert "LEARNED-1" in memory["known_urls"]
+    restore({"known_urls": {}, "search_paths": memory["search_paths"], "dead_paths": {}})
+    assert known_urls_for("LEARNED-1") == []
+    restore(memory)
+    assert known_urls_for("LEARNED-1")[0].endswith("/LEARNED-1")
+    _reset_cache()
+
+
+def test_enrich_window_processes_one_uploaded_row():
+    response = client.post(
+        "/api/enrich/window",
+        json={
+            "offset": 0,
+            "total": 1,
+            "rows": [
+                {
+                    "Mfg_Part_Num": "49-94-3000",
+                    "Part_Desc": '3" x 0.040" x 3/8" Metal Cut Off Wheel',
+                    "DIB_Brand": "MILWAUKEE",
+                }
+            ],
+        },
+    )
+    assert response.status_code == 200
+    assert '"type": "complete"' in response.text
+    assert "49-94-3000" in response.text
+    assert '"done": true' in response.text
+
+
+def test_enrich_stream_window_then_commit():
+    first = client.get("/api/enrich/stream", params={"limit": 2, "offset": 0, "window": 1, "save": 0})
+    assert first.status_code == 200
+    assert '"type": "start"' in first.text
+    assert '"total": 2' in first.text
+    assert '"headers"' in first.text
+    second = client.get("/api/enrich/stream", params={"limit": 2, "offset": 1, "window": 1, "save": 0})
+    assert second.status_code == 200
+    assert '"done": true' in second.text
+    commit = client.post(
+        "/api/enrich/commit",
+        json={"filter": "", "summary": {"rows": 2}, "rows": [], "previews": [], "delivery": []},
+    )
+    assert commit.status_code == 200
+    assert commit.json() == {"ok": True, "rows": 0}

@@ -16,11 +16,14 @@ def _raw_path(mpn: str) -> Path:
 
 
 def save_raw_html(mpn: str, html: str, url: str) -> Path:
-    RAW_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    path = _raw_path(mpn)
-    atomic_write_text(path, f"<!-- source: {url} -->\n{html}", encoding="utf-8")
-    _evict()
-    return path
+    try:
+        RAW_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        path = _raw_path(mpn)
+        atomic_write_text(path, f"<!-- source: {url} -->\n{html}", encoding="utf-8")
+        _evict()
+        return path
+    except OSError:
+        return _raw_path(mpn)
 
 
 def _evict() -> None:

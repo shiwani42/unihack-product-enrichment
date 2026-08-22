@@ -1,0 +1,10 @@
+{
+  "default": {
+    "mobile_lead": "auto",
+    "mobile_fill": ["mounting"],
+    "short_promote_with": true,
+    "long_promote_with": true,
+    "title_with": "single"
+  },
+  "clusters": {}
+}

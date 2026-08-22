@@ -1,20 +1,33 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from app.config import DEFAULT_INPUT, DEFAULT_OUTPUT_HEADERS, REFERENCE_MPNS, OUTPUT_DIR
-from ingest.csv_io import load_output_headers, read_input_rows, write_output_rows
+from ingest.csv_io import (
+    load_output_headers,
+    read_input_rows,
+    write_output_rows,
+    append_output_row,
+    existing_output_mpns,
+)
 from ingest.export_io import write_output_xlsx, write_provenance_json
 from pipeline import enrich_input_row
 from validate.reference_test import compare_rows
 from validate.report import build_row_report, reports_to_dicts, summarize_reports
 
 
-def _enrich_rows(rows: list[dict[str, str]], headers: list[str], workers: int) -> list:
+def _enrich_rows(rows: list[dict[str, str]], headers: list[str], workers: int, on_row=None) -> list:
     if workers <= 1 or len(rows) <= 1:
-        return [enrich_input_row(row, headers) for row in rows]
+        results = []
+        for index, row in enumerate(rows):
+            result = enrich_input_row(row, headers)
+            results.append(result)
+            if on_row:
+                on_row(index, row, result)
+        return results
 
     results: list | None = [None] * len(rows)
     with ThreadPoolExecutor(max_workers=workers) as pool:
@@ -23,7 +36,10 @@ def _enrich_rows(rows: list[dict[str, str]], headers: list[str], workers: int) -
         }
         for future in as_completed(futures):
             index = futures[future]
-            results[index] = future.result()
+            result = future.result()
+            results[index] = result
+            if on_row:
+                on_row(index, rows[index], result)
     return results
 
 
@@ -32,21 +48,40 @@ def _limit_rows(rows: list, limit: int) -> list:
 
 
 def cmd_enrich(args: argparse.Namespace) -> None:
+    from scripts.import_references import ensure_official_references
+
+    ensure_official_references()
+    os.environ.setdefault("UNILOG_FETCH_BUDGET", "20000")
     headers = load_output_headers()
     rows = read_input_rows(Path(args.input))
+    output_path = Path(args.output)
+    if args.resume:
+        done = existing_output_mpns(output_path)
+        rows = [row for row in rows if row.get("Mfg_Part_Num") not in done]
+        print(f"Resume: skipping {len(done)} MPNs already in {output_path}")
     if args.limit:
         rows = _limit_rows(rows, args.limit)
-    results = _enrich_rows(rows, headers, args.workers)
+    total = len(rows)
+
+    def on_row(index, row, result):
+        print(f"{index + 1}/{total} {row.get('Mfg_Part_Num', '')} {result.confidence_band}", flush=True)
+        if args.checkpoint:
+            append_output_row(output_path, headers, result.row)
+
+    results = _enrich_rows(rows, headers, args.workers, on_row=on_row)
     if args.dedupe:
         from dedup.canonical import collapse_duplicates
 
-        total = len(rows)
+        before = len(rows)
         rows, results = collapse_duplicates(rows, results)
-        print(f"Dedupe: merged {total - len(rows)} duplicate rows -> {len(rows)} unique")
+        print(f"Dedupe: merged {before - len(rows)} duplicate rows -> {len(rows)} unique")
     enriched = [item.row for item in results]
-    output_path = Path(args.output)
-    write_output_rows(output_path, headers, enriched)
-    print(f"Wrote {len(enriched)} rows to {output_path}")
+    if args.resume and output_path.exists() and not args.checkpoint:
+        prior = read_input_rows(output_path)
+        write_output_rows(output_path, headers, prior + enriched)
+    elif not args.checkpoint:
+        write_output_rows(output_path, headers, enriched)
+    print(f"Wrote {len(enriched)} new rows to {output_path}")
     if args.xlsx:
         xlsx_path = output_path.with_suffix(".xlsx")
         write_output_xlsx(xlsx_path, headers, enriched)
@@ -111,18 +146,31 @@ def cmd_reference(args: argparse.Namespace) -> None:
 
 
 def cmd_batch(args: argparse.Namespace) -> None:
+    os.environ.setdefault("UNILOG_FETCH_BUDGET", "20000")
     headers = load_output_headers()
     rows = read_input_rows(Path(args.input))
     if args.filter == "dishwasher":
         rows = [row for row in rows if "dishwasher" in row["Part_Desc"].lower()]
     elif args.filter == "appde":
         rows = [row for row in rows if "APPDE" in row.get("Part_Manuf", "")]
+    output_csv = Path(args.output)
+    if args.resume:
+        done = existing_output_mpns(output_csv)
+        rows = [row for row in rows if row.get("Mfg_Part_Num") not in done]
+        print(f"Resume: skipping {len(done)} MPNs already in {output_csv}")
     if args.limit:
         rows = _limit_rows(rows, args.limit)
+    total = len(rows)
 
     reports = []
     enriched_rows = []
-    results = _enrich_rows(rows, headers, args.workers)
+
+    def on_row(index, row, result):
+        print(f"{index + 1}/{total} {row.get('Mfg_Part_Num', '')} {result.confidence_band}", flush=True)
+        if args.checkpoint:
+            append_output_row(output_csv, headers, result.row)
+
+    results = _enrich_rows(rows, headers, args.workers, on_row=on_row)
     for row, result in zip(rows, results):
         enriched_rows.append(result.row)
         reports.append(
@@ -137,8 +185,11 @@ def cmd_batch(args: argparse.Namespace) -> None:
             )
         )
 
-    output_csv = Path(args.output)
-    write_output_rows(output_csv, headers, enriched_rows)
+    if args.resume and output_csv.exists() and not args.checkpoint:
+        prior = read_input_rows(output_csv)
+        write_output_rows(output_csv, headers, prior + enriched_rows)
+    elif not args.checkpoint:
+        write_output_rows(output_csv, headers, enriched_rows)
     if args.xlsx:
         write_output_xlsx(output_csv.with_suffix(".xlsx"), headers, enriched_rows)
     if args.provenance:
@@ -180,6 +231,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     enrich.add_argument("--workers", type=int, default=1, help="Parallel enrichment workers")
     enrich.add_argument("--dedupe", action="store_true", help="Skip duplicate MPNS in input")
+    enrich.add_argument("--resume", action="store_true", help="Skip MPNs already present in --output")
+    enrich.add_argument("--checkpoint", action="store_true", help="Append each finished row to --output immediately")
     enrich.set_defaults(func=cmd_enrich)
 
     reference = sub.add_parser(
@@ -198,6 +251,8 @@ def build_parser() -> argparse.ArgumentParser:
     batch.add_argument("--xlsx", action="store_true")
     batch.add_argument("--provenance", default=str(OUTPUT_DIR / "field_provenance.json"))
     batch.add_argument("--workers", type=int, default=4, help="Parallel enrichment workers")
+    batch.add_argument("--resume", action="store_true", help="Skip MPNs already present in --output")
+    batch.add_argument("--checkpoint", action="store_true", help="Append each finished row to --output immediately")
     batch.set_defaults(func=cmd_batch)
 
     return parser

@@ -1,5 +1,6 @@
 from classify.category_router import CategoryTemplate
 from compose.mobile_utils import pad_mobile
+from compose.style_table import mobile_lead, resolve_style
 from extract.evidence import EvidenceBundle
 
 
@@ -16,6 +17,29 @@ def _with_phrase(with_text: str) -> str:
     return with_text if with_text.lower().startswith("with ") else f"With {with_text}"
 
 
+def _title_with(with_phrase: str, style: dict) -> str:
+    """Put a With-feature in the title only when it is a single qualifier.
+
+    Delivery titles stay tight: "With CleanBoost™" belongs in SHORT/LONG;
+    "With A, B, C" stays in the With column only.
+    """
+    if not with_phrase:
+        return ""
+    mode = (style.get("title_with") or "single").lower()
+    if mode == "never":
+        return ""
+    if mode == "always":
+        return with_phrase
+    body = with_phrase[5:].strip() if with_phrase.lower().startswith("with ") else with_phrase
+    if "," in body:
+        return ""
+    return with_phrase
+
+
+def _join(parts: list[str]) -> str:
+    return ", ".join(part for part in parts if part)
+
+
 def build_descriptions(
     row: dict[str, str],
     template: CategoryTemplate,
@@ -24,6 +48,12 @@ def build_descriptions(
 ) -> None:
     brand = row.get("BRAND_NAME", "")
     manufacturer = row.get("MANUFACTURER_NAME", "")
+    style = resolve_style(brand_name=brand)
+    product = row.get("Product Name") or template.product_name or "Dishwasher"
+    rules = template.description_rules or {}
+    mobile_min = int(rules.get("mobile_min_chars", 60))
+    mobile_max = int(rules.get("mobile_max_chars", 80))
+
     series, _ = _attr(bundle, "Series")
     mounting, _ = _attr(bundle, "Mounting Type")
     volt, volt_uom = _attr(bundle, "Voltage Rating")
@@ -47,7 +77,7 @@ def build_descriptions(
         elif "built" in mounting.lower():
             mount_abbr = "BLTLN"
 
-    invoice_parts = ["DISHWASHER"]
+    invoice_parts = [product.upper()]
     if mount_abbr:
         invoice_parts.append(mount_abbr)
     if cycles:
@@ -73,22 +103,20 @@ def build_descriptions(
         if not depth_token.endswith("IN"):
             depth_token = f"{depth_token}IN"
         invoice_parts.append(depth_token)
-    row["INVOICE_DESC"] = " ".join(invoice_parts)[:40]
+    row["INVOICE_DESC"] = " ".join(invoice_parts).upper()[:40]
 
-    if "Whirlpool" in brand:
-        mobile = f"Whirlpool, Dishwasher, {series}, {mpn}"
-        if mounting:
-            mobile += f", {mounting} Mounting"
-    elif "FRIGIDAIRE" in brand.upper():
-        mobile = f"{manufacturer} FRIGIDAIRE, Dishwasher, {series}, {mpn}"
-    else:
-        mobile = f"{manufacturer} {brand.replace('®', '')}, Dishwasher, {series}, {mpn}".strip()
-    row["MOBILE_DESC"] = pad_mobile(mobile, mpn, brand, manufacturer)
+    lead = mobile_lead(style, manufacturer, brand)
+    mobile_parts = [lead, product, series, mpn]
+    fill = style.get("mobile_fill") or []
+    if "mounting" in fill and mounting and len(_join(mobile_parts)) < mobile_min:
+        mobile_parts.append(f"{mounting} Mounting")
+    row["MOBILE_DESC"] = pad_mobile(_join(mobile_parts), mpn, brand, manufacturer, minimum=mobile_min)[:mobile_max]
 
     with_phrase = _with_phrase(with_text.replace("With ", "").replace("with ", ""))
-    short_lead = f"{brand} {series} {mpn} Dishwasher".strip()
-    if with_phrase and "CleanBoost" in with_phrase:
-        short_lead = f"{short_lead} {with_phrase}".strip()
+    title_with = _title_with(with_phrase, style)
+    short_lead = f"{brand} {series} {mpn} {product}".strip()
+    if title_with and style.get("short_promote_with"):
+        short_lead = f"{short_lead} {title_with}".strip()
     short_tail = []
     if mounting:
         short_tail.append(f"{mounting} Mounting")
@@ -98,11 +126,11 @@ def build_descriptions(
         short_tail.append(material)
     if color:
         short_tail.append(color)
-    row["SHORT_DESC"] = ", ".join([short_lead] + short_tail)
+    row["SHORT_DESC"] = _join([short_lead] + short_tail)
 
-    long_lead = f"{brand} Dishwasher"
-    if with_phrase and ("FRIGIDAIRE" in brand.upper() or "CleanBoost" in with_phrase):
-        long_lead = f"{long_lead} {with_phrase}"
+    long_lead = f"{brand} {product}"
+    if title_with and style.get("long_promote_with"):
+        long_lead = f"{long_lead} {title_with}"
     long_parts = [long_lead]
     if series:
         long_parts.append(series)
@@ -133,13 +161,13 @@ def build_descriptions(
         long_parts.append(color)
     if additional:
         long_parts.append(f"Additional Information: {additional}")
-    row["LONG_DESC1"] = ", ".join(part for part in long_parts if part)
+    row["LONG_DESC1"] = _join(long_parts)
 
     retail_parts = []
     if series:
-        retail_parts.append(f"{series} Dishwasher")
+        retail_parts.append(f"{series} {product}")
     else:
-        retail_parts.append("Dishwasher")
+        retail_parts.append(product)
     if mounting:
         retail_parts.append(f"{mounting} Mounting")
     if cycles:
@@ -148,7 +176,7 @@ def build_descriptions(
         retail_parts.append(material)
     if color:
         retail_parts.append(color)
-    row["RETAIL_DESC"] = ", ".join(retail_parts)
+    row["RETAIL_DESC"] = _join(retail_parts)
 
     if with_text:
         row["With"] = with_text if with_text.startswith("With") else f"With {with_text}"

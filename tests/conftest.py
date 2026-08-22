@@ -2,6 +2,7 @@
 test is explicitly marked with @pytest.mark.network."""
 
 import os
+from pathlib import Path
 
 import pytest
 
@@ -16,7 +17,57 @@ def pytest_configure(config):
 
 
 @pytest.fixture(autouse=True)
+def _reset_search_engine():
+    from sources.web_search import set_last_search_engine
+
+    set_last_search_engine(None)
+    yield
+    set_last_search_engine(None)
+
+
+@pytest.fixture(autouse=True)
 def _offline_by_default(request, monkeypatch):
     if not _has_network_marker(request):
         monkeypatch.setenv("UNILOG_LIVE_FETCH", "0")
+        monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
     yield
+
+
+@pytest.fixture(autouse=True)
+def _isolate_search_paths(tmp_path, monkeypatch):
+    """Copy brand URL templates into a temp file so promotions stay out of git."""
+    import shutil
+
+    import sources.finder as finder
+    import sources.url_patterns as url_patterns
+
+    src = Path(finder.__file__).resolve().parent / "search_paths.json"
+    dest = tmp_path / "search_paths.json"
+    if src.exists():
+        shutil.copy2(src, dest)
+    monkeypatch.setattr(finder, "SEARCH_PATHS_FILE", dest)
+    monkeypatch.setattr(url_patterns, "SEARCH_PATHS_FILE", dest)
+    finder.reset_search_path_cache()
+    yield
+    finder.reset_search_path_cache()
+
+
+@pytest.fixture(autouse=True)
+def _isolate_dead_paths(tmp_path, monkeypatch):
+    import sources.dead_paths as dead_paths
+
+    monkeypatch.setattr(dead_paths, "DEAD_PATHS_FILE", tmp_path / "dead_paths.json")
+    dead_paths._reset_cache()
+    yield
+    dead_paths._reset_cache()
+
+
+@pytest.fixture(autouse=True)
+def _isolate_known_urls(tmp_path, monkeypatch):
+    """Keep live-search URL memory out of the committed seed file during tests."""
+    import sources.known_urls as known_urls
+
+    monkeypatch.setattr(known_urls, "KNOWN_URLS_FILE", tmp_path / "known_urls.json")
+    known_urls._reset_cache()
+    yield
+    known_urls._reset_cache()

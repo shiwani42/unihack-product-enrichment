@@ -23,6 +23,15 @@ def test_explicit_inch_still_normalized():
     assert (value, uom) == ("24", "in")
 
 
+def test_inch_decimals_use_gold_mixed_fraction_form():
+    from normalize.units import _fraction_table, decimal_to_fraction
+
+    _fraction_table.cache_clear()
+    assert decimal_to_fraction("0.25") == "1/4"
+    assert split_value_uom("50.25 in") == ("50-1/4", "in")
+    assert split_value_uom("2.5 cm") == ("2.5", "cm")
+
+
 def test_voltage_and_amperage_unaffected():
     assert split_value_uom("120 V") == ("120", "V")
     assert split_value_uom("15 A", expected_uom="A") == ("15", "A")

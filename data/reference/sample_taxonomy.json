@@ -1,0 +1,108 @@
+{
+  "origin": "mined_sample",
+  "template_count": 14,
+  "templates": [
+    {
+      "template_id": "building_trim",
+      "classpath": "Building Materials>Exterior Trim>Post Components",
+      "dept": "Building Materials",
+      "class": "Exterior Trim",
+      "fine": "Post Components"
+    },
+    {
+      "template_id": "built_in_dishwasher",
+      "classpath": "Appliances & Consumer Electronics>Kitchen Appliances>Built-In Dishwashers",
+      "dept": "Appliances",
+      "class": "Large Appliances",
+      "fine": "Dishwashers"
+    },
+    {
+      "template_id": "ceiling_fan",
+      "classpath": "Electrical & Lighting>Ceiling Fans & Ventilation>Ceiling Fans",
+      "dept": "Electrical & Lighting",
+      "class": "Ceiling Fans & Ventilation",
+      "fine": "Ceiling Fans"
+    },
+    {
+      "template_id": "cooking_range",
+      "classpath": "Appliances & Consumer Electronics>Kitchen Appliances>Ranges",
+      "dept": "Appliances",
+      "class": "Large Appliances",
+      "fine": "Ranges"
+    },
+    {
+      "template_id": "deck_composite",
+      "classpath": "Building Materials>Decking & Railing>Composite Decking",
+      "dept": "Building Materials",
+      "class": "Decking & Railing",
+      "fine": "Composite Decking"
+    },
+    {
+      "template_id": "electrical_box",
+      "classpath": "Electrical & Lighting>Electrical Boxes & Covers>Box Covers",
+      "dept": "Electrical & Lighting",
+      "class": "Electrical Boxes & Covers",
+      "fine": "Box Covers"
+    },
+    {
+      "template_id": "generic_industrial",
+      "classpath": "Industrial Supplies>General Industrial>General Products",
+      "dept": "Industrial Supplies",
+      "class": "General Industrial",
+      "fine": "General Products"
+    },
+    {
+      "template_id": "grinding_wheel",
+      "classpath": "Tools & Hardware>Abrasives>Grinding Wheels",
+      "dept": "Tools & Hardware",
+      "class": "Abrasives",
+      "fine": "Grinding Wheels"
+    },
+    {
+      "template_id": "led_lighting",
+      "classpath": "Electrical & Lighting>Lighting Fixtures & Components>LED Lighting",
+      "dept": "Electrical & Lighting",
+      "class": "Lighting Fixtures & Components",
+      "fine": "LED Lighting"
+    },
+    {
+      "template_id": "metal_cutoff_disc",
+      "classpath": "Tools & Hardware>Power Tool Accessories>Cutting & Grinding Discs>Metal Cut-Off Discs",
+      "dept": "Tools & Hardware",
+      "class": "Power Tool Accessories",
+      "fine": "Metal Cut-Off Discs"
+    },
+    {
+      "template_id": "pipe_fitting",
+      "classpath": "Plumbing>Pipe & Fittings>Couplings",
+      "dept": "Plumbing",
+      "class": "Pipe & Fittings",
+      "fine": "Couplings"
+    },
+    {
+      "template_id": "power_tool_accessory",
+      "classpath": "Tools & Hardware>Power Tool Accessories>Drill Bits & Accessories",
+      "dept": "Tools & Hardware",
+      "class": "Power Tool Accessories",
+      "fine": "Drill Bits & Accessories"
+    },
+    {
+      "template_id": "sanding_abrasive",
+      "classpath": "Tools & Hardware>Abrasives>Sanding Supplies",
+      "dept": "Tools & Hardware",
+      "class": "Abrasives",
+      "fine": "Sanding Supplies"
+    },
+    {
+      "template_id": "wire_cable",
+      "classpath": "Electrical>Wire & Cable>Building Wire",
+      "dept": "Electrical",
+      "class": "Wire & Cable",
+      "fine": "Building Wire"
+    }
+  ],
+  "gold_classpaths": [
+    "Appliances & Consumer Electronics>Kitchen Appliances>Built-In Dishwashers"
+  ],
+  "note": "Covers observed sample families only. Not the 14,000-leaf Unicat taxonomy."
+}

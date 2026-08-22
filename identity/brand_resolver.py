@@ -125,6 +125,19 @@ def brand_from_description(part_desc: str, manufacturer_map: dict | None = None)
     return brand_from_manufacturer_map(part_desc, manufacturer_map)
 
 
+def usable_manufacturer_label(part_manuf: str) -> str:
+    """Part_Manuf when it is a real company name, not a coop / placeholder."""
+    if not part_manuf or re.search(r"\bAPPDE\b|Appliance Dealers Cooperative", part_manuf, re.I):
+        return ""
+    token = clean_brand(part_manuf)
+    if not token or token.upper() in COOP_CODES:
+        return ""
+    stripped = re.sub(r"\s*\([^)]*\)\s*$", "", token).strip()
+    if not stripped or stripped.upper() in COOP_CODES:
+        return ""
+    return stripped
+
+
 def brand_from_part_manuf(part_manuf: str, manufacturer_map: dict) -> str | None:
     if re.search(r"\bAPPDE\b|Appliance Dealers Cooperative", part_manuf, re.I):
         return None
@@ -256,6 +269,20 @@ def _resolve_identity_impl(
             method="mpn_prefix",
         )
         return canonicalize_with_reference(identity, part_manuf)
+
+    leftover = usable_manufacturer_label(part_manuf)
+    if leftover:
+        return canonicalize_with_reference(
+            Identity(
+                brand_key=leftover,
+                brand_name=leftover,
+                manufacturer_name=leftover,
+                domains=[],
+                confidence=0.45,
+                method="part_manuf_unmapped",
+            ),
+            part_manuf,
+        )
 
     identity = Identity(
         brand_key="",

@@ -1,0 +1,38 @@
+{
+  "origin": "mined_sample",
+  "source_file": "Unihack_ Expected Output - Delivery Format.csv",
+  "measurements": 26,
+  "abbreviations": {
+    "volt": "V",
+    "volts": "V",
+    "voltage": "V",
+    "amp": "A",
+    "ampere": "A",
+    "amperes": "A",
+    "amps": "A",
+    "inch": "in",
+    "inches": "in",
+    "in.": "in",
+    "decibel a": "dBA",
+    "dba": "dBA",
+    "watt": "W",
+    "watts": "W",
+    "foot": "ft",
+    "feet": "ft",
+    "millimeter": "mm",
+    "millimeters": "mm",
+    "pound": "lb",
+    "pounds": "lb",
+    "pound-force per square inch": "PSI",
+    "kilowatt-hour": "kW-hr",
+    "v": "V",
+    "a": "A",
+    "in": "in",
+    "psi": "PSI"
+  },
+  "house_style_rules": [
+    "space between number and unit in prose",
+    "inch mixed numbers use hyphen form 50-1/4"
+  ],
+  "note": "Abbreviations taken from gold output and sample expansions. Not the master UOM workbook."
+}

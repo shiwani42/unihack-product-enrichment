@@ -5,6 +5,7 @@ __pycache__/
 venv/
 .env
 .env.*
+!.env.example
 *.sqlite
 *.db
 .cache/
@@ -18,6 +19,9 @@ output/*
 data/cache/
 data/llm_cache/
 data/raw/
+data/taxonomy/official_leaves.json
+data/dead_paths.json
+data/url_runtime/
 guidelines/.~lock.*
 *.lock
 .DS_Store

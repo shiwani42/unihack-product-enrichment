@@ -63,8 +63,30 @@ PYTHONPATH=. python3 cli.py batch --filter all --xlsx --workers 4 \
 uvicorn app.main:app --port 8000            # web UI at http://localhost:8000
 ```
 
-Deployed on Vercel (`vercel.json`, `api/index.py`): offline mode, delivery artifacts seeded,
-SSE live-enrichment stream, per-value provenance drawer, CSV/XLSX/provenance downloads.
+## Local testing (not Vercel)
+
+Two different kinds of files:
+
+**1. Catalog to enrich (6 columns)**  
+`Mfg_Part_Num`, `Part_Desc`, `E1_Brand`, `Unilog_Brand`, `DIB_Brand`, `Part_Manuf`.
+
+| How | Where |
+|-----|--------|
+| Sample already in the repo | `guidelines/Unihack_ Sample Dataset - Input.csv` (CLI default) |
+| Your own CSV | `PYTHONPATH=. python3 cli.py batch --input /path/to/file.csv` or drop it on Enrich in the local UI (`uvicorn` above) |
+
+**2. Official Solution Guide workbooks (optional)**  
+LOV, brand list, UOM, fractions, taxonomy, 200-row gold. Download from the hackathon dashboard Resources page. Drop the `.xlsx` files here — original names or close variants; headers are also sniffed:
+
+```
+guidelines/references/
+```
+
+Also accepted: `guidelines/`, or `UNILOG_REFERENCES_DIR=/path/to/folder`. Enrichment imports them automatically. They are not required; without them the pipeline uses mined sample standards.
+
+Do not put the 6-column product CSV in `guidelines/references/` — that folder is for Unilog standards workbooks only. Details: `guidelines/references/README.md`.
+
+Deployed on Vercel (`vercel.json`, `api/index.py`): the hosted UI still only accepts the 6-column CSV. Official workbooks must be in the deploy tree (or `UNILOG_REFERENCES_DIR`) for the function to see them.
 
 ## Repository map
 

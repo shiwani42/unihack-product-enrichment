@@ -1,12 +1,21 @@
 {
   "built_in_dishwasher": {
     "Mounting Type": ["Leg", "Built-in", "Built-In", "Freestanding"],
-    "Plug Type": ["Hardwired", "Corded"]
+    "Plug Type": ["Hardwired", "Corded"],
+    "Material": ["Stainless Steel"],
+    "Color": ["Stainless Steel", "Black", "White"]
   },
   "metal_cutoff_disc": {
     "Application": ["Metal Cut Off Disc", "Metal Cut-Off Disc", "Sanding Belt", "Stikit Film", "Abranet"]
   },
   "led_lighting": {
     "Color Temperature": ["2700K", "3000K", "3500K", "4000K", "5000K", "Multi CCT"]
+  },
+  "deck_composite": {
+    "Material": ["Composite", "PVC", "Wood"],
+    "Finish": ["Grooved", "Smooth"]
+  },
+  "pipe_fitting": {
+    "Material": ["Brass", "Bronze", "Stainless Steel", "PVC", "Steel"]
   }
 }

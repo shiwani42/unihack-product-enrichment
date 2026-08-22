@@ -8,6 +8,16 @@ def test_validate_rejects_ecommerce_source():
     issues = validate_row(row, category_id="generic_industrial")
     assert any("blocked ecommerce" in issue.message for issue in issues)
 
+    row = {"Ref URL 1": "https://www.dkhardware.com/product/123", "Product Name": "Test"}
+    issues = validate_row(row, category_id="generic_industrial")
+    assert any("blocked ecommerce" in issue.message for issue in issues)
+
+
+def test_validate_allows_distributor_ref_url():
+    row = {"Ref URL 1": "https://www.grainger.com/product/X1", "Product Name": "Test"}
+    issues = validate_row(row, category_id="generic_industrial")
+    assert not any("blocked ecommerce" in issue.message for issue in issues)
+
 
 def test_validate_mobile_length_rules():
     row = {"MOBILE_DESC": "short", "Product Name": "Test", "Classpath": "A>B>C"}

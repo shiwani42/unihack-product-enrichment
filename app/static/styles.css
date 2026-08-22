@@ -576,7 +576,20 @@ body {
   border: 1px solid var(--hairline);
   border-radius: 14px;
   padding: 1.75rem;
-  margin-top: 2rem;
+  margin: 0 0 1.5rem;
+}
+
+.pim-table tr.just-added td {
+  animation: row-in 0.7s ease;
+}
+
+.pim-table tr.timed-out .conf-text {
+  color: var(--ink-2);
+}
+
+@keyframes row-in {
+  from { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+  to { background: transparent; }
 }
 
 .batch-counter-row {
