@@ -17,6 +17,11 @@ function showPage(name) {
 
 navItems.forEach((btn) => btn.addEventListener("click", () => showPage(btn.dataset.page)));
 
+document.querySelector(".wordmark")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  showPage("playground");
+});
+
 function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
@@ -67,72 +72,48 @@ function copyToClipboard(btn, text, label = "Text") {
 function renderGolden() {
   const grid = document.getElementById("golden-grid");
   const avgEl = document.getElementById("golden-avg");
+  const navEl = document.getElementById("nav-golden");
   if (!goldenData.benchmarks.length) {
-    grid.innerHTML = '<div class="empty">Loading golden benchmark evaluations...</div>';
+    grid.innerHTML = '<div class="empty">Loading benchmarks…</div>';
     return;
   }
-  avgEl.textContent = `${goldenData.average_pct}%`;
+  const avgPct = `${goldenData.average_pct}%`;
+  avgEl.textContent = avgPct;
+  if (navEl) navEl.textContent = `${avgPct} golden`;
 
-  grid.innerHTML = goldenData.benchmarks.map((item, idx) => {
-    const radius = 28;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (item.score_pct / 100) * circumference;
-
+  grid.innerHTML = goldenData.benchmarks.map((item) => {
     return `
-      <div class="benchmark-card">
-        <div class="benchmark-top">
-          <div>
-            <div class="benchmark-mpn">${escapeHtml(item.mpn)}</div>
-            <div class="benchmark-brand">${escapeHtml(item.brand || "Verified MFR")}</div>
-            <div class="metric-hint" style="margin-top:0.2rem">${escapeHtml(item.category || "Built-in Dishwasher")}</div>
-          </div>
-          <div class="radial-gauge-container">
-            <svg class="gauge-svg" viewBox="0 0 72 72">
-              <circle class="gauge-bg" cx="36" cy="36" r="${radius}" />
-              <circle class="gauge-meter" id="gauge-ring-${idx}" cx="36" cy="36" r="${radius}"
-                style="stroke-dasharray: ${circumference}; stroke-dashoffset: ${circumference};" />
-            </svg>
-            <div class="gauge-label">${item.score_pct}%</div>
-          </div>
-        </div>
-        <div style="margin-top:1.1rem;display:flex;justify-content:space-between;align-items:center;">
-          <span class="metric-hint" style="margin:0;font-weight:700">
-            ${item.matches} / ${item.expected_filled} Fields (100% Golden Match)
-          </span>
-          <button class="btn btn-secondary btn-xs" onclick="inspectGoldenSKU('${escapeHtml(item.mpn)}')">Inspect SKU &rarr;</button>
-        </div>
+      <div class="golden-card">
+        <div class="golden-pct">${item.score_pct}%</div>
+        <div class="golden-mpn">${escapeHtml(item.mpn)}</div>
+        <div class="golden-meta">${escapeHtml(item.brand || "Verified MFR")} · ${item.matches} / ${item.expected_filled} fields</div>
+        <button class="btn btn-ghost btn-sm" onclick="inspectGoldenSKU('${escapeHtml(item.mpn)}')">Inspect</button>
       </div>
     `;
   }).join("");
-
-  setTimeout(() => {
-    goldenData.benchmarks.forEach((item, idx) => {
-      const radius = 28;
-      const circumference = 2 * Math.PI * radius;
-      const offset = circumference - (item.score_pct / 100) * circumference;
-      const ring = document.getElementById(`gauge-ring-${idx}`);
-      if (ring) ring.style.strokeDashoffset = offset;
-    });
-  }, 100);
 }
 
 function renderDashboard() {
   const summary = lastData.summary || { rows: 0 };
-  document.getElementById("stat-rows").textContent = summary.rows || 0;
-  document.getElementById("stat-filled").textContent = summary.avg_filled_fields ? `${summary.avg_filled_fields}` : "29.2";
+  const rowsEl = document.getElementById("stat-rows");
+  if (rowsEl) rowsEl.textContent = summary.rows || 0;
+  const filledEl = document.getElementById("stat-filled");
+  if (filledEl) filledEl.textContent = summary.avg_filled_fields ? `${summary.avg_filled_fields}` : "—";
   const breakdown = summary.confidence_breakdown || {};
-  document.getElementById("stat-high").textContent = breakdown.high || (summary.rows ? Math.round(summary.rows * 0.9) : 0);
-  document.getElementById("stat-issues").textContent = summary.rows_with_issues || 0;
+  const highEl = document.getElementById("stat-high");
+  if (highEl) highEl.textContent = breakdown.high || 0;
+  const issuesEl = document.getElementById("stat-issues");
+  if (issuesEl) issuesEl.textContent = summary.rows_with_issues || 0;
 
   const lastOp = document.getElementById("last-op");
+  if (!lastOp) return;
   if (!summary.rows) {
-    lastOp.textContent = "Pipeline ready. Test SKUs in the Interactive Sandbox or launch Live Batch Pipeline.";
+    lastOp.textContent = "";
     return;
   }
-  const filterText = lastData.filter ? `Catalog segment: ${lastData.filter}. ` : "";
+  const filterText = lastData.filter ? `Segment: ${lastData.filter}. ` : "";
   lastOp.textContent =
-    `${filterText}Processed ${summary.rows} SKUs with avg ${summary.avg_filled_fields || 29.2} fields populated per record. ` +
-    `${breakdown.high || 0} high-confidence, ${breakdown.review || 0} review-flagged.`;
+    `${filterText}${breakdown.high || 0} high-confidence, ${breakdown.review || 0} review-flagged.`;
 }
 
 // ----------------------------------------------------
@@ -183,15 +164,13 @@ async function runSandboxEnrichment(e) {
   const container = document.getElementById("sb-result-container");
 
   btn.disabled = true;
-  btn.innerHTML = "Enriching Live...";
+  btn.textContent = "Enriching…";
 
   container.innerHTML = `
-    <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:1.25rem;margin-bottom:1rem;">
-      <div class="skeleton skeleton-line short" style="height:22px;margin-bottom:0.75rem"></div>
-      <div class="skeleton skeleton-line mid" style="height:14px"></div>
-    </div>
-    <div class="skeleton skeleton-line" style="height:55px;margin-bottom:0.75rem"></div>
-    <div class="skeleton skeleton-line" style="height:55px;margin-bottom:0.75rem"></div>
+    <div class="skeleton skeleton-line short" style="height:22px;margin-bottom:0.75rem"></div>
+    <div class="skeleton skeleton-line mid" style="height:14px"></div>
+    <div class="skeleton skeleton-line" style="height:55px;margin-top:0.75rem"></div>
+    <div class="skeleton skeleton-line" style="height:55px"></div>
     <div class="skeleton skeleton-line" style="height:90px"></div>
   `;
 
@@ -214,16 +193,13 @@ async function runSandboxEnrichment(e) {
     currentSandboxPreview = data.preview;
     renderSandboxOutput(data.preview);
     document.getElementById("sbOpenDrawerBtn").style.display = "inline-flex";
-    document.getElementById("sb-status-sub").textContent = `Enriched in <400ms • ${data.preview.filled_fields} / 252 fields`;
-    showToast(`Enriched ${data.preview.mpn} successfully!`);
+    document.getElementById("sb-status-sub").textContent = `${data.preview.filled_fields} / 252 fields · ${data.preview.completeness_pct}%`;
+    showToast(`Enriched ${data.preview.mpn}`);
   } catch (err) {
     showToast("Enrichment error: " + err.message);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      Enrich SKU Instantly
-    `;
+    btn.textContent = "Enrich";
   }
 }
 
@@ -235,52 +211,41 @@ function renderSandboxOutput(p) {
   const descs = p.descriptions_list || [];
 
   container.innerHTML = `
-    <!-- Top summary card -->
-    <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:1.15rem;margin-bottom:1.15rem;display:flex;justify-content:space-between;align-items:center;">
+    <div class="result-head">
       <div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:1.18rem;font-weight:800;color:var(--ink)">${escapeHtml(p.mpn)}</div>
-        <div style="color:var(--ink-muted);font-size:0.86rem;font-weight:600;margin-top:0.2rem">${escapeHtml(brand)} • ${escapeHtml(cat)}</div>
+        <div class="result-mpn">${escapeHtml(p.mpn)}</div>
+        <div class="result-brand">${escapeHtml(brand)} · ${escapeHtml(cat)}</div>
       </div>
-      <div style="text-align:right">
-        <span class="badge ${badgeClass(p.confidence_band)}">${p.confidence_band} Confidence</span>
-        <div style="font-size:0.82rem;color:var(--ink-muted);font-weight:700;margin-top:0.35rem">${p.filled_fields} / 252 Fields (${p.completeness_pct}%)</div>
+      <div class="result-figures">
+        <span class="badge ${badgeClass(p.confidence_band)}">${p.confidence_band}</span>
+        <span class="result-fields">${p.filled_fields} / 252 fields</span>
       </div>
     </div>
 
-    <!-- 5 Descriptions Quick Peek with Copy Buttons -->
-    <div style="margin-bottom:1.15rem;">
-      <h4 style="margin:0 0 0.5rem;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-muted)">Generated Commercial Descriptions</h4>
+    <div class="microlabel" style="margin-bottom:0.4rem">Descriptions</div>
+    <div class="desc-list">
       ${descs.slice(0, 3).map((d) => `
-        <div style="background:#fff;border:1px solid var(--line);border-radius:var(--radius-xs);padding:0.75rem 0.9rem;margin-bottom:0.5rem;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.3rem;">
-            <span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:var(--ink-muted)">${escapeHtml(d.title)}</span>
-            <div>
-              <span class="desc-char-badge ${d.valid ? 'valid' : 'invalid'}">${d.length} ${d.max_len ? '/ ' + d.max_len : ''} chars</span>
-              <button class="btn btn-ghost btn-xs" style="margin-left:0.35rem" onclick="copyToClipboard(this, '${escapeHtml(d.value.replace(/'/g, "\\'"))}', '${escapeHtml(d.title)}')">Copy</button>
-            </div>
-          </div>
-          <div style="font-size:0.86rem;line-height:1.5;color:var(--ink)">${escapeHtml(d.value)}</div>
+        <div class="desc-row">
+          <span class="desc-row-label">${escapeHtml(d.title)}</span>
+          <span class="desc-row-text">${escapeHtml(d.value)}</span>
+          <span class="desc-row-meta">
+            <span class="char-count ${d.valid ? '' : 'bad'}">${d.length}${d.max_len ? ' / ' + d.max_len : ''}</span>
+            <button class="copy-btn" onclick="copyToClipboard(this, '${escapeHtml(d.value.replace(/'/g, "\\'"))}', '${escapeHtml(d.title)}')">Copy</button>
+          </span>
         </div>
       `).join("")}
     </div>
 
-    <!-- Structured Attributes Preview -->
-    <div>
-      <h4 style="margin:0 0 0.5rem;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;color:var(--ink-muted)">Structured Category Attributes (${specs.length} populated)</h4>
-      <div style="max-height:190px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--radius-xs);">
-        <table class="specs-table" style="font-size:0.82rem">
-          <tbody>
-            ${specs.slice(0, 10).map(s => `
-              <tr>
-                <td style="font-weight:700;width:40%">${escapeHtml(s.label)}</td>
-                <td><strong>${escapeHtml(s.display)}</strong></td>
-                <td style="text-align:right"><span class="source-tag">${escapeHtml(s.source)}</span></td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <div class="microlabel" style="margin-bottom:0.4rem">Attributes · ${specs.length} populated</div>
+    <dl class="spec-rows">
+      ${specs.slice(0, 8).map(s => `
+        <div class="spec-row">
+          <dt>${escapeHtml(s.label)}</dt>
+          <dd>${escapeHtml(s.display)}</dd>
+          <span class="source-tag">${escapeHtml(s.source)}</span>
+        </div>
+      `).join("")}
+    </dl>
   `;
 }
 
@@ -305,11 +270,10 @@ function renderResults() {
 
   if (!previews.length) {
     body.innerHTML = `
-      <tr><td colspan="8">
+      <tr><td colspan="7">
         <div class="empty">
-          <div class="empty-icon">&#128269;</div>
-          <h4>No Matching Products Found</h4>
-          <p>Try adjusting your search query or category filters.</p>
+          <h4>No matching records</h4>
+          <p>Adjust the search or filters.</p>
         </div>
       </td></tr>`;
     return;
@@ -321,30 +285,19 @@ function renderResults() {
     return `
       <tr data-index="${rawIdx}">
         <td>
-          <div style="font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--ink)">${escapeHtml(row.mpn)}</div>
-          <div style="font-size:0.78rem;color:var(--brand);font-weight:700">${escapeHtml(row.identity.BRAND_NAME || row.identity.Part_Manuf || "-")}</div>
+          <div class="cell-mpn">${escapeHtml(row.mpn)}</div>
+          <div class="cell-brand">${escapeHtml(row.identity.BRAND_NAME || row.identity.Part_Manuf || "—")}</div>
         </td>
-        <td>${escapeHtml(row.identity.MANUFACTURER_NAME || row.identity.Part_Manuf || "-")}</td>
-        <td><span class="preset-cat-tag">${escapeHtml(cat)}</span></td>
-        <td class="bar-cell">
-          <div style="display:flex;justify-content:space-between;font-weight:700;font-size:0.8rem">
-            <span>${row.filled_fields} / 252</span>
-            <span style="color:var(--ink-muted)">${row.completeness_pct}%</span>
-          </div>
+        <td>${escapeHtml(row.identity.MANUFACTURER_NAME || row.identity.Part_Manuf || "—")}</td>
+        <td class="cell-dim">${escapeHtml(cat)}</td>
+        <td class="fields-cell">
+          <div class="fields-line"><span>${row.filled_fields} / 252</span><span class="pct">${row.completeness_pct}%</span></div>
           <div class="mini-bar"><span style="width:${row.completeness_pct}%"></span></div>
         </td>
-        <td>
-          <span style="font-weight:800;color:var(--ink)">${row.evidence_count}</span>
-          <span style="font-size:0.75rem;color:var(--ink-muted)">sources</span>
-        </td>
-        <td><span class="badge ${badgeClass(row.confidence_band)}">${row.confidence_band}</span></td>
-        <td>
-          ${row.issue_count > 0
-            ? `<span style="color:var(--warn);font-weight:700;font-size:0.8rem">&#9888; ${row.issue_count} notes</span>`
-            : `<span style="color:var(--success);font-weight:700;font-size:0.8rem">&#10004; Verified</span>`}
-        </td>
+        <td class="cell-dim">${row.evidence_count}</td>
+        <td><span class="conf-text ${row.confidence_band}">${row.confidence_band}</span></td>
         <td style="text-align:right">
-          <button class="btn btn-secondary btn-xs" onclick="event.stopPropagation(); openDrawer(${rawIdx})">Inspect &rarr;</button>
+          <button class="btn btn-secondary btn-xs" onclick="event.stopPropagation(); openDrawer(${rawIdx})">Inspect</button>
         </td>
       </tr>
     `;
@@ -396,27 +349,27 @@ function openDrawer(index, customPreview = null) {
   const specs = row.specs || [];
   document.getElementById("dtab-specs").innerHTML = specs.length
     ? `
-      <div style="margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-weight:700;font-size:0.86rem;color:var(--ink)">50-Slot Attribute Mappings (${specs.length} Populated)</span>
-        <span class="metric-hint">Standardized Values & Units</span>
+      <div class="specs-toolbar">
+        <span class="specs-toolbar-title">${specs.length} of 50 attribute slots populated</span>
+        <span class="microlabel">Standardized values & units</span>
       </div>
       <table class="specs-table">
         <thead>
           <tr>
             <th style="width:60px">Slot</th>
-            <th>Attribute Label</th>
+            <th>Attribute</th>
             <th>Value</th>
-            <th>UOM</th>
-            <th>Evidence Source Citation</th>
+            <th>Unit</th>
+            <th>Source</th>
           </tr>
         </thead>
         <tbody>
           ${specs.map(s => `
             <tr>
-              <td style="font-family:'JetBrains Mono',monospace;color:var(--ink-muted)">#${s.slot}</td>
-              <td style="font-weight:700;color:var(--ink)">${escapeHtml(s.label)}</td>
-              <td><strong>${escapeHtml(s.value)}</strong></td>
-              <td><span class="preset-cat-tag">${escapeHtml(s.uom || "-")}</span></td>
+              <td class="slot-num">#${s.slot}</td>
+              <td style="font-weight:550">${escapeHtml(s.label)}</td>
+              <td>${escapeHtml(s.value)}</td>
+              <td class="attr-pill">${escapeHtml(s.uom || "—")}</td>
               <td><span class="source-tag">${escapeHtml(s.source)}</span></td>
             </tr>
           `).join("")}
@@ -447,14 +400,10 @@ function openDrawer(index, customPreview = null) {
         `).join("")}
       </div>
       ${features.length ? `
-        <div class="panel" style="margin-top:1rem">
-          <div class="panel-head" style="padding:0.75rem 1rem"><h3>Item Features (${features.length})</h3></div>
-          <div class="panel-body" style="padding:1rem">
-            <ul style="margin:0;padding-left:1.25rem;line-height:1.65;font-size:0.88rem">
-              ${features.map(f => `<li>${escapeHtml(f)}</li>`).join("")}
-            </ul>
-          </div>
-        </div>
+        <div class="drawer-subhead">Item features (${features.length})</div>
+        <ul class="feature-list">
+          ${features.map(f => `<li>${escapeHtml(f)}</li>`).join("")}
+        </ul>
       ` : ''}
     `
     : '<div class="empty">No descriptions generated.</div>';
@@ -466,23 +415,19 @@ function openDrawer(index, customPreview = null) {
   const sources = Object.entries(row.sources || {});
   document.getElementById("dtab-sources").innerHTML = sources.length
     ? `
-      <div style="margin-bottom:1rem">
-        <div style="padding:0.75rem 1rem;background:var(--success-soft);border:1px solid var(--success-border);border-radius:var(--radius-sm);margin-bottom:1rem;display:flex;align-items:center;gap:0.65rem;">
-          <div class="compliance-icon">&#10004;</div>
-          <div style="font-size:0.84rem;color:#065f46">
-            <strong>E-Commerce Blocklist Verified:</strong> Sourced exclusively from official manufacturer & technical document domains.
-          </div>
-        </div>
-        ${sources.map(([k, v]) => `
-          <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:0.85rem 1rem;margin-bottom:0.65rem;display:flex;justify-content:space-between;align-items:center;">
-            <div>
-              <div style="font-size:0.74rem;font-weight:800;text-transform:uppercase;color:var(--ink-muted)">${escapeHtml(k)}</div>
-              <a href="${escapeHtml(v)}" target="_blank" rel="noopener" style="color:var(--brand);font-size:0.86rem;word-break:break-all;font-weight:600">${escapeHtml(v)}</a>
-            </div>
-            <a class="btn btn-ghost btn-xs" href="${escapeHtml(v)}" target="_blank" rel="noopener">Open &rarr;</a>
-          </div>
-        `).join("")}
+      <div class="src-verified">
+        <span class="compliance-icon">✓</span>
+        <span>Sourced exclusively from official manufacturer and technical-document domains.</span>
       </div>
+      ${sources.map(([k, v]) => `
+        <div class="src-row">
+          <div>
+            <div class="src-k">${escapeHtml(k)}</div>
+            <a class="src-url" href="${escapeHtml(v)}" target="_blank" rel="noopener">${escapeHtml(v)}</a>
+          </div>
+          <a class="btn btn-ghost btn-xs" href="${escapeHtml(v)}" target="_blank" rel="noopener">Open</a>
+        </div>
+      `).join("")}
     `
     : '<div class="empty">No source URLs captured.</div>';
 
@@ -490,54 +435,47 @@ function openDrawer(index, customPreview = null) {
   const assets = row.assets || [];
   document.getElementById("dtab-assets").innerHTML = assets.length
     ? `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.85rem">
+      <div class="asset-grid">
         ${assets.map(a => `
-          <div style="background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:1rem;">
-            <div style="font-size:1.5rem;margin-bottom:0.35rem">${a.type === 'image' ? '&#128444;' : '&#128196;'}</div>
-            <div style="font-size:0.78rem;font-weight:700;color:var(--ink-muted);text-transform:uppercase">${escapeHtml(a.title)}</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:0.84rem;font-weight:700;color:var(--ink);margin-top:0.25rem;word-break:break-all">${escapeHtml(a.filename)}</div>
+          <div class="asset-card">
+            <div class="asset-type">${escapeHtml(a.title)}</div>
+            <div class="asset-name">${escapeHtml(a.filename)}</div>
           </div>
         `).join("")}
       </div>
     `
-    : '<div class="empty">No digital asset filenames generated for this SKU.</div>';
+    : '<div class="empty">No digital assets generated for this SKU.</div>';
 
   // TAB 7: Validation & Audit
   const issues = row.issues || [];
   document.getElementById("dtab-validation").innerHTML = `
-    <div style="margin-bottom:1rem">
-      <div style="padding:1rem;background:${issues.length ? 'var(--warn-soft)' : 'var(--success-soft)'};border:1px solid ${issues.length ? 'var(--warn-border)' : 'var(--success-border)'};border-radius:var(--radius-sm);margin-bottom:1rem;">
-        <h4 style="margin:0 0 0.25rem;color:${issues.length ? '#92400e' : '#065f46'}">
-          ${issues.length ? `⚠ ${issues.length} Validation Findings` : '✓ 100% Quality & LOV Compliant'}
-        </h4>
-        <p style="margin:0;font-size:0.84rem;color:${issues.length ? '#92400e' : '#065f46'}">
-          ${issues.length ? 'Review the flagged items below before final catalog publication.' : 'All permissible List of Values (LOV), unit correlations, and character limit rules passed.'}
-        </p>
-      </div>
-      ${issues.map(i => `<div class="issue">${escapeHtml(i)}</div>`).join("")}
+    <div class="verdict ${issues.length ? 'warn' : 'good'}">
+      <h4>${issues.length ? `${issues.length} validation finding${issues.length > 1 ? 's' : ''}` : 'Fully compliant'}</h4>
+      <p>${issues.length ? 'Review the flagged items before publication.' : 'All list-of-values, unit and character-limit rules passed.'}</p>
     </div>
+    ${issues.map(i => `<div class="issue">${escapeHtml(i)}</div>`).join("")}
   `;
 
   // TAB 8: Raw 252-Column Record
   const popFields = row.populated_fields || [];
   document.getElementById("dtab-raw").innerHTML = `
-    <div style="margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-weight:700;font-size:0.86rem">${popFields.length} Populated Headers (of 252 Standard Columns)</span>
-      <input type="search" placeholder="Filter headers..." oninput="filterRawHeaders(this.value)" style="width:200px;padding:0.4rem 0.65rem;font-size:0.8rem" />
+    <div class="specs-toolbar">
+      <span class="specs-toolbar-title">${popFields.length} of 252 headers populated</span>
+      <input type="search" class="raw-filter" placeholder="Filter headers…" oninput="filterRawHeaders(this.value)" />
     </div>
-    <div style="max-height:480px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--radius-xs);">
+    <div style="max-height:480px;overflow-y:auto;">
       <table class="specs-table" id="rawHeadersTable">
         <thead>
           <tr>
-            <th style="width:45%">Standard 252 Column Header</th>
-            <th>Enriched Populated Value</th>
+            <th style="width:45%">Column</th>
+            <th>Value</th>
           </tr>
         </thead>
         <tbody>
           ${popFields.map(f => `
             <tr>
-              <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;font-weight:700;color:var(--ink-soft)">${escapeHtml(f.field)}</td>
-              <td style="font-size:0.84rem">${escapeHtml(f.value)}</td>
+              <td class="cell-mpn" style="font-size:0.76rem">${escapeHtml(f.field)}</td>
+              <td>${escapeHtml(f.value)}</td>
             </tr>
           `).join("")}
         </tbody>
@@ -566,27 +504,27 @@ function renderStorefrontPDP(row) {
   return `
     <div class="storefront-mockup">
       <div class="store-header">
-        <span>Distributor CX1 Storefront Simulator (Live PDP)</span>
-        <span class="badge" style="background:rgba(255,255,255,0.15);color:#fff">Commercial Ready</span>
+        <span>Storefront preview</span>
+        <span class="store-badge">Commercial ready</span>
       </div>
       <div class="store-body">
         <div class="store-crumbs">${crumbs || "Industrial Products"}</div>
         <h1 class="store-h1">${escapeHtml(row.storefront_title)}</h1>
         <div class="store-pdp-meta">
-          <span><strong>MPN:</strong> ${escapeHtml(row.mpn)}</span>
-          <span><strong>Brand:</strong> ${escapeHtml(brand)}</span>
-          <span><strong>MFR:</strong> ${escapeHtml(row.identity.MANUFACTURER_NAME || "-")}</span>
+          <span>MPN ${escapeHtml(row.mpn)}</span>
+          · <span>${escapeHtml(brand)}</span>
+          · <span>${escapeHtml(row.identity.MANUFACTURER_NAME || "—")}</span>
         </div>
         <div class="store-marketing">${escapeHtml(row.storefront_summary || row.long_desc || "Full commercial product data available.")}</div>
         ${features.length ? `
-          <h4 style="margin:0 0 0.5rem;font-size:0.82rem;text-transform:uppercase;color:var(--ink-muted)">Key Commercial Features</h4>
+          <div class="drawer-subhead">Key features</div>
           <ul class="store-features-list">
             ${features.map(f => `<li>${escapeHtml(f)}</li>`).join("")}
           </ul>
         ` : ""}
         ${specs.length ? `
-          <h4 style="margin:0 0 0.5rem;font-size:0.82rem;text-transform:uppercase;color:var(--ink-muted)">Technical Specifications</h4>
-          <table class="specs-table" style="font-size:0.82rem">
+          <div class="drawer-subhead">Specifications</div>
+          <table class="specs-table">
             <tbody>
               ${specs.map(s => `<tr><th style="width:40%">${escapeHtml(s.label)}</th><td>${escapeHtml(s.display)}</td></tr>`).join("")}
             </tbody>
@@ -823,10 +761,8 @@ document.getElementById("playgroundForm")?.addEventListener("submit", runSandbox
 document.getElementById("playgroundResetBtn")?.addEventListener("click", () => {
   document.getElementById("playgroundForm").reset();
   document.getElementById("sb-result-container").innerHTML = `
-    <div class="empty">
-      <div class="empty-icon">&#9889;</div>
-      <h4>Ready to Enrich</h4>
-      <p>Click any preset above or enter raw SKU details to test the live pipeline.</p>
+    <div class="wb-empty">
+      <p>Run an enrichment to see the complete record.</p>
     </div>
   `;
   document.getElementById("sbOpenDrawerBtn").style.display = "none";
