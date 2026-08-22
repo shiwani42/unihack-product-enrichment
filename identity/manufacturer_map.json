@@ -1,0 +1,37 @@
+{
+  "Frigidaire": {
+    "manufacturer_name": "Rheem Manufacturing",
+    "brand_name": "FRIGIDAIRE®",
+    "domains": ["frigidaire.com", "support.frigidaire.com"]
+  },
+  "Whirlpool": {
+    "manufacturer_name": "Whirlpool Corporation",
+    "brand_name": "Whirlpool®",
+    "domains": ["whirlpool.com", "learnwhirlpool.com"]
+  },
+  "GE": {
+    "manufacturer_name": "GE Appliances",
+    "brand_name": "GE®",
+    "domains": ["geappliances.com"]
+  },
+  "KitchenAid": {
+    "manufacturer_name": "Whirlpool Corporation",
+    "brand_name": "KitchenAid®",
+    "domains": ["kitchenaid.com"]
+  },
+  "LG": {
+    "manufacturer_name": "LG Electronics",
+    "brand_name": "LG®",
+    "domains": ["lg.com"]
+  },
+  "Cafe": {
+    "manufacturer_name": "GE Appliances",
+    "brand_name": "Café®",
+    "domains": ["cafeappliances.com"]
+  },
+  "Speed Queen": {
+    "manufacturer_name": "Speed Queen",
+    "brand_name": "Speed Queen®",
+    "domains": ["speedqueen.com"]
+  }
+}

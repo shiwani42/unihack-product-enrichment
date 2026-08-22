@@ -1,0 +1,30 @@
+{
+  "category_id": "built_in_dishwasher",
+  "classpath": "Appliances & Consumer Electronics>Kitchen Appliances>Built-In Dishwashers",
+  "dept": "Appliances",
+  "class": "Large Appliances",
+  "fine": "Dishwashers",
+  "product_name": "Dishwasher",
+  "attribute_labels": [
+    "Series",
+    "Model",
+    "Number of Wash Cycles",
+    "Voltage Rating",
+    "Amperage Rating",
+    "Mounting Type",
+    "Plug Type",
+    "Size",
+    "Depth With Door Open",
+    "Minimum Height",
+    "Maximum Height",
+    "Sound Level",
+    "Material",
+    "Color",
+    "Additional Information"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

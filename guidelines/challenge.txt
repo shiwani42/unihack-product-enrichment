@@ -1,0 +1,161 @@
+Challenge Statement
+AI-Powered Product Intelligence for Industrial Commerce
+Industrial companies manage large amounts of product information across multiple sources such as websites, catalogs, and technical documents. Converting this scattered information into accurate and structured product data is a challenging and time-consuming process.
+
+The Objective: Participants are invited to build AI-powered solutions that can transform limited product information into rich, reliable, and commerce-ready product intelligence—focusing on data enrichment, validation, and explainable outputs.
+
+Expected Outcomes
+Structured Data Generation
+Generate structured product information from limited inputs
+
+Accuracy & Consistency
+Improve accuracy and consistency of product data
+
+AI Validation & Enrichment
+Validate and enrich product information using AI
+
+Scalable Catalog Engine
+Build scalable solutions for large product catalogs
+
+### Hackathon Challenge — Cleaned Transcript
+
+The challenge is to reduce as much as possible the manual involvement while enriching the product data. The solution should build product data for a particular item using the technology and approach you are comfortable with.
+
+The sample dataset contains the manufacturer part number and manufacturer name. These are the primary pieces of information provided by the customer and are essential for enriching the product.
+
+Once you have the manufacturer part number and manufacturer name, the **primary source should be the manufacturer's website**. Competitors and distributors can also be used where necessary, but **shopping and e-commerce websites such as Amazon and eBay are not considered valid sources**.
+
+For each product, you need to source detailed information and additional data beyond the initial input. This information needs to be classified into the taxonomy provided in the resources section under the Solution Guide. The taxonomy contains close to **14,000 categories**. The product must be categorized into an appropriate **leaf-level category**.
+
+Once the product is categorized into a leaf-level category, you will get a predefined set of attributes for that category. Some categories may have more than 30 or 40 attributes, while others may have fewer than 10.
+
+You need to populate the attribute values based on the information available from reliable sources. For example, if an attribute is voltage and the value is 120 V, the value and unit need to be captured in their appropriate fields. The Solution Guide, Style Guidelines, and Project Guidelines explain how values should be captured, standardized, and normalized.
+
+There is also a **List of Values (LOV)** for attributes. For example, a mounting type may have permissible values such as "leg" or "built in." You need to determine which permissible value applies to the product. If you find a genuinely new value that is not present in the provided list, it can be entered and tagged as a new value.
+
+Each category has a predefined set of attributes. Once the appropriate category has been identified, all available information should be populated into those attributes.
+
+Other fields also need to be populated when the information is available, including **EAN, UPC, and UNSPSC**. You do not need to independently determine these values if they are not available. If they are available in the source, capture them.
+
+Other information includes fields such as **warranty, list price, selling quantity, and standard packaging information**. Packaging information should include the required dimensions.
+
+Alternate images should also be captured when they are available on the manufacturer's website.
+
+All **digital assets** must come from the manufacturer's website. This includes:
+
+* Product images
+* PDFs
+* Warranty information
+* Catalog information
+* Technical specifications
+* Other relevant product documentation
+
+These assets should **not** be taken from third-party websites.
+
+After populating the product data, you need to build the required product descriptions. The descriptions include:
+
+* Mobile description
+* Inatch description
+* Short description
+* Long description
+* Retail description
+
+The Style Guidelines and Project Guidelines specify the character limits, required information, ordering, and formatting for each description. For example, some descriptions may require the manufacturer name first, followed by the product name and manufacturer part number. Other descriptions may require the product name first followed by specific attributes. The required sequence must be followed according to the guidelines.
+
+The **marketing description** must be taken as it appears on the manufacturer's website. It should not be taken from third-party sources.
+
+Similarly, **item features** must be sourced only from the manufacturer's website.
+
+The resources provided for the challenge contain the **sample dataset, output format, Solution Guide, Style Guidelines, Project Guidelines, taxonomy, and List of Values**. These reference files explain how manufacturer brands should be captured, how standards should be maintained, and how attribute values should be represented for each category.
+
+### What Makes a Strong Submission
+
+The most important factor is **accuracy**.
+
+The solution should validate the information after enrichment. Validation is important because incorrect values can sometimes be assigned to the wrong attributes. For example, an amperage value could accidentally be placed in a voltage-rating attribute.
+
+The solution must ensure that every attribute value makes sense for its corresponding attribute. The attribute label and attribute value must be properly correlated.
+
+The expected accuracy is **100%**.
+
+Description character limits must also be respected.
+
+### Validation and Source URLs
+
+For each populated value, there should be a **source URL** that allows the value to be validated.
+
+If a value is taken from a PDF, the PDF should be provided, or at minimum a link to that PDF should be provided.
+
+The primary source for product information should be the **manufacturer**. The solution should not simply infer a value using an LLM or general intelligence. When a value is populated, there should be a source URL demonstrating where that value came from.
+
+### Complete Enrichment Pipeline
+
+The solution must implement the **entire product-enrichment pipeline**.
+
+You may focus on specific stages while developing the solution, but the final solution must provide the complete enrichment pipeline rather than only one or two stages.
+
+### Dynamic Solution vs. Mock Workflow
+
+A genuinely dynamic solution should demonstrate actual functionality and business logic.
+
+A mock workflow would primarily demonstrate a process flow or UI concept without actually processing the data.
+
+The dynamic solution should use **real-time data from systems, databases, repositories, or other actual sources**, whereas a mock workflow would use predefined static or dummy data.
+
+The expectation is that the dynamic solution demonstrates actual capabilities and functionality.
+
+### Evaluation
+
+From a content perspective, the judges will primarily look at the **accuracy of the enriched data**.
+
+Accuracy is one of the most important factors in evaluating the submission.
+
+The solution should also demonstrate proper functionality, architecture, and a working implementation rather than simply presenting a concept.
+
+The solution should be **cost-effective**. It should not depend on an unnecessarily expensive approach or service.
+
+Whether AI/agents or human intervention are used is left to the participant. The important requirement is to present a working solution that effectively solves the challenge.
+
+### Manufacturer Website Unavailable
+
+If information is unavailable on the manufacturer's website, **reputed third-party sources** can be used as a fallback.
+
+However, **e-commerce websites should not be used** as sources.
+
+### Resources
+
+All required resources are available in the participant dashboard's **Resources** section. This includes the sample dataset, Solution Guide, output document, and other relevant guidelines.
+
+Participants should use these resources while developing the solution and preparing the submission.
+
+### Submission
+
+The submission deadline mentioned in the session is **23rd August at 11:59 PM IST**. 
+
+
+
+Solution Guide : Use this document to understand what is expected from your solution and how to approach the problem statement.
+
+It will guide you through the solution-building process and help you use the provided dataset effectively while developing your prototype.
+
+Click Here for the Solution Guide
+
+The other files mentioned in the Solution Guide are provided as reference materials to help you better understand the fields, formats, values, and guidelines reflected in the Input and Expected Output datasets. The relevant information from these references is already represented within the columns of the provided datasets, so you can use them as supporting resources rather than treating them as separate datasets to process.
+
+
+
+Sample Dataset: This is a sample dataset provided to help you test your solution and understand the expected data structure. It is for reference and initial testing only.
+
+Important: Your prototype should not be mocked, hardcoded, or built as a basic simulation. It should be dynamic and capable of processing the evaluation test dataset during assessment. Ensure your solution works with real input data and different data/field combinations rather than being designed only for the sample dataset.
+
+Click Here for the Sample Input Dataset[Download]
+
+
+
+Expected Output : This sheet contains the static headers that your solution is expected to populate.
+
+Important Note: Your solution should populate all the headers provided in the Expected Output sheet. Do not modify, remove, or rename any of the headers.
+
+Click Here for the Expected Output Sheet[Download]
+
+Expected Solution: Your solution should generate a downloadable XLSX or CSV file from the given input data, with all the required static headers populated. The final output should be clear, structured, and easy to understand.
