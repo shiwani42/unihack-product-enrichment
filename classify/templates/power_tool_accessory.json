@@ -1,0 +1,22 @@
+{
+  "category_id": "power_tool_accessory",
+  "classpath": "Tools & Hardware>Power Tool Accessories>Drill Bits & Accessories",
+  "dept": "Tools & Hardware",
+  "class": "Power Tool Accessories",
+  "fine": "Drill Bits & Accessories",
+  "product_name": "Power Tool Accessory",
+  "attribute_labels": [
+    "Accessory Type",
+    "Diameter",
+    "Length",
+    "Shank Type",
+    "Material",
+    "Application",
+    "Pack Quantity"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

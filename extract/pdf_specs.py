@@ -1,5 +1,6 @@
 import io
 import re
+import time
 from typing import Iterable
 
 import httpx
@@ -18,6 +19,19 @@ SPEC_PAGE_KEYWORDS = (
 )
 
 HEADERS = {"User-Agent": USER_AGENT}
+
+
+def _pdf_request(client: httpx.Client, url: str, method: str) -> httpx.Response:
+    last_error: Exception | None = None
+    for attempt in range(2):
+        try:
+            if method == "head":
+                return client.head(url)
+            return client.get(url)
+        except httpx.HTTPError as exc:
+            last_error = exc
+            time.sleep(0.5 * (attempt + 1))
+    raise last_error  # type: ignore[misc]
 
 
 def _score_page(text: str) -> int:
@@ -121,12 +135,12 @@ def fetch_pdf_evidence(urls: Iterable[str]) -> EvidenceBundle:
             if not url.lower().endswith(".pdf"):
                 continue
             try:
-                head = client.head(url)
+                head = _pdf_request(client, url, "head")
                 size = int(head.headers.get("content-length", "0") or 0)
                 if size and size > PDF_MAX_BYTES:
                     continue
-                response = client.get(url)
-                if response.status_code >= 400:
+                response = _pdf_request(client, url, "get")
+                if response.status_code >= 400 or not response.content:
                     continue
                 page_bundle = extract_from_pdf_bytes(response.content, str(response.url))
                 bundle.ref_urls.append(str(response.url))

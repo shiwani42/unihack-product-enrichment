@@ -16,6 +16,8 @@ build/
 output/*
 !output/.gitkeep
 data/cache/
+data/llm_cache/
+data/raw/
 guidelines/.~lock.*
 *.lock
 .DS_Store

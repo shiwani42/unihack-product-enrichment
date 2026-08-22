@@ -1,0 +1,16 @@
+{
+  "Product Type": ["Application", "Accessory Type"],
+  "Length": ["Size"],
+  "Width": ["Size", "Blade Span"],
+  "Blade Span": ["Size"],
+  "Finish": ["Color"],
+  "Color": ["Finish"],
+  "Fuel Type": ["Application"],
+  "Accessory Type": ["Product Type", "Application"],
+  "Application": ["Product Type"],
+  "Diameter": ["Size"],
+  "Series": ["Product Type"],
+  "Material": ["Finish"],
+  "Voltage Rating": ["Wattage"],
+  "Size": ["Length", "Width", "Diameter"]
+}

@@ -1,0 +1,23 @@
+{
+  "category_id": "led_lighting",
+  "classpath": "Electrical & Lighting>Lighting Fixtures & Components>LED Lighting",
+  "dept": "Electrical & Lighting",
+  "class": "Lighting Fixtures & Components",
+  "fine": "LED Lighting",
+  "product_name": "LED Light",
+  "attribute_labels": [
+    "Product Type",
+    "Length",
+    "Wattage",
+    "Voltage Rating",
+    "Color Temperature",
+    "Finish",
+    "Lumens",
+    "Pack Quantity"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

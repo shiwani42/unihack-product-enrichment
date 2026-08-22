@@ -1,0 +1,22 @@
+{
+  "category_id": "pipe_fitting",
+  "classpath": "Plumbing>Pipe & Fittings>Couplings",
+  "dept": "Plumbing",
+  "class": "Pipe & Fittings",
+  "fine": "Couplings",
+  "product_name": "Pipe Coupling",
+  "attribute_labels": [
+    "Product Type",
+    "Size",
+    "Material",
+    "Color",
+    "Pressure Rating",
+    "Connection Type",
+    "Application"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

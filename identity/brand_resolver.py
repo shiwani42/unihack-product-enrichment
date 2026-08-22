@@ -7,28 +7,10 @@ from ingest.placeholders import clean_brand
 
 RULES_PATH = Path(__file__).resolve().parent / "mpn_prefix_rules.json"
 MANUFACTURER_PATH = Path(__file__).resolve().parent / "manufacturer_map.json"
+ALIASES_PATH = Path(__file__).resolve().parent / "brand_aliases.json"
+HINTS_PATH = Path(__file__).resolve().parent / "manufacturer_hints.json"
 
-DESC_PATTERNS: list[tuple[str, str]] = [
-    (r"\bGE\b", "GE"),
-    (r"Kitchen Aid", "KitchenAid"),
-    (r"\bLG\b", "LG"),
-    (r"Frigidaire", "Frigidaire"),
-    (r"Whirlpool", "Whirlpool"),
-    (r"Diablo", "Diablo"),
-    (r"\bMilw\b", "Milwaukee"),
-    (r"\b3M\b", "3M"),
-    (r"Kichler", "Kichler"),
-    (r"Philips", "Philips"),
-    (r"Leviton", "Leviton"),
-    (r"DEWALT", "DEWALT"),
-    (r"Satco", "Satco"),
-    (r"Hunter", "Hunter"),
-    (r"Southwire", "Southwire"),
-    (r"Speed Queen", "Speed Queen"),
-    (r"\bSQ\b", "Speed Queen"),
-    (r"Café|Cafe", "Cafe"),
-    (r"Element", "Element"),
-]
+COOP_CODES = {"APPDE", "UNILOG", "COOP"}
 
 
 @dataclass
@@ -45,18 +27,71 @@ def _load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def brand_from_mpn_prefix(mpn: str, prefix_rules: dict[str, str]) -> str | None:
-    for length in (4, 3, 2):
-        prefix = mpn[:length]
-        if prefix in prefix_rules:
-            return prefix_rules[prefix]
+def _brand_names(manufacturer_map: dict) -> list[tuple[str, str]]:
+    names: list[tuple[str, str]] = []
+    for key, meta in manufacturer_map.items():
+        names.append((key, key))
+        brand_name = meta.get("brand_name", "")
+        cleaned = re.sub(r"[®™]", "", brand_name).strip()
+        if cleaned and cleaned.lower() != key.lower():
+            names.append((cleaned, key))
+    return sorted(names, key=lambda item: len(item[0]), reverse=True)
+
+
+def brand_from_manufacturer_map(text: str, manufacturer_map: dict) -> str | None:
+    lowered = text.lower()
+    for name, key in _brand_names(manufacturer_map):
+        if re.search(rf"\b{re.escape(name.lower())}\b", lowered):
+            return key
     return None
 
 
-def brand_from_description(part_desc: str) -> str | None:
-    for pattern, brand in DESC_PATTERNS:
-        if re.search(pattern, part_desc, re.I):
-            return brand
+def brand_from_aliases(text: str, aliases: dict[str, str]) -> str | None:
+    for alias, brand_key in sorted(aliases.items(), key=lambda item: len(item[0]), reverse=True):
+        if re.search(rf"\b{re.escape(alias)}\b", text, re.I):
+            return brand_key
+    return None
+
+
+def brand_from_description(part_desc: str, manufacturer_map: dict | None = None) -> str | None:
+    manufacturer_map = manufacturer_map or _load_json(MANUFACTURER_PATH)
+    aliases = _load_json(ALIASES_PATH) if ALIASES_PATH.exists() else {}
+    from_alias = brand_from_aliases(part_desc, aliases)
+    if from_alias:
+        return from_alias
+    return brand_from_manufacturer_map(part_desc, manufacturer_map)
+
+
+def brand_from_part_manuf(part_manuf: str, manufacturer_map: dict) -> str | None:
+    if re.search(r"\bAPPDE\b|Appliance Dealers Cooperative", part_manuf, re.I):
+        return None
+    token = clean_brand(part_manuf)
+    if not token or token.upper() in COOP_CODES:
+        hints = _load_json(HINTS_PATH) if HINTS_PATH.exists() else {}
+        for hint, brand_key in sorted(hints.items(), key=lambda item: len(item[0]), reverse=True):
+            if hint.lower() in part_manuf.lower() and brand_key in manufacturer_map:
+                return brand_key
+        return None
+    if token in manufacturer_map:
+        return token
+    hints = _load_json(HINTS_PATH) if HINTS_PATH.exists() else {}
+    for hint, brand_key in sorted(hints.items(), key=lambda item: len(item[0]), reverse=True):
+        if hint.lower() in part_manuf.lower() and brand_key in manufacturer_map:
+            return brand_key
+    return brand_from_manufacturer_map(part_manuf, manufacturer_map)
+
+
+def brand_from_mpn_prefix(mpn: str, prefix_rules: dict[str, str], part_desc: str, manufacturer_map: dict) -> str | None:
+    desc_brand = brand_from_description(part_desc, manufacturer_map)
+    for length in (4, 3, 2):
+        prefix = mpn[:length]
+        if prefix not in prefix_rules:
+            continue
+        candidate = prefix_rules[prefix]
+        if desc_brand and desc_brand != candidate:
+            if re.search(r"gilmour|makita|amana", part_desc, re.I) and candidate == "Hunter":
+                continue
+        return candidate
     return None
 
 
@@ -65,13 +100,15 @@ def resolve_identity(
     part_desc: str,
     e1_brand: str,
     dib_brand: str,
+    part_manuf: str = "",
+    unilog_brand: str = "",
 ) -> Identity:
     prefix_rules = _load_json(RULES_PATH)
     manufacturer_map = _load_json(MANUFACTURER_PATH)
 
     dib = clean_brand(dib_brand)
     if dib:
-        brand_key = dib
+        brand_key = dib if dib in manufacturer_map else brand_from_manufacturer_map(dib, manufacturer_map) or dib
         meta = manufacturer_map.get(brand_key, {})
         return Identity(
             brand_key=brand_key,
@@ -84,7 +121,7 @@ def resolve_identity(
 
     e1 = clean_brand(e1_brand)
     if e1:
-        brand_key = e1
+        brand_key = e1 if e1 in manufacturer_map else brand_from_manufacturer_map(e1, manufacturer_map) or e1
         meta = manufacturer_map.get(brand_key, {})
         return Identity(
             brand_key=brand_key,
@@ -95,7 +132,32 @@ def resolve_identity(
             method="e1_brand",
         )
 
-    from_desc = brand_from_description(part_desc)
+    unilog = clean_brand(unilog_brand)
+    if unilog:
+        brand_key = unilog if unilog in manufacturer_map else brand_from_manufacturer_map(unilog, manufacturer_map) or unilog
+        meta = manufacturer_map.get(brand_key, {})
+        return Identity(
+            brand_key=brand_key,
+            brand_name=meta.get("brand_name", unilog),
+            manufacturer_name=meta.get("manufacturer_name", unilog),
+            domains=meta.get("domains", []),
+            confidence=0.82,
+            method="unilog_brand",
+        )
+
+    from_manuf = brand_from_part_manuf(part_manuf, manufacturer_map)
+    if from_manuf:
+        meta = manufacturer_map.get(from_manuf, {})
+        return Identity(
+            brand_key=from_manuf,
+            brand_name=meta.get("brand_name", from_manuf),
+            manufacturer_name=meta.get("manufacturer_name", from_manuf),
+            domains=meta.get("domains", []),
+            confidence=0.8,
+            method="part_manuf",
+        )
+
+    from_desc = brand_from_description(part_desc, manufacturer_map)
     if from_desc:
         meta = manufacturer_map.get(from_desc, {})
         return Identity(
@@ -107,7 +169,7 @@ def resolve_identity(
             method="part_desc",
         )
 
-    from_prefix = brand_from_mpn_prefix(mpn, prefix_rules)
+    from_prefix = brand_from_mpn_prefix(mpn, prefix_rules, part_desc, manufacturer_map)
     if from_prefix:
         meta = manufacturer_map.get(from_prefix, {})
         return Identity(

@@ -11,20 +11,34 @@ def is_blocked_url(url: str) -> bool:
 def candidate_mfr_urls(mpn: str, domains: list[str]) -> list[str]:
     urls: list[str] = []
     for domain in domains:
+        base = domain if domain.startswith("http") else f"https://www.{domain}"
         if "frigidaire" in domain:
             urls.append(f"https://support.frigidaire.com/Owner-Center/Product-Support/{mpn}")
             urls.append(f"https://www.frigidaire.com/en/p/owner-center/product-support/{mpn}")
-        elif "whirlpool" in domain:
+        elif "whirlpool" in domain or "kitchenaid" in domain:
             search_mpn = mpn[:-1] if mpn.endswith("Z") and len(mpn) > 4 else mpn
             urls.append(f"https://learnwhirlpool.com/smartsearchresults?searchtext={search_mpn}")
-            urls.append(f"https://learnwhirlpool.com/smartsearchresults?searchtext={mpn}")
-            urls.append(f"https://www.whirlpool.com/kitchen/dishwashers/p.{mpn.lower()}.html")
-        elif "geappliances" in domain:
+            urls.append(f"https://www.kitchenaid.com/search.html?searchTerm={mpn}")
+        elif "geappliances" in domain or "cafeappliances" in domain:
             urls.append(f"https://www.geappliances.com/appliance/{mpn}")
+            urls.append(f"https://www.cafeappliances.com/appliance/{mpn}")
+        elif "lg.com" in domain:
+            urls.append(f"https://www.lg.com/us/search?search={mpn}")
+        elif "hunterfan" in domain:
+            urls.append(f"https://www.hunterfan.com/search?q={mpn}")
+        elif "kichler" in domain:
+            urls.append(f"https://www.kichler.com/search?q={mpn}")
+        elif "diablotools" in domain:
+            urls.append(f"https://www.diablotools.com/search?q={mpn}")
+        elif "milwaukeetool" in domain:
+            urls.append(f"https://www.milwaukeetool.com/Search/{mpn}")
+        elif "3m.com" in domain:
+            urls.append(f"https://www.3m.com/3M/en_US/search/?q={mpn}")
+        else:
+            urls.append(f"{base}/search?q={mpn}")
     return urls
 
 
-def search_query(mpn: str, brand_key: str, domains: list[str]) -> str:
-    domain_clause = f"site:{domains[0]}" if domains else ""
-    brand_clause = brand_key or ""
-    return " ".join(part for part in [mpn, brand_clause, "specifications", domain_clause] if part)
+def best_mfr_url(mpn: str, domains: list[str]) -> str:
+    candidates = [url for url in candidate_mfr_urls(mpn, domains) if not is_blocked_url(url)]
+    return candidates[0] if candidates else ""

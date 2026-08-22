@@ -1,0 +1,39 @@
+{
+  "mpn": "WDTS7024R",
+  "mfr_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Series",
+      "value": "Eco Series",
+      "uom": "",
+      "source_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+      "quote": "Eco Series",
+      "extractor": "html_regex",
+      "confidence": 0.8
+    },
+    {
+      "field": "Sound Level",
+      "value": "41",
+      "uom": "dBA",
+      "source_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+      "quote": "41 dBA",
+      "extractor": "html_regex",
+      "confidence": 0.85
+    },
+    {
+      "field": "With",
+      "value": "With washing 3rd Rack, Water Repellent Silverware Basket",
+      "uom": "",
+      "source_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+      "quote": "washing 3rd Rack Water Repellent Silverware Basket",
+      "extractor": "html_regex",
+      "confidence": 0.8
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {}
+}

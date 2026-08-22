@@ -52,5 +52,22 @@
   "SMD": "Sharp",
   "SLER": "Samsung",
   "ERF": "Element",
-  "EUF": "Element"
+  "EUF": "Element",
+  "KDF": "KitchenAid",
+  "KDFE": "KitchenAid",
+  "KDFM": "KitchenAid",
+  "KDTM": "KitchenAid",
+  "PS96": "GE",
+  "65-": "Satco",
+  "62-": "Satco",
+  "452": "Kichler",
+  "455": "Kichler",
+  "374": "Kichler",
+  "592": "Hunter",
+  "524": "Hunter",
+  "513": "Hunter",
+  "DBD": "Diablo",
+  "DBDS": "Diablo",
+  "DCB": "Diablo",
+  "552": "Amana"
 }

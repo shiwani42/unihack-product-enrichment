@@ -1,0 +1,22 @@
+{
+  "category_id": "sanding_abrasive",
+  "classpath": "Tools & Hardware>Abrasives>Sanding Supplies",
+  "dept": "Tools & Hardware",
+  "class": "Abrasives",
+  "fine": "Sanding Supplies",
+  "product_name": "Sanding Abrasive",
+  "attribute_labels": [
+    "Product Type",
+    "Length",
+    "Width",
+    "Grit",
+    "Material",
+    "Application",
+    "Pack Quantity"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

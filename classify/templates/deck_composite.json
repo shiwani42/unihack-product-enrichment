@@ -1,0 +1,24 @@
+{
+  "category_id": "deck_composite",
+  "classpath": "Building Materials>Decking & Railing>Composite Decking",
+  "dept": "Building Materials",
+  "class": "Decking & Railing",
+  "fine": "Composite Decking",
+  "product_name": "Composite Decking Board",
+  "attribute_labels": [
+    "Product Type",
+    "Length",
+    "Width",
+    "Thickness",
+    "Color",
+    "Finish",
+    "Material",
+    "Application",
+    "Pack Quantity"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "category_id": "generic_industrial",
+  "classpath": "Industrial Supplies>General Industrial>General Products",
+  "dept": "Industrial Supplies",
+  "class": "General Industrial",
+  "fine": "General Products",
+  "product_name": "Industrial Product",
+  "attribute_labels": [
+    "Product Type",
+    "Size",
+    "Material",
+    "Finish",
+    "Color",
+    "Voltage Rating",
+    "Application",
+    "Pack Quantity"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

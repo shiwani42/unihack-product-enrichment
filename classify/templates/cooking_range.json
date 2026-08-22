@@ -1,0 +1,21 @@
+{
+  "category_id": "cooking_range",
+  "classpath": "Appliances & Consumer Electronics>Kitchen Appliances>Ranges",
+  "dept": "Appliances",
+  "class": "Large Appliances",
+  "fine": "Ranges",
+  "product_name": "Range",
+  "attribute_labels": [
+    "Fuel Type",
+    "Width",
+    "Color",
+    "Series",
+    "Voltage Rating",
+    "Mounting Type"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

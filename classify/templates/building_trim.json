@@ -1,0 +1,22 @@
+{
+  "category_id": "building_trim",
+  "classpath": "Building Materials>Exterior Trim>Post Components",
+  "dept": "Building Materials",
+  "class": "Exterior Trim",
+  "fine": "Post Components",
+  "product_name": "Deck Post Trim",
+  "attribute_labels": [
+    "Product Type",
+    "Size",
+    "Length",
+    "Material",
+    "Color",
+    "Finish",
+    "Application"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

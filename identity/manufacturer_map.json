@@ -33,5 +33,100 @@
     "manufacturer_name": "Speed Queen",
     "brand_name": "Speed Queen®",
     "domains": ["speedqueen.com"]
+  },
+  "Diablo": {
+    "manufacturer_name": "Diablo Tools",
+    "brand_name": "Diablo®",
+    "domains": ["diablotools.com"]
+  },
+  "Milwaukee": {
+    "manufacturer_name": "Milwaukee Tool",
+    "brand_name": "Milwaukee®",
+    "domains": ["milwaukeetool.com"]
+  },
+  "DEWALT": {
+    "manufacturer_name": "DEWALT",
+    "brand_name": "DEWALT®",
+    "domains": ["dewalt.com"]
+  },
+  "3M": {
+    "manufacturer_name": "3M Company",
+    "brand_name": "3M™",
+    "domains": ["3m.com"]
+  },
+  "Kichler": {
+    "manufacturer_name": "Kichler Lighting",
+    "brand_name": "Kichler®",
+    "domains": ["kichler.com"]
+  },
+  "Hunter": {
+    "manufacturer_name": "Hunter Fan Company",
+    "brand_name": "Hunter®",
+    "domains": ["hunterfan.com"]
+  },
+  "Leviton": {
+    "manufacturer_name": "Leviton Manufacturing",
+    "brand_name": "Leviton®",
+    "domains": ["leviton.com"]
+  },
+  "Southwire": {
+    "manufacturer_name": "Southwire Company",
+    "brand_name": "Southwire®",
+    "domains": ["southwire.com"]
+  },
+  "Satco": {
+    "manufacturer_name": "Satco Products",
+    "brand_name": "Satco®",
+    "domains": ["satco.com"]
+  },
+  "Philips": {
+    "manufacturer_name": "Signify North America",
+    "brand_name": "Philips®",
+    "domains": ["philips.com"]
+  },
+  "Element": {
+    "manufacturer_name": "Element Electronics",
+    "brand_name": "Element®",
+    "domains": ["elementelectronics.com"]
+  },
+  "Samsung": {
+    "manufacturer_name": "Samsung Electronics",
+    "brand_name": "Samsung®",
+    "domains": ["samsung.com"]
+  },
+  "Sharp": {
+    "manufacturer_name": "Sharp Electronics",
+    "brand_name": "Sharp®",
+    "domains": ["sharpusa.com"]
+  },
+  "Beko": {
+    "manufacturer_name": "Beko Home Appliances",
+    "brand_name": "Beko®",
+    "domains": ["bekocorp.com"]
+  },
+  "U-Line": {
+    "manufacturer_name": "U-Line Corporation",
+    "brand_name": "U-Line®",
+    "domains": ["u-line.com"]
+  },
+  "Amana": {
+    "manufacturer_name": "Whirlpool Corporation",
+    "brand_name": "Amana®",
+    "domains": ["amana.com"]
+  },
+  "Mirka": {
+    "manufacturer_name": "Mirka USA Inc.",
+    "brand_name": "Mirka®",
+    "domains": ["mirka.com"]
+  },
+  "Makita": {
+    "manufacturer_name": "Makita USA Inc.",
+    "brand_name": "Makita®",
+    "domains": ["makitatools.com"]
+  },
+  "Gilmour": {
+    "manufacturer_name": "Gilmour Manufacturing",
+    "brand_name": "Gilmour®",
+    "domains": ["gilmour.com"]
   }
 }

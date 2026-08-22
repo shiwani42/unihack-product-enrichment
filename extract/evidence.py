@@ -22,6 +22,8 @@ class EvidenceBundle:
     features: list[str] = field(default_factory=list)
     approvals: str = ""
     warranty: str = ""
+    product_ids: dict[str, str] = field(default_factory=dict)
+    image_urls: list[str] = field(default_factory=list)
 
     def get(self, field: str) -> Evidence | None:
         for item in self.items:

@@ -1,0 +1,107 @@
+[
+  {
+    "template": "deck_composite",
+    "patterns": ["trex", "transcend", "enhance naturals", "lineage", "grooved", "decking", "fascia", "azek", "\\brail\\b"]
+  },
+  {
+    "template": "led_lighting",
+    "patterns": [
+      "led strip",
+      "led ceiling",
+      "led lt",
+      "led light",
+      "led downlight",
+      "downlight",
+      "wall lt",
+      "wall light",
+      "bath light",
+      "pendant",
+      "chandelier",
+      "kichler",
+      "under cabinet",
+      "d/w downlight"
+    ]
+  },
+  {
+    "template": "built_in_dishwasher",
+    "patterns": ["dishwasher"]
+  },
+  {
+    "template": "sanding_abrasive",
+    "patterns": [
+      "sand(ing)? belt",
+      "sandpaper",
+      "sanding sponge",
+      "sanding film",
+      "sanding disc",
+      "stikit film",
+      "abranet"
+    ]
+  },
+  {
+    "template": "grinding_wheel",
+    "patterns": ["grind(?:ing)? wheel", "cut and grind", "dual metal cut", "masonry grinding"]
+  },
+  {
+    "template": "metal_cutoff_disc",
+    "patterns": [
+      "cut.?off disc",
+      "metal cut",
+      "abrasive disc",
+      "hiolit",
+      "cubitron",
+      "perform\\+ metal"
+    ]
+  },
+  {
+    "template": "pipe_fitting",
+    "patterns": ["\\bcplg\\b", "\\bcoupling\\b", "\\belbow\\b", "\\btee\\b", "\\bnpt\\b", "\\b150#\\b"]
+  },
+  {
+    "template": "wire_cable",
+    "patterns": ["\\bwire\\b", "\\bcable\\b", "romex", "thhn", "elect tape", "vinyl.*tape"]
+  },
+  {
+    "template": "building_trim",
+    "patterns": ["post trim", "post cap", "post sleeve", "heritage post", "elite post", "blank post"]
+  },
+  {
+    "template": "electrical_box",
+    "patterns": [
+      "box cover",
+      "junction box",
+      "gfi box",
+      "gfci",
+      "oct box",
+      "4x4.*box",
+      "4x4.*gfi",
+      "4x4.*gfci",
+      "duplex box"
+    ]
+  },
+  {
+    "template": "ceiling_fan",
+    "patterns": [" ceiling fan", "gilmour fan", "hunter fan", "anisten fan", " fan$"]
+  },
+  {
+    "template": "cooking_range",
+    "patterns": ["electric range", "gas range", " elec range", " range ", " cooktop", " wall oven", " range grill"]
+  },
+  {
+    "template": "power_tool_accessory",
+    "patterns": [
+      "drill bit",
+      "countersink",
+      "hole drilling",
+      "saw blade",
+      "jigsaw blade",
+      "recip blade",
+      "hole saw",
+      "fine finish saw blade"
+    ]
+  },
+  {
+    "template": "generic_industrial",
+    "fallback": true
+  }
+]

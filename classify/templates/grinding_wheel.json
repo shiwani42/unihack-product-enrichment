@@ -1,0 +1,22 @@
+{
+  "category_id": "grinding_wheel",
+  "classpath": "Tools & Hardware>Abrasives>Grinding Wheels",
+  "dept": "Tools & Hardware",
+  "class": "Abrasives",
+  "fine": "Grinding Wheels",
+  "product_name": "Grinding Wheel",
+  "attribute_labels": [
+    "Product Type",
+    "Diameter",
+    "Thickness",
+    "Arbor Size",
+    "Material",
+    "Application",
+    "Pack Quantity"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

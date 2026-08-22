@@ -1,0 +1,21 @@
+{
+  "category_id": "ceiling_fan",
+  "classpath": "Electrical & Lighting>Ceiling Fans & Ventilation>Ceiling Fans",
+  "dept": "Electrical & Lighting",
+  "class": "Ceiling Fans & Ventilation",
+  "fine": "Ceiling Fans",
+  "product_name": "Ceiling Fan",
+  "attribute_labels": [
+    "Blade Span",
+    "Number of Blades",
+    "Finish",
+    "Motor Type",
+    "Indoor/Outdoor",
+    "Voltage Rating"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

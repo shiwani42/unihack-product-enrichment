@@ -1,0 +1,23 @@
+{
+  "category_id": "wire_cable",
+  "classpath": "Electrical>Wire & Cable>Building Wire",
+  "dept": "Electrical",
+  "class": "Wire & Cable",
+  "fine": "Building Wire",
+  "product_name": "Electrical Wire",
+  "attribute_labels": [
+    "Product Type",
+    "Wire Gauge",
+    "Length",
+    "Width",
+    "Material",
+    "Color",
+    "Voltage Rating",
+    "Application"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

@@ -1,0 +1,478 @@
+[
+  {
+    "leaf_id": "building_trim",
+    "classpath": "Building Materials>Exterior Trim>Post Components",
+    "dept": "Building Materials",
+    "class": "Exterior Trim",
+    "fine": "Post Components",
+    "product_name": "Deck Post Trim",
+    "template_id": "building_trim",
+    "keywords": [
+      "building",
+      "components",
+      "deck post trim",
+      "exterior",
+      "exterior trim",
+      "materials",
+      "post",
+      "post components",
+      "trim"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "built_in_dishwasher",
+    "classpath": "Appliances & Consumer Electronics>Kitchen Appliances>Built-In Dishwashers",
+    "dept": "Appliances",
+    "class": "Large Appliances",
+    "fine": "Dishwashers",
+    "product_name": "Dishwasher",
+    "template_id": "built_in_dishwasher",
+    "keywords": [
+      "appliances",
+      "built",
+      "consumer",
+      "dishwasher",
+      "dishwashers",
+      "electronics",
+      "kitchen",
+      "large appliances"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "ceiling_fan",
+    "classpath": "Electrical & Lighting>Ceiling Fans & Ventilation>Ceiling Fans",
+    "dept": "Electrical & Lighting",
+    "class": "Ceiling Fans & Ventilation",
+    "fine": "Ceiling Fans",
+    "product_name": "Ceiling Fan",
+    "template_id": "ceiling_fan",
+    "keywords": [
+      "ceiling",
+      "ceiling fan",
+      "ceiling fans",
+      "ceiling fans & ventilation",
+      "electrical",
+      "fans",
+      "lighting",
+      "ventilation"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "cooking_range",
+    "classpath": "Appliances & Consumer Electronics>Kitchen Appliances>Ranges",
+    "dept": "Appliances",
+    "class": "Large Appliances",
+    "fine": "Ranges",
+    "product_name": "Range",
+    "template_id": "cooking_range",
+    "keywords": [
+      "appliances",
+      "consumer",
+      "electronics",
+      "kitchen",
+      "large appliances",
+      "range",
+      "ranges"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "deck_composite",
+    "classpath": "Building Materials>Decking & Railing>Composite Decking",
+    "dept": "Building Materials",
+    "class": "Decking & Railing",
+    "fine": "Composite Decking",
+    "product_name": "Composite Decking Board",
+    "template_id": "deck_composite",
+    "keywords": [
+      "building",
+      "composite",
+      "composite decking",
+      "composite decking board",
+      "decking",
+      "decking & railing",
+      "materials",
+      "railing"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "electrical_box",
+    "classpath": "Electrical & Lighting>Electrical Boxes & Covers>Box Covers",
+    "dept": "Electrical & Lighting",
+    "class": "Electrical Boxes & Covers",
+    "fine": "Box Covers",
+    "product_name": "Electrical Box Cover",
+    "template_id": "electrical_box",
+    "keywords": [
+      "box",
+      "box covers",
+      "boxes",
+      "covers",
+      "electrical",
+      "electrical box cover",
+      "electrical boxes & covers",
+      "lighting"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "generic_industrial",
+    "classpath": "Industrial Supplies>General Industrial>General Products",
+    "dept": "Industrial Supplies",
+    "class": "General Industrial",
+    "fine": "General Products",
+    "product_name": "Industrial Product",
+    "template_id": "generic_industrial",
+    "keywords": [
+      "general",
+      "general industrial",
+      "general products",
+      "industrial",
+      "industrial product",
+      "products",
+      "supplies"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "grinding_wheel",
+    "classpath": "Tools & Hardware>Abrasives>Grinding Wheels",
+    "dept": "Tools & Hardware",
+    "class": "Abrasives",
+    "fine": "Grinding Wheels",
+    "product_name": "Grinding Wheel",
+    "template_id": "grinding_wheel",
+    "keywords": [
+      "abrasives",
+      "grinding",
+      "grinding wheel",
+      "grinding wheels",
+      "hardware",
+      "tools",
+      "wheels"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "led_lighting",
+    "classpath": "Electrical & Lighting>Lighting Fixtures & Components>LED Lighting",
+    "dept": "Electrical & Lighting",
+    "class": "Lighting Fixtures & Components",
+    "fine": "LED Lighting",
+    "product_name": "LED Light",
+    "template_id": "led_lighting",
+    "keywords": [
+      "components",
+      "electrical",
+      "fixtures",
+      "led",
+      "led light",
+      "led lighting",
+      "lighting",
+      "lighting fixtures & components"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "metal_cutoff_disc",
+    "classpath": "Tools & Hardware>Power Tool Accessories>Cutting & Grinding Discs>Metal Cut-Off Discs",
+    "dept": "Tools & Hardware",
+    "class": "Power Tool Accessories",
+    "fine": "Metal Cut-Off Discs",
+    "product_name": "Metal Cut-Off Disc",
+    "template_id": "metal_cutoff_disc",
+    "keywords": [
+      "accessories",
+      "cut",
+      "cutting",
+      "discs",
+      "grinding",
+      "hardware",
+      "metal",
+      "metal cut-off disc",
+      "metal cut-off discs",
+      "off",
+      "power",
+      "power tool accessories",
+      "tool",
+      "tools"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "pipe_fitting",
+    "classpath": "Plumbing>Pipe & Fittings>Couplings",
+    "dept": "Plumbing",
+    "class": "Pipe & Fittings",
+    "fine": "Couplings",
+    "product_name": "Pipe Coupling",
+    "template_id": "pipe_fitting",
+    "keywords": [
+      "couplings",
+      "fittings",
+      "pipe",
+      "pipe & fittings",
+      "pipe coupling",
+      "plumbing"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "power_tool_accessory",
+    "classpath": "Tools & Hardware>Power Tool Accessories>Drill Bits & Accessories",
+    "dept": "Tools & Hardware",
+    "class": "Power Tool Accessories",
+    "fine": "Drill Bits & Accessories",
+    "product_name": "Power Tool Accessory",
+    "template_id": "power_tool_accessory",
+    "keywords": [
+      "accessories",
+      "bits",
+      "drill",
+      "drill bits & accessories",
+      "hardware",
+      "power",
+      "power tool accessories",
+      "power tool accessory",
+      "tool",
+      "tools"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "sanding_abrasive",
+    "classpath": "Tools & Hardware>Abrasives>Sanding Supplies",
+    "dept": "Tools & Hardware",
+    "class": "Abrasives",
+    "fine": "Sanding Supplies",
+    "product_name": "Sanding Abrasive",
+    "template_id": "sanding_abrasive",
+    "keywords": [
+      "abrasives",
+      "hardware",
+      "sanding",
+      "sanding abrasive",
+      "sanding supplies",
+      "supplies",
+      "tools"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "wire_cable",
+    "classpath": "Electrical>Wire & Cable>Building Wire",
+    "dept": "Electrical",
+    "class": "Wire & Cable",
+    "fine": "Building Wire",
+    "product_name": "Electrical Wire",
+    "template_id": "wire_cable",
+    "keywords": [
+      "building",
+      "building wire",
+      "cable",
+      "electrical",
+      "electrical wire",
+      "wire",
+      "wire & cable"
+    ],
+    "patterns": []
+  },
+  {
+    "leaf_id": "composite_decking_trex",
+    "classpath": "Building Materials>Decking & Railing>Composite Decking",
+    "dept": "Building Materials",
+    "class": "Decking & Railing",
+    "fine": "Composite Decking",
+    "product_name": "Composite Decking Board",
+    "template_id": "deck_composite",
+    "keywords": [
+      "trex",
+      "deck",
+      "decking",
+      "transcend",
+      "enhance",
+      "select",
+      "lineage",
+      "grooved",
+      "fascia",
+      "rail",
+      "azek"
+    ],
+    "patterns": [
+      "\\btrex\\b",
+      "\\bdeck(?:ing)?\\b",
+      "\\bfascia\\b",
+      "\\bgrooved\\b"
+    ]
+  },
+  {
+    "leaf_id": "pipe_fitting_coupling",
+    "classpath": "Plumbing>Pipe & Fittings>Couplings",
+    "dept": "Plumbing",
+    "class": "Pipe & Fittings",
+    "fine": "Couplings",
+    "product_name": "Pipe Coupling",
+    "template_id": "pipe_fitting",
+    "keywords": [
+      "coupling",
+      "cplg",
+      "cpl",
+      "elbow",
+      "tee",
+      "adapter",
+      "nipple",
+      "npt",
+      "fnpt",
+      "brass",
+      "brs"
+    ],
+    "patterns": [
+      "\\bcplg\\b",
+      "\\bcoupling\\b",
+      "\\belbow\\b",
+      "\\b\\d+\\s*#"
+    ]
+  },
+  {
+    "leaf_id": "electrical_wire",
+    "classpath": "Electrical>Wire & Cable>Building Wire",
+    "dept": "Electrical",
+    "class": "Wire & Cable",
+    "fine": "Building Wire",
+    "product_name": "Electrical Wire",
+    "template_id": "wire_cable",
+    "keywords": [
+      "wire",
+      "cable",
+      "romex",
+      "thhn",
+      "southwire",
+      "gauge",
+      "awg"
+    ],
+    "patterns": [
+      "\\bwire\\b",
+      "\\bcable\\b",
+      "\\bawg\\b"
+    ],
+    "brands": [
+      "Southwire"
+    ]
+  },
+  {
+    "leaf_id": "building_trim_post",
+    "classpath": "Building Materials>Exterior Trim>Post Components",
+    "dept": "Building Materials",
+    "class": "Exterior Trim",
+    "fine": "Post Components",
+    "product_name": "Deck Post Trim",
+    "template_id": "building_trim",
+    "keywords": [
+      "post trim",
+      "post cap",
+      "post sleeve",
+      "heritage post",
+      "elite post",
+      "blank post"
+    ],
+    "patterns": [
+      "post trim",
+      "post cap",
+      "post sleeve"
+    ]
+  },
+  {
+    "leaf_id": "grinding_wheel",
+    "classpath": "Tools & Hardware>Abrasives>Grinding Wheels",
+    "dept": "Tools & Hardware",
+    "class": "Abrasives",
+    "fine": "Grinding Wheels",
+    "product_name": "Grinding Wheel",
+    "template_id": "grinding_wheel",
+    "keywords": [
+      "grinding wheel",
+      "cut and grind",
+      "dual metal",
+      "masonry grinding"
+    ],
+    "patterns": [
+      "grind(?:ing)? wheel",
+      "cut and grind",
+      "dual metal cut"
+    ],
+    "brands": [
+      "Milwaukee",
+      "Diablo"
+    ]
+  },
+  {
+    "leaf_id": "sanding_abrasive",
+    "classpath": "Tools & Hardware>Abrasives>Sanding Supplies",
+    "dept": "Tools & Hardware",
+    "class": "Abrasives",
+    "fine": "Sanding Supplies",
+    "product_name": "Sanding Abrasive",
+    "template_id": "sanding_abrasive",
+    "keywords": [
+      "sanding belt",
+      "sandpaper",
+      "sanding sponge",
+      "stikit",
+      "sanding film",
+      "sanding disc"
+    ],
+    "patterns": [
+      "sanding belt",
+      "sandpaper",
+      "sanding sponge",
+      "sanding film"
+    ],
+    "brands": [
+      "3M",
+      "Diablo",
+      "Mirka"
+    ]
+  },
+  {
+    "leaf_id": "mortar_mix",
+    "classpath": "Building Materials>Masonry>Mortar & Grout",
+    "dept": "Building Materials",
+    "class": "Masonry",
+    "fine": "Mortar & Grout",
+    "product_name": "Mortar Mix",
+    "template_id": "generic_industrial",
+    "keywords": [
+      "mortar",
+      "grout",
+      "thinset"
+    ],
+    "patterns": [
+      "\\bmortar\\b",
+      "\\bgrout\\b"
+    ]
+  },
+  {
+    "leaf_id": "electrical_tape",
+    "classpath": "Electrical>Electrical Tape>Vinyl Tape",
+    "dept": "Electrical",
+    "class": "Electrical Tape",
+    "fine": "Vinyl Tape",
+    "product_name": "Electrical Tape",
+    "template_id": "wire_cable",
+    "keywords": [
+      "elect tape",
+      "electrical tape",
+      "vinyl tape",
+      "emseal"
+    ],
+    "patterns": [
+      "elect tape",
+      "electrical tape",
+      "vinyl.*tape"
+    ]
+  }
+]

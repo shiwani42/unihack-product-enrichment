@@ -1,27 +1,18 @@
+import json
 import re
+from pathlib import Path
 
 from extract.evidence import Evidence, EvidenceBundle
-from extract.pdf_specs import fetch_pdf_evidence
-from extract.ref_discovery import discover_feature_lines, discover_marketing_text, discover_pdf_links
-from sources.browser_fetcher import fetch_page
-from sources.finder import candidate_mfr_urls, is_blocked_url
+from extract.ref_discovery import discover_feature_lines, discover_marketing_text
 
-GOLDEN_MFR_URLS = {
-    "PDSH4816AF": "https://www.frigidaire.com/en/p/owner-center/product-support/PDSH4816AF",
-    "WDTS7024RZ": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
-}
+PATTERNS_PATH = Path(__file__).resolve().parent / "spec_patterns.json"
 
-GOLDEN_REF_URLS = {
-    "WDTS7024RZ": [
-        "https://www.whirlpool.com/content/dam/global/documents/202406/installation-instructions-w11323304-revG.pdf",
-    ],
-}
 
-EXTRA_REF_URLS = {
-    "WDTS7024RZ": [
-        "https://www.whirlpool.com/content/dam/global/documents/202412/owners-manual-w11323304-revj.pdf",
-    ],
-}
+def _load_patterns() -> list[tuple[str, str, str, float]]:
+    if not PATTERNS_PATH.exists():
+        return []
+    payload = json.loads(PATTERNS_PATH.read_text(encoding="utf-8"))
+    return [(item["field"], item["pattern"], item.get("uom", ""), item.get("confidence", 0.75)) for item in payload]
 
 
 def _clean_text(html: str) -> str:
@@ -51,22 +42,7 @@ def extract_from_html(html: str, url: str) -> EvidenceBundle:
     bundle = EvidenceBundle(mfr_url=url)
     text = _clean_text(html)
 
-    patterns: list[tuple[str, str, str, float]] = [
-        ("Series", r"(Professional Series|Eco Series|Gallery Series)", "", 0.8),
-        ("Number of Wash Cycles", r"(?:Number of Wash Cycles|(\d+)\s*Wash Cycles)", "", 0.8),
-        ("Voltage Rating", r"(?:Voltage Rating|120\s*Volts?|Amps @ 120 Volts)[^\d]*(\d{2,3})", "V", 0.85),
-        ("Amperage Rating", r"(?:Amperage Rating|Amps @ 120 Volts)[^\d]*(\d{1,2})\s*A", "A", 0.85),
-        ("Mounting Type", r"(?:Mounting Type|Mounting)\s*[:\-]?\s*(Leg|Built[- ]in)", "", 0.8),
-        ("Sound Level", r"(\d{2})\s*dBA", "dBA", 0.85),
-        ("Material", r"(Stainless Steel)", "", 0.75),
-        ("Color", r"(?:Color|Finish)\s*[:\-]?\s*(Stainless Steel|Black|White)", "", 0.75),
-        (
-            "Size",
-            r"(\d{1,2}-?\d{0,2}/\d{0,2}\s*in\s*H\s*x\s*\d{1,2}-?\d{0,2}/\d{0,2}\s*in\s*W\s*x\s*\d{1,2}-?\d{0,2}/\d{0,2}\s*in\s*D)",
-            "",
-            0.8,
-        ),
-        ("Depth With Door Open", r"Depth With Door Open[^\d]*(\d{1,2}-?\d{0,2}/\d{0,2})", "in", 0.8),
+    extra_patterns: list[tuple[str, str, str, float]] = [
         (
             "Minimum Height",
             r"Minimum Height[^\d]*(\d{1,2}-?\d{0,2}/\d{0,2}\s*in\s*Upper Rack,\s*\d{1,2}-?\d{0,2}/\d{0,2}\s*in\s*Lower Rack|\d{1,2}-?\d{0,2}/\d{0,2})",
@@ -87,7 +63,7 @@ def extract_from_html(html: str, url: str) -> EvidenceBundle:
         ),
     ]
 
-    for field, pattern, uom, confidence in patterns:
+    for field, pattern, uom, confidence in _load_patterns() + extra_patterns:
         match = re.search(pattern, text, re.I)
         if not match:
             continue
@@ -150,60 +126,7 @@ def extract_from_html(html: str, url: str) -> EvidenceBundle:
 
 
 def fetch_evidence(mpn: str, domains: list[str]) -> EvidenceBundle:
-    from extract.cache import load_cached_bundle
-    from extract.merge import merge_bundles
+    """Backward-compatible entry point; delegates to dynamic domain fetch."""
+    from sources.live_enrich import fetch_manufacturer_evidence
 
-    cached = load_cached_bundle(mpn)
-    if cached and len(cached.items) >= 8:
-        bundle = EvidenceBundle(
-            mfr_url=cached.mfr_url or GOLDEN_MFR_URLS.get(mpn, ""),
-            ref_urls=list(cached.ref_urls),
-        )
-        for item in cached.items:
-            bundle.set(item)
-        bundle.marketing = cached.marketing
-        bundle.features = cached.features
-        bundle.approvals = cached.approvals
-        bundle.warranty = cached.warranty
-        for ref in GOLDEN_REF_URLS.get(mpn, []) + EXTRA_REF_URLS.get(mpn, []):
-            if ref not in bundle.ref_urls:
-                bundle.ref_urls.append(ref)
-        return bundle
-
-    urls = candidate_mfr_urls(mpn, domains)
-    if mpn in GOLDEN_MFR_URLS:
-        urls.insert(0, GOLDEN_MFR_URLS[mpn])
-
-    html_bundle = EvidenceBundle()
-    pdf_links: list[str] = list(GOLDEN_REF_URLS.get(mpn, []))
-
-    for url in urls:
-        if is_blocked_url(url):
-            continue
-        status, html, final_url = fetch_page(url)
-        if status >= 400 or not html:
-            continue
-        page_bundle = extract_from_html(html, final_url)
-        if page_bundle.items or page_bundle.marketing or page_bundle.features:
-            html_bundle = page_bundle
-            pdf_links.extend(discover_pdf_links(html, final_url))
-            break
-
-    pdf_bundle = fetch_pdf_evidence(dict.fromkeys(pdf_links))
-    bundle = merge_bundles(html_bundle, pdf_bundle)
-    if cached:
-        bundle = merge_bundles(bundle, cached)
-        if cached.marketing:
-            bundle.marketing = cached.marketing
-        if cached.features:
-            bundle.features = cached.features
-        if cached.approvals:
-            bundle.approvals = cached.approvals
-        if cached.warranty:
-            bundle.warranty = cached.warranty
-    if not bundle.mfr_url and mpn in GOLDEN_MFR_URLS:
-        bundle.mfr_url = GOLDEN_MFR_URLS[mpn]
-    for ref in GOLDEN_REF_URLS.get(mpn, []) + EXTRA_REF_URLS.get(mpn, []):
-        if ref not in bundle.ref_urls:
-            bundle.ref_urls.append(ref)
-    return bundle
+    return fetch_manufacturer_evidence(mpn, domains)

@@ -1,0 +1,21 @@
+{
+  "category_id": "electrical_box",
+  "classpath": "Electrical & Lighting>Electrical Boxes & Covers>Box Covers",
+  "dept": "Electrical & Lighting",
+  "class": "Electrical Boxes & Covers",
+  "fine": "Box Covers",
+  "product_name": "Electrical Box Cover",
+  "attribute_labels": [
+    "Cover Type",
+    "Gang Count",
+    "Material",
+    "Finish",
+    "Size",
+    "Application"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

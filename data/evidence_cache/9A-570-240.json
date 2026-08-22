@@ -1,0 +1,49 @@
+{
+  "mpn": "9A-570-240",
+  "mfr_url": "https://www.mirka.com/en/search/?q=9A-570-240",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Thickness",
+      "value": ".75",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "9A-570-240 Abranet 2.75x30",
+      "extractor": "desc_regex",
+      "confidence": 0.65
+    },
+    {
+      "field": "Diameter",
+      "value": "2.75x30",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "9A-570-240 Abranet 2.75x30",
+      "extractor": "desc_regex",
+      "confidence": 0.6
+    },
+    {
+      "field": "Application",
+      "value": "Abranet",
+      "uom": "",
+      "source_url": "input:Part_Desc",
+      "quote": "9A-570-240 Abranet 2.75x30",
+      "extractor": "desc_regex",
+      "confidence": 0.65
+    },
+    {
+      "field": "Fuel Type",
+      "value": "Electric",
+      "uom": "",
+      "source_url": "https://www.mirka.com/en/search/?q=9A-570-240",
+      "quote": "Electric",
+      "extractor": "html_regex",
+      "confidence": 0.7
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "",
+  "warranty": "",
+  "product_ids": {},
+  "image_urls": []
+}

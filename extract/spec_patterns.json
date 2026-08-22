@@ -1,0 +1,16 @@
+[
+  {"field": "Series", "pattern": "(Professional Series|Eco Series|Gallery Series|Profile Series)", "uom": "", "confidence": 0.8},
+  {"field": "Number of Wash Cycles", "pattern": "(?:Number of Wash Cycles|(\\d+)\\s*Wash Cycles)", "uom": "", "confidence": 0.8},
+  {"field": "Voltage Rating", "pattern": "(?:Voltage Rating|120\\s*Volts?|Amps @ 120 Volts)[^\\d]*(\\d{2,3})", "uom": "V", "confidence": 0.85},
+  {"field": "Amperage Rating", "pattern": "(?:Amperage Rating|Amps @ 120 Volts)[^\\d]*(\\d{1,2})\\s*A", "uom": "A", "confidence": 0.85},
+  {"field": "Mounting Type", "pattern": "(?:Mounting Type|Mounting)\\s*[:\\-]?\\s*(Leg|Built[- ]in)", "uom": "", "confidence": 0.8},
+  {"field": "Sound Level", "pattern": "(\\d{2})\\s*dBA", "uom": "dBA", "confidence": 0.85},
+  {"field": "Material", "pattern": "(Stainless Steel|Aluminum|Plastic)", "uom": "", "confidence": 0.75},
+  {"field": "Color", "pattern": "(?:Color|Finish)\\s*[:\\-]?\\s*(Stainless Steel|Black|White|Silver)", "uom": "", "confidence": 0.75},
+  {"field": "Size", "pattern": "(\\d{1,2}-?\\d{0,2}/\\d{0,2}\\s*in\\s*H\\s*x\\s*\\d{1,2}-?\\d{0,2}/\\d{0,2}\\s*in\\s*W\\s*x\\s*\\d{1,2}-?\\d{0,2}/\\d{0,2}\\s*in\\s*D)", "uom": "", "confidence": 0.8},
+  {"field": "Depth With Door Open", "pattern": "Depth With Door Open[^\\d]*(\\d{1,2}-?\\d{0,2}/\\d{0,2})", "uom": "in", "confidence": 0.8},
+  {"field": "Wattage", "pattern": "(\\d+(?:\\.\\d+)?)\\s*W(?:att)?s?\\b", "uom": "W", "confidence": 0.75},
+  {"field": "Blade Span", "pattern": "(\\d+(?:\\.\\d+)?)\\s*(?:\"|in)\\s*(?:blade|fan)", "uom": "in", "confidence": 0.7},
+  {"field": "Fuel Type", "pattern": "\\b(Electric|Gas|Dual Fuel)\\b", "uom": "", "confidence": 0.7},
+  {"field": "Diameter", "pattern": "(\\d+(?:-\\d+/\\d+)?|\\d+(?:\\.\\d+)?)\\s*(?:\"|in)\\b", "uom": "in", "confidence": 0.7}
+]

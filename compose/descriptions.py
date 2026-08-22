@@ -1,4 +1,5 @@
 from classify.category_router import CategoryTemplate
+from compose.mobile_utils import pad_mobile
 from extract.evidence import EvidenceBundle
 
 
@@ -40,10 +41,11 @@ def build_descriptions(
     with_text = with_evidence.value if with_evidence else ""
 
     mount_abbr = ""
-    if mounting.lower() == "leg":
-        mount_abbr = "LEG"
-    elif "built" in mounting.lower():
-        mount_abbr = "BLTLN"
+    if mounting:
+        if mounting.lower() == "leg":
+            mount_abbr = "LEG"
+        elif "built" in mounting.lower():
+            mount_abbr = "BLTLN"
 
     invoice_parts = ["DISHWASHER"]
     if mount_abbr:
@@ -81,7 +83,7 @@ def build_descriptions(
         mobile = f"{manufacturer} FRIGIDAIRE, Dishwasher, {series}, {mpn}"
     else:
         mobile = f"{manufacturer} {brand.replace('®', '')}, Dishwasher, {series}, {mpn}".strip()
-    row["MOBILE_DESC"] = mobile[:80]
+    row["MOBILE_DESC"] = pad_mobile(mobile, mpn, brand, manufacturer)
 
     with_phrase = _with_phrase(with_text.replace("With ", "").replace("with ", ""))
     short_lead = f"{brand} {series} {mpn} Dishwasher".strip()
@@ -94,12 +96,12 @@ def build_descriptions(
         short_tail.append(f"{cycles}-Wash Cycle")
     if material:
         short_tail.append(material)
-    if color and color not in short_tail:
+    if color:
         short_tail.append(color)
     row["SHORT_DESC"] = ", ".join([short_lead] + short_tail)
 
     long_lead = f"{brand} Dishwasher"
-    if with_phrase:
+    if with_phrase and ("FRIGIDAIRE" in brand.upper() or "CleanBoost" in with_phrase):
         long_lead = f"{long_lead} {with_phrase}"
     long_parts = [long_lead]
     if series:
