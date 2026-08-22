@@ -57,13 +57,18 @@ function setHash(hash) {
   location.hash = hash;
 }
 
+function go(hash) {
+  setHash(hash);
+  route();
+}
+
 function route() {
   const { page, record } = parseHash(location.hash);
   showPage(page);
   if (record) {
     const row = (lastData.previews || []).find((p) => p.mpn === record);
     if (row) openDrawer(row, { silent: true });
-    else setHash("#/catalog");
+    else go("#/catalog");
   } else {
     hideDrawer();
   }
@@ -91,7 +96,7 @@ function showPage(name) {
 }
 
 document.querySelectorAll(".nav-item").forEach((btn) => {
-  btn.addEventListener("click", () => setHash(`#/${btn.dataset.page}`));
+  btn.addEventListener("click", () => go(`#/${btn.dataset.page}`));
 });
 
 // ---------- Copy (registry-based, no inline handlers) ----------
@@ -134,7 +139,7 @@ function runPresetByMpn(mpn) {
   const idx = presetsData.findIndex((p) => p.Mfg_Part_Num === mpn);
   if (idx < 0) return;
   applyPreset(idx);
-  setHash("#/enrich");
+  go("#/enrich");
   runSandboxEnrichment();
 }
 
@@ -528,7 +533,7 @@ function hideDrawer() {
 function closeDrawer() {
   if (!drawer.classList.contains("open")) return;
   hideDrawer();
-  setHash(drawerReturnHash);
+  go(drawerReturnHash);
   if (lastFocusedElement && document.contains(lastFocusedElement)) {
     lastFocusedElement.focus();
   }
@@ -539,6 +544,23 @@ el("drawerBackdrop").addEventListener("click", closeDrawer);
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && drawer.classList.contains("open")) closeDrawer();
+});
+
+drawer.addEventListener("keydown", (e) => {
+  if (e.key !== "Tab") return;
+  const focusables = drawer.querySelectorAll(
+    'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
+  );
+  if (!focusables.length) return;
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
 });
 
 function renderRecordTab(p) {

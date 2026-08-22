@@ -6,28 +6,30 @@
   "output": "walkthrough.mp4",
   "raw_output": "walkthrough_raw.webm",
   "segments": [
-    { "id": "seg-hero", "label": "Hero load: Six columns in. 252 out." },
-    { "id": "seg-enrich", "label": "Type part line and enrich PDSH4816AF / KitchenAid" },
-    { "id": "seg-catalog-drawer", "label": "Catalog row -> drawer -> Sources (provenance URLs)" },
+    { "id": "seg-hero", "label": "Hero load: Six columns in. 252 out. + golden proof band" },
+    { "id": "seg-enrich", "label": "Type part line and enrich PDSH4816AF" },
+    { "id": "seg-catalog-drawer", "label": "Catalog row -> drawer -> Evidence (sources + honest blanks), close via Escape" },
     { "id": "seg-batch", "label": "Run batch stream (1000 SKUs) to completion" },
-    { "id": "seg-quality", "label": "Quality golden 100% numerals + taxonomy" },
-    { "id": "seg-export", "label": "Export CSV download" }
+    { "id": "seg-proof", "label": "Golden proof band: click reference SKU, re-enrich" },
+    { "id": "seg-export", "label": "Export CSV download from catalog" }
   ],
   "actions": [
     { "label": "load-hero", "expect": { "text": "Six columns in." } },
+    { "label": "proof-band-visible", "target": "#proof-band" },
     { "label": "type-mpn", "target": "#sb_mpn", "value": "PDSH4816AF" },
     { "label": "type-desc", "target": "#sb_desc", "value": "24in built-in dishwasher" },
-    { "label": "type-brand", "target": "#sb_dib", "value": "KitchenAid" },
     { "label": "click-enrich", "target": "#sbEnrichBtn", "expect": { "selector-detached": "#sb-result-container .wb-empty" } },
-    { "label": "nav-catalog", "target": "[data-page=\"results\"]" },
-    { "label": "open-drawer", "target": "#results-body tr[data-index=\"0\"]", "expect": { "selector": "#drawer.open" } },
-    { "label": "tab-sources", "target": "[data-dtab=\"sources\"]", "expect": { "text-nonempty": "#dtab-sources" } },
-    { "label": "close-drawer", "target": "#drawerClose" },
+    { "label": "nav-catalog", "target": "[data-page=\"catalog\"]" },
+    { "label": "open-drawer", "target": "#results-body tr[data-mpn]", "expect": { "selector": "#drawer.open" } },
+    { "label": "tab-evidence", "target": "[data-dtab=\"evidence\"]", "expect": { "text-nonempty": "#dtab-evidence" } },
+    { "label": "close-drawer-esc", "expect": { "key": "Escape" } },
     { "label": "nav-batch", "target": "[data-page=\"enrich\"]" },
     { "label": "set-limit-1000", "target": "#sampleLimit", "value": "1000" },
     { "label": "click-run-batch", "target": "#liveBtn", "expect": { "text-prefix": "#progress-message|Complete" } },
-    { "label": "nav-quality", "target": "[data-page=\"taxonomy\"]", "expect": { "text-nonempty": "#golden-grid" } },
-    { "label": "nav-export", "target": "[data-page=\"export\"]" },
-    { "label": "click-csv-download", "target": ".export-row >> nth=0", "download": true }
+    { "label": "proof-band-shown", "target": "#proof-band" },
+    { "label": "click-golden-sku", "target": "#proof-band button" },
+    { "label": "golden-sku-enriched", "expect": { "selector-detached": "#sb-result-container .skeleton" } },
+    { "label": "nav-catalog-export", "target": "[data-page=\"catalog\"]" },
+    { "label": "click-csv-download", "target": ".export-group a[href=\"/download/csv\"]", "download": true }
   ]
 }

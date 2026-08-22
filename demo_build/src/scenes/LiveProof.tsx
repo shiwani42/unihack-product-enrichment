@@ -125,7 +125,7 @@ const ProofIntro: React.FC = () => {
           ...strip,
         }}
       >
-        {["enrich", "provenance", "batch", "quality", "export"].map((step, i) => (
+        {["enrich", "evidence", "batch", "proof", "export"].map((step, i) => (
           <span
             key={step}
             style={{

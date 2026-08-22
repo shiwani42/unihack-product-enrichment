@@ -4,7 +4,7 @@
 columns in — a validated, source-traced record in Unilog's 252-column delivery format out.
 
 - **Live prototype:** https://unilog-tau.vercel.app
-- **Demo film (3 min):** `demo_build/demo.mp4` (see `demo_build/README.md` for the reproducible Remotion build)
+- **Demo film (3 min):** https://vimeo.com/1220615209 · reproducible build in `demo_build/`
 - **Submission deck:** `submission/UniHack_thExplorers_Prototype.pptx`
 - **Delivery artifacts:** `output/batch_enriched.csv` · `output/batch_enriched.xlsx` · `output/field_provenance.json`
 

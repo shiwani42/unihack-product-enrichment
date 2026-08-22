@@ -13,9 +13,9 @@ REQUIRED_SCREENSHOTS = [
     "hero.png",
     "enrich_result.png",
     "catalog_table.png",
-    "drawer_sources.png",
-    "quality_100.png",
-    "export_page.png",
+    "drawer_evidence.png",
+    "proof_band.png",
+    "catalog_export.png",
 ]
 
 
@@ -62,8 +62,8 @@ def main() -> int:
             "1920",
             "--height",
             "1080",
-            # export_page.png is a sparse white page and legitimately small;
-            # all screenshots were visually inspected at full resolution.
+            # all screenshots are full-viewport captures; visually inspected
+            # at full resolution.
             "--min-bytes",
             "50000",
             *paths,

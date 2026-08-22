@@ -358,12 +358,12 @@ def main() -> None:
         shot(s, path, x, y, w, caption)
         return h
 
-    h1 = place(SHOTS / "quality_100.png", 0.7, 1.62, 4.0, "Quality \u2014 golden benchmarks")
+    h1 = place(SHOTS / "proof_band.png", 0.7, 1.62, 4.0, "Golden accuracy \u2014 verified on home")
     place(SHOTS / "catalog_table.png", 5.3, 1.62, 4.0, "Catalog \u2014 enriched results")
     y2 = 1.62 + max(h1, 2.45) + 0.18
     bw = min(2.9, (5.5 - y2) / 0.5625)
-    place(SHOTS / "drawer_sources.png", 2.0, y2, bw)
-    place(SHOTS / "export_page.png", 5.4, y2, bw)
+    place(SHOTS / "drawer_evidence.png", 2.0, y2, bw)
+    place(SHOTS / "catalog_export.png", 5.4, y2, bw)
 
     # ---- S13 future ----
     s = slides[12]
@@ -385,7 +385,7 @@ def main() -> None:
     wipe(s)
     links = [
         ("GitHub Public Repository", GITHUB),
-        ("Demo Video Link (3 Minutes)", "[paste YouTube/Drive link \u2014 film rendered at demo_build/demo.mp4]"),
+        ("Demo Video Link (3 Minutes)", "https://vimeo.com/1220615209"),
         ("Working Prototype Link", "https://unilog-tau.vercel.app"),
     ]
     y = 2.1

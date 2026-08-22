@@ -282,7 +282,7 @@ Add tests in `tests/` for any new category template or resolver logic.
 - [ ] Web app running for live demo
 - [ ] `output/enriched.csv` or full 1000-row run for submission
 - [ ] GitHub repo up to date
-- [ ] PPT screenshots from Dashboard + Live Enrichment + SKU drawer
+- [ ] PPT screenshots from Enrich hero + Catalog + SKU drawer (Evidence tab)
 
 ---
 

@@ -28,9 +28,9 @@ Total = 5412 scene frames − 4×18 transition overlap = 5340 frames = 178.00 s.
   Quality → Export CSV download. Validated by `scripts/validate_recording.py`
   and re-validated inside `tests/storyboard.test.ts` via ffprobe.
 - `screenshots/*.png` — six 1920x1080 stills of the same live app (hero,
-  enrich result, catalog table, drawer sources, quality 100%, export page).
-  `export_page.png` is a sparse white page and is legitimately <80 KB; all
-  stills were visually inspected at full resolution.
+  enrich result, catalog table, drawer evidence, golden proof band,
+  catalog export group). All stills were visually inspected at full
+  resolution.
 
 The walkthrough was captured once (see `capture_walkthrough.py` +
 `interaction_plan.json`; `recordings/walkthrough_meta.json` is the

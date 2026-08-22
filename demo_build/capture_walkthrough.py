@@ -191,45 +191,47 @@ def run_walkthrough(record_video: bool) -> tuple[Path, dict]:
         page.wait_for_selector("text=Six columns in.", timeout=20000)
         rec.log_action("load-hero")
         wait_nonempty(page, "#presets-list")
-        settle(9.5)
+        page.wait_for_selector("#proof-band", state="visible", timeout=20000)
+        rec.log_action("proof-band-visible")
+        settle(5.5)
         rec.close_segment()
 
         # ---- Beat 2: enrich form ------------------------------------------
         rec.open_segment("seg-enrich")
         type_field(page, rec, "#sb_mpn", "PDSH4816AF", "type-mpn")
         type_field(page, rec, "#sb_desc", "24in built-in dishwasher", "type-desc")
-        type_field(page, rec, "#sb_dib", "KitchenAid", "type-brand")
         settle(0.8)
         click_element(page, rec, "#sbEnrichBtn", "click-enrich")
         page.wait_for_selector("#sb-result-container .wb-empty", state="detached", timeout=30000)
         wait_nonempty(page, "#sb-result-container")
         page.wait_for_timeout(600)
         rec.log_action("result-panel-visible")
-        settle(4.5)
+        settle(3.0)
         smooth_scroll(page, ".wb-output", 420)
-        settle(4.0)
+        settle(2.5)
         rec.close_segment()
 
-        # ---- Beat 3: catalog + drawer provenance ---------------------------
+        # ---- Beat 3: catalog + drawer evidence ------------------------------
         rec.open_segment("seg-catalog-drawer")
-        click_element(page, rec, "[data-page=\"results\"]", "nav-catalog")
-        page.wait_for_selector("#results-body tr[data-index]", timeout=20000)
+        click_element(page, rec, "[data-page=\"catalog\"]", "nav-catalog")
+        page.wait_for_selector("#results-body tr[data-mpn]", timeout=20000)
         settle(3.5)
-        click_element(page, rec, "#results-body tr[data-index=\"0\"]", "open-drawer")
+        click_element(page, rec, "#results-body tr[data-mpn]", "open-drawer")
         page.wait_for_selector("#drawer.open", timeout=10000)
         wait_nonempty(page, "#drawerMpn")
-        settle(2.2)
-        click_element(page, rec, "[data-dtab=\"sources\"]", "tab-sources")
-        wait_nonempty(page, "#dtab-sources")
+        settle(1.6)
+        click_element(page, rec, "[data-dtab=\"evidence\"]", "tab-evidence")
+        wait_nonempty(page, "#dtab-evidence")
         page.wait_for_function(
-            "() => document.querySelectorAll('#dtab-sources a').length > 0",
+            "() => document.querySelectorAll('#dtab-evidence a').length > 0",
             timeout=10000,
         )
-        rec.log_action("sources-visible")
-        settle(4.5)
-        smooth_scroll(page, ".drawer-body", 380)
+        rec.log_action("evidence-visible")
         settle(3.2)
-        click_element(page, rec, "#drawerClose", "close-drawer")
+        smooth_scroll(page, ".drawer-body", 380)
+        settle(2.4)
+        page.keyboard.press("Escape")
+        rec.log_action("close-drawer-esc")
         settle(1.6)
         rec.close_segment()
 
@@ -244,27 +246,32 @@ def run_walkthrough(record_video: bool) -> tuple[Path, dict]:
         page.wait_for_function(
             "() => (document.getElementById('progress-message')||{}).textContent"
             "?.includes('Complete') === true",
-            timeout=120000,
+            timeout=240000,
         )
         rec.log_action("batch-complete")
-        settle(6.5)
-        rec.close_segment()
-
-        # ---- Beat 5: quality -------------------------------------------------
-        rec.open_segment("seg-quality")
-        click_element(page, rec, "[data-page=\"taxonomy\"]", "nav-quality")
-        wait_nonempty(page, "#golden-grid")
-        rec.log_action("quality-visible")
         settle(5.0)
-        smooth_scroll(page, None, 700)
-        settle(3.6)
         rec.close_segment()
 
-        # ---- Beat 6: export CSV ----------------------------------------------
+        # ---- Beat 5: golden proof band --------------------------------------
+        rec.open_segment("seg-proof")
+        smooth_scroll(page, None, -900)
+        settle(2.4)
+        page.wait_for_selector("#proof-band", state="visible", timeout=10000)
+        rec.log_action("proof-band-shown")
+        settle(1.8)
+        click_element(page, rec, "#proof-band button", "click-golden-sku")
+        page.wait_for_selector("#sb-result-container .skeleton", state="detached", timeout=30000)
+        wait_nonempty(page, "#sb-result-container")
+        rec.log_action("golden-sku-enriched")
+        settle(3.2)
+        rec.close_segment()
+
+        # ---- Beat 6: export CSV from catalog ---------------------------------
         rec.open_segment("seg-export")
-        click_element(page, rec, "[data-page=\"export\"]", "nav-export")
-        settle(2.2)
-        csv_row = page.locator(".export-row").first
+        click_element(page, rec, "[data-page=\"catalog\"]", "nav-catalog-export")
+        page.wait_for_selector("#results-body tr[data-mpn]", timeout=20000)
+        settle(1.6)
+        csv_row = page.locator(".export-group a[href=\"/download/csv\"]").first
         box = csv_row.bounding_box()
         move_cursor(page, box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
         settle(0.35)
@@ -276,10 +283,10 @@ def run_walkthrough(record_video: bool) -> tuple[Path, dict]:
         download = dl.value
         download.save_as(str(artifacts / "delivery_export.csv"))
         rec.log_action("download-saved", file=download.suggested_filename)
-        settle(4.6)
+        settle(3.4)
         rec.close_segment()
 
-        settle(1.2)
+        settle(0.8)
         video_path = None
         if record_video:
             video_path = page.video.path()
@@ -323,13 +330,12 @@ def convert_to_cfr(raw_webm: Path, out_mp4: Path) -> float:
 def capture_screenshots():
     """Separate no-video pass producing canonical stills for fallback/stills."""
     shots = {
-        "hero.png": ("text=Six columns in.", None),
+        "hero.png": ("#proof-band", None),
         "enrich_result.png": ("#sb-result-container .spec-row", None),
-        "catalog_table.png": ("#results-body tr[data-index]", None),
-        "drawer_sources.png": ("#dtab-sources.active", None),
-        "quality_100.png": ("#golden-grid", None),
-        "export_page.png": (".export-list", None),
-        "batch_complete.png": ("#pipeline-stepper", None),
+        "catalog_table.png": ("#results-body tr[data-mpn]", None),
+        "drawer_evidence.png": ("#dtab-evidence.active", None),
+        "proof_band.png": ("#proof-band", None),
+        "catalog_export.png": (".export-group", None),
     }
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path=CHROME, headless=True)
@@ -346,29 +352,31 @@ def capture_screenshots():
             page.screenshot(path=str(SCREENSHOTS / name))
             print(f"  screenshot {name}")
 
-        shot("hero.png", "text=Six columns in.")
+        shot("hero.png", "#proof-band",
+             pre=lambda: page.wait_for_timeout(900))
         page.fill("#sb_mpn", "PDSH4816AF")
         page.fill("#sb_desc", "24in built-in dishwasher")
-        page.fill("#sb_dib", "KitchenAid")
         page.click("#sbEnrichBtn")
         shot("enrich_result.png", "#sb-result-container .spec-row",
              pre=lambda: page.wait_for_selector(
                  "#sb-result-container .wb-empty", state="detached", timeout=30000))
-        page.click("[data-page=\"results\"]")
-        shot("catalog_table.png", "#results-body tr[data-index]",
+        page.click("[data-page=\"catalog\"]")
+        shot("catalog_table.png", "#results-body tr[data-mpn]",
              pre=lambda: page.wait_for_timeout(900))
-        page.click("#results-body tr[data-index=\"0\"]")
-        page.click("[data-dtab=\"sources\"]")
-        shot("drawer_sources.png", "#dtab-sources.active",
+        page.click("#results-body tr[data-mpn]")
+        page.click("[data-dtab=\"evidence\"]")
+        shot("drawer_evidence.png", "#dtab-evidence.active",
              pre=lambda: page.wait_for_function(
-                 "() => document.querySelectorAll('#dtab-sources a').length > 0"))
+                 "() => document.querySelectorAll('#dtab-evidence a').length > 0"))
         page.keyboard.press("Escape")
-        page.click("#drawerClose")
-        page.click("[data-page=\"taxonomy\"]")
-        shot("quality_100.png", "#golden-grid",
-             pre=lambda: page.wait_for_timeout(900))
-        page.click("[data-page=\"export\"]")
-        shot("export_page.png", ".export-list",
+        page.click("[data-page=\"enrich\"]")
+        page.evaluate("window.scrollTo(0, 0)")
+        page.click("#proof-band button")
+        shot("proof_band.png", "#sb-result-container .result-head",
+             pre=lambda: page.wait_for_selector(
+                 "#sb-result-container .skeleton", state="detached", timeout=30000))
+        page.click("[data-page=\"catalog\"]")
+        shot("catalog_export.png", ".export-group",
              pre=lambda: page.wait_for_timeout(600))
         ctx.close()
         browser.close()

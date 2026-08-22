@@ -59,13 +59,16 @@ describe("interaction plan contract", () => {
     const labels = meta.actions.map((action) => action.label);
     for (const expected of [
       "load-hero",
+      "proof-band-visible",
       "click-enrich",
       "nav-catalog",
-      "tab-sources",
+      "tab-evidence",
+      "close-drawer-esc",
       "click-run-batch",
       "batch-complete",
-      "nav-quality",
-      "nav-export",
+      "click-golden-sku",
+      "golden-sku-enriched",
+      "click-csv-download",
       "download-saved",
     ]) {
       expect(labels, `missing action ${expected}`).toContain(expected);
