@@ -1,0 +1,22 @@
+{
+  "category_id": "metal_cutoff_disc",
+  "classpath": "Tools & Hardware>Power Tool Accessories>Cutting & Grinding Discs>Metal Cut-Off Discs",
+  "dept": "Tools & Hardware",
+  "class": "Power Tool Accessories",
+  "fine": "Metal Cut-Off Discs",
+  "product_name": "Metal Cut-Off Disc",
+  "attribute_labels": [
+    "Diameter",
+    "Thickness",
+    "Arbor Size",
+    "Abrasive Material",
+    "Application",
+    "Maximum RPM",
+    "Pack Quantity"
+  ],
+  "description_rules": {
+    "invoice_max_chars": 40,
+    "mobile_min_chars": 60,
+    "mobile_max_chars": 80
+  }
+}

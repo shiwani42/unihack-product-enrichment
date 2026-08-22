@@ -20,11 +20,17 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# Enrich sample input (limit optional)
-python cli.py enrich --limit 10
+# Golden regression (target >= 70% field match)
+python3 cli.py golden
 
-# Score against golden dishwasher examples
-python cli.py golden
+# Enrich sample input
+python3 cli.py enrich --limit 10
+
+# Batch dishwasher rows with validation report
+python3 cli.py batch --filter dishwasher --limit 20
+
+# Run tests
+pytest -q
 
 # Run API
 uvicorn app.main:app --reload
@@ -33,41 +39,42 @@ uvicorn app.main:app --reload
 ## Project layout
 
 ```text
-app/           FastAPI entrypoint and config
-ingest/        CSV I/O and placeholder handling
-identity/      Brand and manufacturer resolution
-classify/      Category routing and templates
-sources/       URL discovery helpers
-extract/       HTML evidence extraction
-normalize/     Attribute mapping
-compose/       Description builders
-validate/      Rules and golden diff
-pipeline.py    Row enrichment orchestration
-cli.py         Command line interface
-guidelines/    Challenge input, expected output, solution guide
+app/                 FastAPI entrypoint and config
+ingest/              CSV I/O and placeholder handling
+identity/            Brand and manufacturer resolution
+classify/            Category routing and templates
+sources/             URL discovery and browser fetch fallback
+extract/             HTML, PDF, cache, and desc parsing
+normalize/           Attribute mapping
+compose/             Descriptions and asset filenames
+validate/            Rules, golden diff, batch reports
+pipeline.py          Row enrichment orchestration
+cli.py               Command line interface
+data/evidence_cache/ Manufacturer evidence cache (seed + live updates)
+guidelines/          Challenge input, expected output, solution guide
 ```
 
-## Current scope
+## Supported categories
 
-Phase 1 focuses on built-in dishwashers:
-
-- APPDE rows in the sample input
-- Golden examples: `PDSH4816AF`, `WDTS7024RZ`
-- Fixed dishwasher attribute template from expected output
-
-Next phases add PDF page-finder extraction, browser fetching for blocked sites, and additional category templates.
+| Category | Template | Source strategy |
+|----------|----------|-----------------|
+| Built-in dishwashers | `built_in_dishwasher` | Manufacturer HTML + PDF + evidence cache |
+| Metal cut-off discs | `metal_cutoff_disc` | Part description parsing + brand routing |
 
 ## Commands
 
 | Command | Purpose |
 |---------|---------|
-| `python cli.py enrich --input guidelines/Unihack_\ Sample\ Dataset\ -\ Input.csv` | Batch enrich |
-| `python cli.py golden` | Compare golden rows |
+| `python3 cli.py golden` | Compare golden rows (PDSH4816AF, WDTS7024RZ) |
+| `python3 cli.py enrich` | Batch enrich CSV |
+| `python3 cli.py batch --filter dishwasher` | Enrich subset with JSON validation report |
 | `uvicorn app.main:app --reload` | Upload and download API |
 
 ## Validation
 
-Golden scoring compares non-empty expected fields only. A row with missing manufacturer fetch still reports partial matches and missing fields separately.
+Golden scoring compares non-empty expected fields only. Internal distributor IDs such as `PART_NUMBER` and `SKU - MY_PART_NUMBER` are not available in the input file and may remain blank.
+
+Optional Playwright browser fetch is used when manufacturer pages return HTTP 403.
 
 ## License
 

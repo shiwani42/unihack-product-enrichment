@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass, field
 
 
@@ -17,6 +18,10 @@ class EvidenceBundle:
     mfr_url: str = ""
     ref_urls: list[str] = field(default_factory=list)
     items: list[Evidence] = field(default_factory=list)
+    marketing: str = ""
+    features: list[str] = field(default_factory=list)
+    approvals: str = ""
+    warranty: str = ""
 
     def get(self, field: str) -> Evidence | None:
         for item in self.items:

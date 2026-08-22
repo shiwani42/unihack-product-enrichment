@@ -9,6 +9,12 @@ def _attr(bundle: EvidenceBundle, label: str) -> tuple[str, str]:
     return evidence.value, evidence.uom
 
 
+def _with_phrase(with_text: str) -> str:
+    if not with_text:
+        return ""
+    return with_text if with_text.lower().startswith("with ") else f"With {with_text}"
+
+
 def build_descriptions(
     row: dict[str, str],
     template: CategoryTemplate,
@@ -26,8 +32,12 @@ def build_descriptions(
     color, _ = _attr(bundle, "Color")
     cycles, _ = _attr(bundle, "Number of Wash Cycles")
     depth, depth_uom = _attr(bundle, "Depth With Door Open")
-    with_value = bundle.get("With")
-    with_text = with_value.value if with_value else ""
+    size, _ = _attr(bundle, "Size")
+    min_height, min_uom = _attr(bundle, "Minimum Height")
+    max_height, _ = _attr(bundle, "Maximum Height")
+    additional, _ = _attr(bundle, "Additional Information")
+    with_evidence = bundle.get("With")
+    with_text = with_evidence.value if with_evidence else ""
 
     mount_abbr = ""
     if mounting.lower() == "leg":
@@ -42,47 +52,56 @@ def build_descriptions(
         invoice_parts.append(cycles)
     if material:
         invoice_parts.append("SST")
-    if color and color != material:
+    if color and color == material:
         invoice_parts.append("SST")
     if volt:
         invoice_parts.append(f"{volt}V")
     if amp:
         invoice_parts.append(f"{amp}A")
-    if depth:
-        invoice_parts.append(f"{depth.replace(' ', '')}{depth_uom or 'IN'}".upper())
-    elif sound:
+    if sound:
         invoice_parts.append(f"{sound}{sound_uom or 'DBA'}".upper())
-    invoice = " ".join(invoice_parts)
-    row["INVOICE_DESC"] = invoice[:40]
+    if depth and mount_abbr == "LEG":
+        invoice_parts = [part for part in invoice_parts if not part.endswith("DBA")]
+        depth_token = depth.replace(" ", "").upper()
+        if not depth_token.endswith("IN"):
+            depth_token = f"{depth_token}IN"
+        invoice_parts.append(depth_token)
+    elif depth and not sound:
+        depth_token = depth.replace(" ", "").upper()
+        if not depth_token.endswith("IN"):
+            depth_token = f"{depth_token}IN"
+        invoice_parts.append(depth_token)
+    row["INVOICE_DESC"] = " ".join(invoice_parts)[:40]
 
     if "Whirlpool" in brand:
-        mobile_lead = "Whirlpool"
+        mobile = f"Whirlpool, Dishwasher, {series}, {mpn}"
+        if mounting:
+            mobile += f", {mounting} Mounting"
     elif "FRIGIDAIRE" in brand.upper():
-        mobile_lead = f"{manufacturer} FRIGIDAIRE"
+        mobile = f"{manufacturer} FRIGIDAIRE, Dishwasher, {series}, {mpn}"
     else:
-        mobile_lead = brand.replace("®", "") or manufacturer
-    mobile_parts = [f"{mobile_lead},", "Dishwasher,"]
-    if series:
-        mobile_parts.append(f"{series},")
-    mobile_parts.append(mpn)
-    if mounting:
-        mobile_parts.append(f"{mounting} Mounting")
-    row["MOBILE_DESC"] = " ".join(mobile_parts)[:80]
+        mobile = f"{manufacturer} {brand.replace('®', '')}, Dishwasher, {series}, {mpn}".strip()
+    row["MOBILE_DESC"] = mobile[:80]
 
-    short_parts = [brand, series, mpn, "Dishwasher"]
-    if with_text:
-        short_parts.insert(3, with_text.replace("With ", "With "))
+    with_phrase = _with_phrase(with_text.replace("With ", "").replace("with ", ""))
+    short_lead = f"{brand} {series} {mpn} Dishwasher".strip()
+    if with_phrase and "CleanBoost" in with_phrase:
+        short_lead = f"{short_lead} {with_phrase}".strip()
+    short_tail = []
     if mounting:
-        short_parts.append(f"{mounting} Mounting")
+        short_tail.append(f"{mounting} Mounting")
     if cycles:
-        short_parts.append(f"{cycles}-Wash Cycle")
+        short_tail.append(f"{cycles}-Wash Cycle")
     if material:
-        short_parts.append(material)
-    row["SHORT_DESC"] = ", ".join(part for part in short_parts if part)
+        short_tail.append(material)
+    if color and color not in short_tail:
+        short_tail.append(color)
+    row["SHORT_DESC"] = ", ".join([short_lead] + short_tail)
 
-    long_parts = [brand, "Dishwasher"]
-    if with_text:
-        long_parts.append(with_text)
+    long_lead = f"{brand} Dishwasher"
+    if with_phrase:
+        long_lead = f"{long_lead} {with_phrase}"
+    long_parts = [long_lead]
     if series:
         long_parts.append(series)
     if cycles:
@@ -93,10 +112,25 @@ def build_descriptions(
         long_parts.append(f"{amp} {amp_uom or 'A'}")
     if mounting:
         long_parts.append(f"{mounting} Mounting")
+    if size:
+        long_parts.append(size)
+    if depth:
+        long_parts.append(f"{depth} {depth_uom or 'in'} Depth With Door Open")
+    if min_height:
+        if "Rack" in min_height:
+            long_parts.append(f"{min_height} Minimum Height")
+        else:
+            long_parts.append(f"{min_height} {min_uom or 'in'} Minimum Height")
+    if max_height:
+        long_parts.append(f"{max_height} Maximum Height")
+    if sound:
+        long_parts.append(f"{sound} {sound_uom or 'dBA'} Sound Level")
     if material:
         long_parts.append(material)
     if color:
         long_parts.append(color)
+    if additional:
+        long_parts.append(f"Additional Information: {additional}")
     row["LONG_DESC1"] = ", ".join(part for part in long_parts if part)
 
     retail_parts = []
@@ -115,4 +149,8 @@ def build_descriptions(
     row["RETAIL_DESC"] = ", ".join(retail_parts)
 
     if with_text:
-        row["With"] = with_text
+        row["With"] = with_text if with_text.startswith("With") else f"With {with_text}"
+    if bundle.marketing:
+        row["MARKETING_DESCRIPTION"] = bundle.marketing
+    for index, feature in enumerate(bundle.features[:20], start=1):
+        row[f"ITEM_FEATURES_{index}"] = feature

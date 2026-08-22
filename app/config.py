@@ -15,7 +15,8 @@ ECOMMERCE_BLOCKLIST = (
     "target.",
 )
 
-REQUEST_TIMEOUT = 45
+REQUEST_TIMEOUT = 20
+PDF_MAX_BYTES = 4_000_000
 USER_AGENT = "UniHack-Enrichment/1.0 (+https://github.com/shiwani42/unihack-product-enrichment)"
 
 OUTPUT_DIR = ROOT / "output"

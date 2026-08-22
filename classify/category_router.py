@@ -41,4 +41,8 @@ def route_category(part_desc: str, brand_key: str) -> CategoryTemplate | None:
         r"dishwasher|d/w", text, re.I
     ):
         return load_template("built_in_dishwasher")
+    if re.search(r"cut.?off disc|metal cut|sand(ing)? belt|abrasive disc", part_desc, re.I):
+        return load_template("metal_cutoff_disc")
+    if brand_key in {"Diablo", "Milwaukee", "DEWALT"} and re.search(r"\d+\s?(?:\"|in)", part_desc):
+        return load_template("metal_cutoff_disc")
     return None

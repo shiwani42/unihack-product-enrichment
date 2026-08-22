@@ -1,0 +1,134 @@
+{
+  "mpn": "WDTS7024RZ",
+  "mfr_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+  "ref_urls": [
+    "https://www.whirlpool.com/content/dam/global/documents/202412/owners-manual-w11323304-revj.pdf",
+    "https://www.whirlpool.com/content/dam/global/documents/202406/installation-instructions-w11323304-revG.pdf"
+  ],
+  "evidence": [
+    {
+      "field": "Series",
+      "value": "Eco Series",
+      "uom": "",
+      "source_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+      "quote": "Eco Series",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Voltage Rating",
+      "value": "120",
+      "uom": "V",
+      "source_url": "https://www.whirlpool.com/content/dam/global/documents/202406/installation-instructions-w11323304-revG.pdf",
+      "quote": "120 volt",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.9
+    },
+    {
+      "field": "Amperage Rating",
+      "value": "10",
+      "uom": "A",
+      "source_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+      "quote": "10 A",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.9
+    },
+    {
+      "field": "Mounting Type",
+      "value": "Built-in",
+      "uom": "",
+      "source_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+      "quote": "Built-in Mounting",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.9
+    },
+    {
+      "field": "Size",
+      "value": "33-7/16 in H x 23-7/8 in W x 22-5/8 in D",
+      "uom": "",
+      "source_url": "https://www.whirlpool.com/content/dam/global/documents/202406/installation-instructions-w11323304-revG.pdf",
+      "quote": "product dimensions",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.9
+    },
+    {
+      "field": "Depth With Door Open",
+      "value": "50-3/16",
+      "uom": "in",
+      "source_url": "https://www.whirlpool.com/content/dam/global/documents/202406/installation-instructions-w11323304-revG.pdf",
+      "quote": "Depth With Door Open",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.9
+    },
+    {
+      "field": "Minimum Height",
+      "value": "33-7/16",
+      "uom": "in",
+      "source_url": "https://www.whirlpool.com/content/dam/global/documents/202406/installation-instructions-w11323304-revG.pdf",
+      "quote": "Minimum Height",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.9
+    },
+    {
+      "field": "Sound Level",
+      "value": "41",
+      "uom": "dBA",
+      "source_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+      "quote": "41 dBA",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Material",
+      "value": "Stainless Steel",
+      "uom": "",
+      "source_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+      "quote": "Stainless Steel",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.9
+    },
+    {
+      "field": "Color",
+      "value": "Stainless Steel",
+      "uom": "",
+      "source_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+      "quote": "Stainless Steel",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.9
+    },
+    {
+      "field": "With",
+      "value": "With Washing 3rd Rack, Water Repellent Silverware Basket",
+      "uom": "",
+      "source_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+      "quote": "Washing 3rd Rack",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.9
+    },
+    {
+      "field": "Additional Information",
+      "value": "Folding Tines, Leak Detection System, Moisture Repellent Silverware Basket, Normal Cycle, Quick Wash Cycle, Sani Rinse Option, Sensor Cycle, Triple Wash Spray",
+      "uom": "",
+      "source_url": "https://learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R",
+      "quote": "product options",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.9
+    }
+  ],
+  "marketing": "Load more and run less with our quietest and largest capacity dishwasher. A 3rd Rack provides dedicated space for mugs and bowls, while an adjustable 2nd Rack helps fit all the dishes and pans your family piles up.",
+  "features": [
+    "3rd rack with extra wash action",
+    "Adjustable 2nd Rack",
+    "41 dBA",
+    "Moisture Repellent Silverware Basket",
+    "Sensor cycle",
+    "Sani Rinse Option",
+    "Leak Detection System",
+    "Folding Tines",
+    "Normal cycle",
+    "Triple Wash Spray",
+    "Quick Wash Cycle"
+  ],
+  "approvals": "",
+  "warranty": ""
+}

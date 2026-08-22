@@ -1,0 +1,128 @@
+{
+  "mpn": "PDSH4816AF",
+  "mfr_url": "https://www.frigidaire.com/en/p/owner-center/product-support/PDSH4816AF",
+  "ref_urls": [],
+  "evidence": [
+    {
+      "field": "Series",
+      "value": "Professional Series",
+      "uom": "",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "Professional Series",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Number of Wash Cycles",
+      "value": "5",
+      "uom": "",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "5 Wash Cycles",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Voltage Rating",
+      "value": "120",
+      "uom": "V",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "Voltage Rating: 120 V",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Amperage Rating",
+      "value": "15",
+      "uom": "A",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "Amps @ 120 Volts: 15 Amps",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Mounting Type",
+      "value": "Leg",
+      "uom": "",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "Leg Mounting",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Size",
+      "value": "24 in W x 24-1/4 in D",
+      "uom": "",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "24 in W x 24-1/4 in D",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Depth With Door Open",
+      "value": "50-1/4",
+      "uom": "in",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "Depth With Door Open 50-1/4 in",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Minimum Height",
+      "value": "8-1/2 in Upper Rack, 11-1/4 in Lower Rack",
+      "uom": "",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "Minimum Height rack dimensions",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Maximum Height",
+      "value": "10-3/8 in Upper Rack, 13-1/4 in Lower Rack",
+      "uom": "",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "Maximum Height rack dimensions",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Sound Level",
+      "value": "47",
+      "uom": "dBA",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "47 dBA Sound Level",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Material",
+      "value": "Stainless Steel",
+      "uom": "",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "Stainless Steel",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "With",
+      "value": "With CleanBoost\u2122",
+      "uom": "",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "With CleanBoost",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    },
+    {
+      "field": "Additional Information",
+      "value": "240 kW-hr Annual Energy, 1 to 12 hr Delay Start Hours",
+      "uom": "",
+      "source_url": "https://support.frigidaire.com/Owner-Center/Product-Support/PDSH4816AF",
+      "quote": "240 kW-hr Annual Energy",
+      "extractor": "manufacturer_seed",
+      "confidence": 0.95
+    }
+  ],
+  "marketing": "",
+  "features": [],
+  "approvals": "ASSE 1006|CEE Tier 2 Qualified|cUL Listed|ENERGY STAR Certified|NSF Certified|UL Listed",
+  "warranty": "1 Year Manufacturer, 1 Year Labor and Parts"
+}

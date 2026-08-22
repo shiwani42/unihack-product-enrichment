@@ -7,6 +7,7 @@ from app.config import DEFAULT_INPUT, DEFAULT_OUTPUT_HEADERS, GOLDEN_MPNS, OUTPU
 from ingest.csv_io import load_output_headers, read_input_rows, write_output_rows
 from pipeline import enrich_input_row
 from validate.golden_test import compare_rows
+from validate.report import build_row_report, reports_to_dicts, summarize_reports
 
 
 def cmd_enrich(args: argparse.Namespace) -> None:
@@ -62,6 +63,43 @@ def cmd_golden(args: argparse.Namespace) -> None:
         print(f"Report written to {report_path}")
 
 
+def cmd_batch(args: argparse.Namespace) -> None:
+    headers = load_output_headers()
+    rows = read_input_rows(Path(args.input))
+    if args.filter == "dishwasher":
+        rows = [row for row in rows if "dishwasher" in row["Part_Desc"].lower()]
+    elif args.filter == "appde":
+        rows = [row for row in rows if "APPDE" in row.get("Part_Manuf", "")]
+    if args.limit:
+        rows = rows[: args.limit]
+
+    reports = []
+    enriched_rows = []
+    for row in rows:
+        result = enrich_input_row(row, headers)
+        enriched_rows.append(result.row)
+        reports.append(
+            build_row_report(
+                mpn=row["Mfg_Part_Num"],
+                row=result.row,
+                confidence_band=result.confidence_band,
+                evidence_count=result.evidence_count,
+                issues=result.issues,
+            )
+        )
+
+    output_csv = Path(args.output)
+    write_output_rows(output_csv, headers, enriched_rows)
+    summary = summarize_reports(reports)
+    report_payload = {"summary": summary, "rows": reports_to_dicts(reports)}
+    report_path = Path(args.report)
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(json.dumps(report_payload, indent=2), encoding="utf-8")
+    print(f"Wrote {len(enriched_rows)} rows to {output_csv}")
+    print(f"Validation report written to {report_path}")
+    print(json.dumps(summary, indent=2))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="UniHack product enrichment pipeline")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -75,6 +113,14 @@ def build_parser() -> argparse.ArgumentParser:
     golden = sub.add_parser("golden", help="Score output against golden examples")
     golden.add_argument("--report", default=str(OUTPUT_DIR / "golden_report.json"))
     golden.set_defaults(func=cmd_golden)
+
+    batch = sub.add_parser("batch", help="Batch enrich with validation report")
+    batch.add_argument("--input", default=str(DEFAULT_INPUT))
+    batch.add_argument("--output", default=str(OUTPUT_DIR / "batch_enriched.csv"))
+    batch.add_argument("--report", default=str(OUTPUT_DIR / "batch_report.json"))
+    batch.add_argument("--filter", choices=["all", "dishwasher", "appde"], default="dishwasher")
+    batch.add_argument("--limit", type=int, default=0)
+    batch.set_defaults(func=cmd_batch)
 
     return parser
 
