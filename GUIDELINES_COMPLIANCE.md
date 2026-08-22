@@ -7,7 +7,7 @@ Maps `guidelines/challenge.txt` requirements to implementation status (updated a
 | 6-column input → 252-column output | Done | `ingest/csv_io.py`, headers unchanged |
 | Manufacturer-first sourcing | Partial+ | Cache-first live fetch for **all** categories (uniform policy); PDF mining for appliance templates; desc parsing labeled `input:Part_Desc` honestly |
 | Block Amazon/eBay/etc. | Done | `sources/finder.py`, `validate/rules.py` |
-| Leaf-level taxonomy | Partial | Keyword routing → 14 templates + generic fallback; 22 indexed leaves |
+| Leaf-level taxonomy | Partial | Keyword routing → 14 templates (13 leaves + generic fallback); 22 indexed leaves |
 | Category attributes | Done | Template `attribute_labels` slots filled only when evidence exists |
 | LOV compliance | Partial | `validate/lov.json` + mounting/voltage checks |
 | Five description types | Done | `compose/descriptions.py`, `compose/generic_descriptions.py` |
@@ -17,14 +17,14 @@ Maps `guidelines/challenge.txt` requirements to implementation status (updated a
 | Source URL per value | Partial+ | `field_sources` provenance JSON; self-cited (`input:`) values can never reach "high" confidence band |
 | Validation after enrichment | Done+ | `validate/rules.py`: LOV, char limits, ecommerce block, attribute sanity, empty-description errors |
 | Full pipeline (not mock) | Done | All 8 stages in `pipeline.py` |
-| Dynamic (not hardcoded sample) | Done+ | No per-SKU URL hardcoding; uniform cache-first fetch policy; golden SKUs served fully from documented seed caches |
+| Dynamic (not hardcoded sample) | Done+ | No per-SKU URL hardcoding; uniform cache-first fetch policy; reference SKUs served fully from documented seed caches |
 | Scalable batch | Done | CLI batch with workers, API, streaming, per-run network budget (`UNILOG_FETCH_BUDGET`) |
 | CSV/XLSX export | Done | `--xlsx` flag, API CSV/XLSX/provenance downloads |
 | Fail-safe processing | Done | `enrich_input_row` try/except wrapper; atomic cache writes |
 
-**Accuracy note:** Challenge cites 100% target. Golden benchmark (organizer-provided expected output):
+**Accuracy note:** Challenge cites 100% target. Reference benchmark (organizer-provided expected output):
 - **100.0%** on both reference SKUs (PDSH4816AF 63/63, WDTS7024RZ 71/71) — deterministic, zero network dependency
-- **39.21 avg fields** filled across 1000 rows offline (honest count; fabricated defaults removed)
+- **39.28 avg fields** filled across 1000 rows (honest count; fabricated defaults removed)
 - Confidence bands require externally verified evidence; self-cited rows are capped at medium/review
 
 **Integrity guarantees (Change #8):**
@@ -32,7 +32,7 @@ Maps `guidelines/challenge.txt` requirements to implementation status (updated a
 - Brand-name-based "material invention", invented plug/mounting/series defaults: removed
 - Bare numbers are never auto-labeled volts; explicit units preserved verbatim
 
-Run `PYTHONPATH=. python3 cli.py golden` before every submission.
+Run `PYTHONPATH=. python3 cli.py reference` before every submission.
 Quality measurement is offline-deterministic by default: `PYTHONPATH=. python3 scripts/measure.py --save latest`.
 For online measurement, prewarm first: `scripts/prewarm_cache.py --filter branded --workers 4` then `measure.py --online`.
 Judge-facing compliance metrics: `PYTHONPATH=. python3 scripts/compliance_check.py --csv output/enriched.csv`.
@@ -72,6 +72,6 @@ reproduce faithfully.
 
 **Per challenge.txt, these references are supporting material only:** "The relevant information
 from these references is already represented within the columns of the provided datasets" — our
-internal standards are therefore mined from the golden Delivery Format rows and the guide's worked
+internal standards are therefore mined from the reference Delivery Format rows and the guide's worked
 example, and the pipeline is fully functional without the downloads.
 

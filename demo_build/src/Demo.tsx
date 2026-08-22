@@ -32,15 +32,15 @@ const SceneComponent: React.FC<{id: string}> = ({id}) => {
   return <Close />;
 };
 
-const Score: React.FC = () => {
+const Mix: React.FC = () => {
   const frame = useCurrentFrame();
   const volume = interpolate(
     frame,
-    [0, 30, TOTAL_FRAMES - 70, TOTAL_FRAMES - 1],
-    [0, 0.5, 0.5, 0],
+    [0, 20, TOTAL_FRAMES - 55, TOTAL_FRAMES - 1],
+    [0, 1, 1, 0],
     {extrapolateLeft: "clamp", extrapolateRight: "clamp"},
   );
-  return <Audio src={staticFile("audio/score.wav")} volume={volume} />;
+  return <Audio src={staticFile("audio/mix.wav")} volume={volume} />;
 };
 
 export const Demo: React.FC = () => {
@@ -62,7 +62,7 @@ export const Demo: React.FC = () => {
           </React.Fragment>
         ))}
       </TransitionSeries>
-      <Score />
+      <Mix />
     </AbsoluteFill>
   );
 };

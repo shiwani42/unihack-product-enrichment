@@ -69,7 +69,7 @@ export const PROOF_SEGMENTS: ProofSegment[] = [
     sourceStartS: 0,
     sourceEndS: 0,
     caption: "Live proof",
-    support: "The real app at localhost:8000, recorded in one take.",
+    support: "The real app. One continuous take. No mocked data.",
   },
   {
     id: "proof-enrich",
@@ -77,7 +77,7 @@ export const PROOF_SEGMENTS: ProofSegment[] = [
     sourceStartS: 6.52,
     sourceEndS: 20.181,
     caption: "Live enrichment",
-    support: "One part line in \u2014 a 252-column record out.",
+    support: "One part line in. A 252-column record out.",
   },
   {
     id: "proof-drawer",
@@ -85,23 +85,23 @@ export const PROOF_SEGMENTS: ProofSegment[] = [
     sourceStartS: 20.181,
     sourceEndS: 36.923,
     caption: "Per-field provenance",
-    support: "Every value cites its source; blanks stay honest.",
+    support: "Every value cites its source. Blanks stay honest.",
   },
   {
     id: "proof-batch",
     durationInFrames: 1113,
     sourceStartS: 36.923,
     sourceEndS: 74.037,
-    caption: "Live enrichment stream",
-    support: "1,000 catalog rows classified end-to-end.",
+    caption: "Live catalog stream",
+    support: "1,000 rows classified. Only the fields evidence supports.",
   },
   {
     id: "proof-quality",
     durationInFrames: 297,
     sourceStartS: 74.037,
     sourceEndS: 83.947,
-    caption: "Golden accuracy",
-    support: "100% field match against the delivery standard, one click from home.",
+    caption: "Reference accuracy",
+    support: "100% field match vs the organizer expected output.",
   },
   {
     id: "proof-export",
@@ -109,7 +109,7 @@ export const PROOF_SEGMENTS: ProofSegment[] = [
     sourceStartS: 83.947,
     sourceEndS: 91.8,
     caption: "Delivery-format export",
-    support: "CSV, XLSX and provenance \u2014 one click from the catalog.",
+    support: "CSV, Excel, and a provenance file \u2014 one click.",
   },
 ];
 
@@ -142,6 +142,7 @@ export const REQUIRED_SCREENSHOTS = [
 export const REQUIRED_ASSETS = [
   SOURCE_RECORDING.file,
   "audio/score.wav",
+  "audio/mix.wav",
   ...REQUIRED_SCREENSHOTS,
 ];
 

@@ -24,27 +24,27 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from app.config import DEFAULT_INPUT, DEFAULT_OUTPUT_HEADERS, GOLDEN_MPNS, OUTPUT_DIR
+from app.config import DEFAULT_INPUT, DEFAULT_OUTPUT_HEADERS, REFERENCE_MPNS, OUTPUT_DIR
 from classify.category_router import route_category
 from identity.brand_resolver import resolve_identity
 from ingest.csv_io import load_output_headers, read_input_rows
 from pipeline import enrich_input_row
-from validate.golden_test import compare_rows
+from validate.reference_test import compare_rows
 from validate.report import build_row_report, summarize_reports
 
 METRICS_DIR = OUTPUT_DIR / "metrics"
 
 
-def golden_metrics() -> dict:
+def reference_metrics() -> dict:
     headers = load_output_headers()
-    golden_rows = read_input_rows(DEFAULT_OUTPUT_HEADERS)
-    golden_by_mpn = {row["Mfg_Part_Num"]: row for row in golden_rows if row.get("Mfg_Part_Num")}
+    reference_rows = read_input_rows(DEFAULT_OUTPUT_HEADERS)
+    reference_by_mpn = {row["Mfg_Part_Num"]: row for row in reference_rows if row.get("Mfg_Part_Num")}
     input_rows = read_input_rows(DEFAULT_INPUT)
     input_by_mpn = {row["Mfg_Part_Num"]: row for row in input_rows}
 
     benchmarks = []
-    for mpn in GOLDEN_MPNS:
-        expected = golden_by_mpn.get(mpn)
+    for mpn in REFERENCE_MPNS:
+        expected = reference_by_mpn.get(mpn)
         source = input_by_mpn.get(mpn)
         if not expected or not source:
             continue
@@ -148,7 +148,7 @@ def collect_metrics() -> dict:
     all_reports = _enrich_reports(all_rows, headers)
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "golden": golden_metrics(),
+        "reference": reference_metrics(),
         "coverage": coverage_metrics(),
         "batch_all": batch_metrics(reports=all_reports),
         "batch_200": batch_metrics(reports=all_reports, limit=200),
@@ -163,10 +163,10 @@ def compare_metrics(before: dict, after: dict) -> dict:
         return {"before": before_val, "after": after_val, "delta": change, "improved": improved}
 
     return {
-        "golden_avg_pct": delta(
-            "golden",
-            before["golden"]["average_pct"],
-            after["golden"]["average_pct"],
+        "reference_avg_pct": delta(
+            "reference",
+            before["reference"]["average_pct"],
+            after["reference"]["average_pct"],
         ),
         "coverage_pct": delta(
             "coverage",
@@ -226,11 +226,11 @@ def main() -> None:
             item["improved"] or item["delta"] == 0
             for item in result.values()
         )
-        golden_ok = result["golden_avg_pct"]["delta"] >= 0
-        if improved and golden_ok:
+        reference_ok = result["reference_avg_pct"]["delta"] >= 0
+        if improved and reference_ok:
             print("\nVERDICT: KEEP (no regressions, at least flat or better)")
-        elif not golden_ok:
-            print("\nVERDICT: REVERT (golden score regressed)")
+        elif not reference_ok:
+            print("\nVERDICT: REVERT (reference score regressed)")
         else:
             print("\nVERDICT: MIXED (review deltas)")
         return

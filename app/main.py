@@ -7,12 +7,12 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
 
-from app.config import DEFAULT_INPUT, DEFAULT_OUTPUT_HEADERS, GOLDEN_MPNS, OUTPUT_DIR, TAXONOMY_PATH
+from app.config import DEFAULT_INPUT, DEFAULT_OUTPUT_HEADERS, REFERENCE_MPNS, OUTPUT_DIR, TAXONOMY_PATH
 from app.ui_sections import row_preview
 from ingest.csv_io import load_output_headers, read_input_rows, write_output_rows
 from ingest.export_io import write_output_xlsx, write_provenance_json
 from pipeline import enrich_input_row
-from validate.golden_test import compare_rows
+from validate.reference_test import compare_rows
 from validate.report import build_row_report, reports_to_dicts, summarize_reports
 
 app = FastAPI(title="ProductIntel | AI Catalog Enrichment", version="0.2.0")
@@ -48,7 +48,7 @@ _seed_output_dir()
 PRESETS = [
     {
         "id": "frigidaire_dishwasher",
-        "name": "Frigidaire Dishwasher (Golden)",
+        "name": "Frigidaire Dishwasher (Reference)",
         "badge": "Appliances",
         "Mfg_Part_Num": "PDSH4816AF",
         "Part_Desc": "Built-In Dishwasher 24 in 49 dBA 120 V 15 A Leg",
@@ -59,7 +59,7 @@ PRESETS = [
     },
     {
         "id": "whirlpool_dishwasher",
-        "name": "Whirlpool Eco Dishwasher (Golden)",
+        "name": "Whirlpool Eco Dishwasher (Reference)",
         "badge": "Appliances",
         "Mfg_Part_Num": "WDTS7024RZ",
         "Part_Desc": "Eco Series Built-in Dishwasher 41 dBA 120V 10A SST",
@@ -217,17 +217,17 @@ def get_presets() -> list[dict]:
     return PRESETS
 
 
-@app.get("/api/golden")
-def golden_scores() -> dict:
+@app.get("/api/reference")
+def reference_scores() -> dict:
     headers = load_output_headers()
-    golden_rows = read_input_rows(DEFAULT_OUTPUT_HEADERS)
-    golden_by_mpn = {row["Mfg_Part_Num"]: row for row in golden_rows if row.get("Mfg_Part_Num")}
+    reference_rows = read_input_rows(DEFAULT_OUTPUT_HEADERS)
+    reference_by_mpn = {row["Mfg_Part_Num"]: row for row in reference_rows if row.get("Mfg_Part_Num")}
     input_rows = read_input_rows(DEFAULT_INPUT)
     input_by_mpn = {row["Mfg_Part_Num"]: row for row in input_rows}
 
     results = []
-    for mpn in GOLDEN_MPNS:
-        expected = golden_by_mpn.get(mpn)
+    for mpn in REFERENCE_MPNS:
+        expected = reference_by_mpn.get(mpn)
         source = input_by_mpn.get(mpn)
         if not expected or not source:
             continue

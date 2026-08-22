@@ -3,7 +3,7 @@ from app.config import DEFAULT_INPUT
 from pipeline import enrich_input_row
 
 
-def test_non_golden_dishwasher_has_attributes_and_mfr_url():
+def test_non_reference_dishwasher_has_attributes_and_mfr_url():
     headers = load_output_headers()
     row = next(r for r in read_input_rows(DEFAULT_INPUT) if r["Mfg_Part_Num"] == "KDFM404KPS")
     result = enrich_input_row(row, headers)

@@ -252,17 +252,17 @@ def run_walkthrough(record_video: bool) -> tuple[Path, dict]:
         settle(5.0)
         rec.close_segment()
 
-        # ---- Beat 5: golden proof band --------------------------------------
+        # ---- Beat 5: reference proof band -----------------------------------
         rec.open_segment("seg-proof")
         smooth_scroll(page, None, -900)
         settle(2.4)
         page.wait_for_selector("#proof-band", state="visible", timeout=10000)
         rec.log_action("proof-band-shown")
         settle(1.8)
-        click_element(page, rec, "#proof-band button", "click-golden-sku")
+        click_element(page, rec, "#proof-band button", "click-reference-sku")
         page.wait_for_selector("#sb-result-container .skeleton", state="detached", timeout=30000)
         wait_nonempty(page, "#sb-result-container")
-        rec.log_action("golden-sku-enriched")
+        rec.log_action("reference-sku-enriched")
         settle(3.2)
         rec.close_segment()
 

@@ -12,7 +12,7 @@ from scripts import import_references
 @pytest.fixture(autouse=True)
 def _redirect_output_dir(tmp_path, monkeypatch):
     monkeypatch.setattr(import_references, "OUT_DIR", tmp_path / "reference_out")
-    monkeypatch.setattr(import_references, "GOLDEN200_DIR", tmp_path / "golden200_out")
+    monkeypatch.setattr(import_references, "REFERENCE200_DIR", tmp_path / "reference200_out")
     yield
 
 
@@ -76,7 +76,7 @@ def test_import_fractions_side_by_side_blocks(tmp_path):
     assert mapping["1.75"] == "1-3/4"
 
 
-def test_import_golden200_sheets(tmp_path):
+def test_import_reference200_sheets(tmp_path):
     path = tmp_path / "Unilog-Sample_200_Items-Input-vs-Output.xlsx"
     workbook = openpyxl.Workbook()
     input_sheet = workbook.active
@@ -88,7 +88,7 @@ def test_import_golden200_sheets(tmp_path):
     delivery_sheet.append(["MPN-1", "ACME®"])
     workbook.save(path)
 
-    out_dir = import_references.import_golden200(tmp_path)
+    out_dir = import_references.import_reference200(tmp_path)
     assert (out_dir / "input.csv").exists()
     assert (out_dir / "expected.csv").read_text().splitlines()[1].startswith("MPN-1")
 

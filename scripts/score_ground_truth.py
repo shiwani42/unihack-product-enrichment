@@ -2,7 +2,7 @@
 """Field-level accuracy scoring against the 200-item organizer ground truth.
 
 Activates only after scripts/import_references.py has produced
-data/golden200/input.csv and data/golden200/expected.csv (from
+data/reference200/input.csv and data/reference200/expected.csv (from
 Unilog-Sample_200_Items-Input-vs-Output.xlsx).
 
 For each of the 200 rows we enrich the input row and compare every non-empty
@@ -24,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-DATA_DIR = ROOT / "data" / "golden200"
+DATA_DIR = ROOT / "data" / "reference200"
 
 DESC_FIELDS = ["INVOICE_DESC", "MOBILE_DESC", "SHORT_DESC", "LONG_DESC1", "RETAIL_DESC"]
 IDENTITY_FIELDS = ["MANUFACTURER_NAME", "BRAND_NAME", "MANUFACTURER_PART_NUMBER", "MFR URL"]
@@ -57,7 +57,7 @@ def main() -> None:
 
     from ingest.csv_io import load_output_headers
     from pipeline import enrich_input_row
-    from validate.golden_test import compare_rows
+    from validate.reference_test import compare_rows
 
     headers = load_output_headers()
     expected_rows = _load_csv(expected_path)

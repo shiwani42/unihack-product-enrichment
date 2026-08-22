@@ -12,8 +12,8 @@ columns in — a validated, source-traced record in Unilog's 252-column delivery
 
 | Metric | Result |
 |---|---|
-| Golden regression vs organizer expected output | **100%** — 134/134 fields, both reference SKUs (PDSH4816AF, WDTS7024RZ) |
-| Input rows classified to a leaf category | **1000 / 1000** (13 leaf templates + generic industrial fallback) |
+| Reference regression vs organizer expected output | **100%** — 134/134 fields, both reference SKUs (PDSH4816AF, WDTS7024RZ) |
+| Input rows classified to a leaf category | **1000 / 1000** (14 templates: 13 leaves + generic industrial fallback) |
 | Avg fields populated per row (full online batch) | **39.28** of the fields evidence supports; blank beats invented |
 | Confidence bands | 29 high · 25 medium · 946 review — "high" requires external manufacturer evidence |
 | Hermetic test suite | **77 tests, ~2s**, offline by default |
@@ -26,14 +26,14 @@ Input CSV (6 cols: MPN, desc, brand placeholders)
   │
   ├─ ingest/        input analysis, placeholder filtering, dedup merge
   ├─ identity/      brand resolution: aliases → DIB/E1 → desc regex → MPN prefix rules
-  ├─ classify/      leaf-level routing (rules + templates, 13 categories)
+  ├─ classify/      leaf-level routing (rules + 14 templates, generic last)
   ├─ sources/       manufacturer-first URL discovery, marketplace blocklist,
   │                 cache-first fetch: retry/backoff, budget, optional Playwright on 403
   ├─ extract/       HTML specs · JSON-LD/microdata (extruct) · PDF datasheets
   │                 · evidence cache · honest desc parsing · optional LLM last-mile
   ├─ normalize/     units, LOV, canonical brand casing, attribute slot mapping
   ├─ compose/       5 governed descriptions + delivery-convention asset names
-  ├─ validate/      LOV/char-limit/sanity rules, confidence bands, golden harness
+  ├─ validate/      LOV/char-limit/sanity rules, confidence bands, reference harness
   │
   └─ output/        252-col CSV/XLSX + per-value provenance JSON (source URL per cell)
 ```
@@ -56,7 +56,7 @@ exposes it in a per-SKU provenance drawer. Values without external evidence cite
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-PYTHONPATH=. python3 cli.py golden          # 100% deterministic, zero network
+PYTHONPATH=. python3 cli.py reference       # 100% deterministic, zero network (alias: golden)
 PYTHONPATH=. pytest -q                      # 77 hermetic tests, ~2s
 PYTHONPATH=. python3 cli.py batch --filter all --xlsx --workers 4 \
     --provenance output/field_provenance.json

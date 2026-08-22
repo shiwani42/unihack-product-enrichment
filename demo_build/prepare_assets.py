@@ -100,6 +100,13 @@ def main() -> int:
             check=True,
         )
 
+    mix = public / "audio" / "mix.wav"
+    if not mix.exists():
+        subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "generate_voiceover.py")],
+            check=True,
+        )
+
     print(f"prepared {public}")
     return 0
 

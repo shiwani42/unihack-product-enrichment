@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-GOLDEN = ROOT / "guidelines" / "Unihack_ Expected Output - Delivery Format.csv"
+REFERENCE = ROOT / "guidelines" / "Unihack_ Expected Output - Delivery Format.csv"
 OUTPUT = ROOT / "data" / "crosswalk" / "mpn_to_unilog.json"
 
 
@@ -11,7 +11,7 @@ def main() -> None:
     import csv
 
     crosswalk: dict[str, dict[str, str]] = {}
-    with GOLDEN.open(encoding="utf-8") as handle:
+    with REFERENCE.open(encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
             mpn = row.get("Mfg_Part_Num", "").strip()
             if not mpn:

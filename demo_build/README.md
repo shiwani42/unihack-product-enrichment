@@ -1,7 +1,8 @@
 # unilog — 3-minute hackathon demo film
 
 Canonical output: `demo.mp4` — 1920x1080, 30 fps, H.264 + yuv420p (BT.709, tv
-range), AAC 48 kHz stereo, **178.048 s** (5340 frames), 37.2 MB.
+range), AAC 48 kHz stereo, **178.048 s** (5340 frames), 40 MB. A copy also
+lives at `submission/unilog_demo_3min.mp4`.
 
 Story: when a distributor pastes one cryptic part line, unilog resolves the
 manufacturer, classifies it, fills commerce attributes with per-value source
@@ -13,7 +14,7 @@ URLs, and exports a delivery-ready 252-column record — proven, not promised.
 |---|----|--------|---------|
 | S1 | cold-open | 520 | dark card: "Distributors hand you six columns." + cryptic row `DCB518ASTS06G — Diablo 1/2x18 Sanding Belt` |
 | S2 | mechanism | 690 | 5 pipeline cards; "Rules first. LLM only for the last mile. Blank beats invented." |
-| S3 | live-proof | 2700 | recorded walkthrough in a browser frame with slow zooms + captions: intro → live enrich → evidence drawer → batch stream → golden proof band → catalog export |
+| S3 | live-proof | 2700 | recorded walkthrough in a browser frame with slow zooms + captions: intro → live enrich → evidence drawer → batch stream → reference proof band → catalog export |
 | S4 | trust | 842 | stat cards: 134/134 fields vs organizer expected output (2 reference SKUs), 1000/1000 rows classified, 77 hermetic tests, high-confidence evidence rule |
 | S5 | close | 660 | unilog wordmark, tagline, GitHub URL, thExplorers; final frame holds ~3 s |
 
@@ -23,14 +24,14 @@ Total = 5412 scene frames − 4×18 transition overlap = 5340 frames = 178.00 s.
 
 - `recordings/walkthrough.mp4` — one continuous 1920x1080 30 fps CFR Playwright
   recording (91.800 s, h264/yuv420p, 2754 frames) of the real app at
-  http://localhost:8000: hero load with the golden proof band → type MPN +
+  http://localhost:8000: hero load with the reference proof band → type MPN +
   description → Enrich → Catalog row → drawer Evidence tab (closed via Escape) →
-  batch run to completion (1000 rows) → golden SKU re-enriched from the proof
+  batch run to completion (1000 rows) → reference SKU re-enriched from the proof
   band → CSV download from the catalog export group. Validated by
   `scripts/validate_recording.py` and re-validated inside
   `tests/storyboard.test.ts` via ffprobe.
 - `screenshots/*.png` — six 1920x1080 stills of the same live app (hero,
-  enrich result, catalog table, drawer evidence, golden proof band,
+  enrich result, catalog table, drawer evidence, reference proof band,
   catalog export group). All stills were visually inspected at full
   resolution.
 
@@ -61,7 +62,8 @@ into `public/`, downloads Inter + JetBrains Mono woff2 into `public/fonts/`
 (`scripts/fetch_fonts.py`, offline after first run), renders the
 deterministic ambient score (`scripts/generate_score.py`, 178.5 s @ 96 BPM),
 and builds the timed documentary voiceover (`scripts/generate_voiceover.py`,
-OpenAI `gpt-4o-mini-tts`, mixed under the score as `public/audio/mix.wav`).
+`edge-tts` `en-US-AndrewNeural` with OpenAI TTS as an optional fallback,
+mixed under the score as `public/audio/mix.wav`).
 
 ## Preview
 
@@ -106,10 +108,6 @@ Last verified output (2026-08-24):
 - audio: aac, 48000 Hz, 2 channels — documentary VO (en-US-AndrewNeural) mixed under the score
   (mean −20.2 dB, peak −3.4 dB — no clipping)
 - duration 178.048 s, size 41,674,355 bytes, overall bit_rate 1.87 Mb/s
-
-> **Pending re-render:** the walkthrough recording and storyboard were updated to the
-> redesigned two-page UI (91.8 s source, timings above); the rendered `demo.mp4` still
-> shows the previous UI until `npm run render` is re-run.
 
 Two-pass process: 23 representative stills (`stills/`) tiled into
 `contact_sheet_stills.png` and inspected before the full render; the encoded

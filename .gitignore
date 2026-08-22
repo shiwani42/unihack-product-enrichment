@@ -24,6 +24,7 @@ guidelines/.~lock.*
 .vercel
 demo_build/recordings/
 demo_build/public/
+demo_build/audio_build/
 demo_build/node_modules/
 demo_build/demo.mp4
 demo_build/.wsl*

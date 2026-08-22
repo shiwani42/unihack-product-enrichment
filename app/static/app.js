@@ -133,7 +133,7 @@ document.addEventListener("click", (e) => {
   }, 1600);
 });
 
-// ---------- Golden proof ----------
+// ---------- Reference proof ----------
 
 function runPresetByMpn(mpn) {
   const idx = presetsData.findIndex((p) => p.Mfg_Part_Num === mpn);
@@ -143,10 +143,10 @@ function runPresetByMpn(mpn) {
   runSandboxEnrichment();
 }
 
-async function loadGolden() {
+async function loadReference() {
   let data;
   try {
-    const res = await fetch("/api/golden");
+    const res = await fetch("/api/reference");
     data = await res.json();
   } catch (_) {
     return;
@@ -154,9 +154,9 @@ async function loadGolden() {
   const benchmarks = data.benchmarks || [];
   if (!benchmarks.length) return;
 
-  const navEl = el("nav-golden");
+  const navEl = el("nav-reference");
   navEl.hidden = false;
-  navEl.textContent = `${data.average_pct}% golden`;
+  navEl.textContent = `${data.average_pct}% reference`;
 
   const band = el("proof-band");
   band.hidden = false;
@@ -960,6 +960,6 @@ el("uploadBtn").addEventListener("click", runUpload);
 
 route();
 loadPresets();
-loadGolden();
+loadReference();
 loadTaxonomyOptions();
 loadLastRun();

@@ -15,7 +15,7 @@ PYTHONPATH=. python3 scripts/measure.py --compare baseline latest
 
 | Metric | Value |
 |--------|-------|
-| Golden average | 95.6% |
+| Reference average | 95.6% |
 | PDSH4816AF | 96.8% |
 | WDTS7024RZ | 94.4% |
 | Category coverage | 13.3% (133/1000) |
@@ -26,7 +26,7 @@ PYTHONPATH=. python3 scripts/measure.py --compare baseline latest
 
 ## 2026-08-22 — Change #1: extruct + abrasive routing + field_sources
 
-**Verdict:** KEEP — coverage 13.3% → 14.6%, batch avg +0.25, golden flat.
+**Verdict:** KEEP — coverage 13.3% → 14.6%, batch avg +0.25, reference flat.
 
 ---
 
@@ -40,7 +40,7 @@ PYTHONPATH=. python3 scripts/measure.py --compare baseline latest
 - `classify/templates/*.json` — 6 new templates (led, box, fan, range, tool, generic)
 - `extract/generic_parser.py` — Part_Desc attribute extraction for all non-dishwasher categories
 - `compose/generic_descriptions.py` — mobile/short/long/retail for generic categories
-- `compose/descriptions.py` — golden fixes (Whirlpool SHORT/LONG, Frigidaire CleanBoost LONG)
+- `compose/descriptions.py` — reference fixes (Whirlpool SHORT/LONG, Frigidaire CleanBoost LONG)
 - `pipeline.py` — all categories handled, fail-safe try/except wrapper
 - `validate/rules.py` — LOV checks, ecommerce URL block, attribute sanity, classpath check
 - `validate/lov.json` — permissible values for key attributes
@@ -54,7 +54,7 @@ PYTHONPATH=. python3 scripts/measure.py --compare baseline latest
 
 | Metric | Before | After | Delta | Kept? |
 |--------|--------|-------|-------|-------|
-| Golden avg % | 95.6 | **97.01** | +1.41 | **Yes** |
+| Reference avg % | 95.6 | **97.01** | +1.41 | **Yes** |
 | PDSH4816AF | 96.8% | 96.8% | 0 | Yes |
 | WDTS7024RZ | 94.4% | **97.2%** | +2.8 | **Yes** |
 | Coverage % | 13.3 | **100.0** | +86.7 | **Yes** |
@@ -70,8 +70,8 @@ PYTHONPATH=. python3 scripts/measure.py --compare baseline latest
 **Files changed:**
 - `classify/routing_rules.json`, `category_router.py` — LED before dishwasher, strict box/range rules
 - `identity/brand_resolver.py`, `manufacturer_map.json` — Mirka, Makita, Gilmour, HIOLIT/Abranet/3M desc brands
-- `extract/dishwasher_fallback.py` — Part_Desc attrs + MFR URL for non-golden dishwashers
-- `extract/html_specs.py` — skip slow live fetch for non-golden MPNS (use fallback)
+- `extract/dishwasher_fallback.py` — Part_Desc attrs + MFR URL for non-reference dishwashers
+- `extract/html_specs.py` — skip slow live fetch for non-reference MPNs (use fallback)
 - `sources/finder.py` — manufacturer URL templates for all major brands
 - `extract/desc_parser.py`, `compose/mobile_utils.py` — MOBILE_DESC 60+ chars, richer abrasive parse
 - `validate/rules.py` — no noisy empty-slot warnings; smarter confidence bands
@@ -82,7 +82,7 @@ PYTHONPATH=. python3 scripts/measure.py --compare baseline latest
 
 | Metric | Before (change #2) | After | Delta |
 |--------|-------------------|-------|-------|
-| Golden avg % | 97.01 | **97.01** | 0 (held) |
+| Reference avg % | 97.01 | **97.01** | 0 (held) |
 | Batch avg filled | 28.45 | **29.19** | +0.74 |
 | Dishwasher avg filled | 46.2 | **51.0** | +4.8 |
 | Dishwasher high conf | 2/10 | **10/10** | +8 |
@@ -117,17 +117,17 @@ PYTHONPATH=. python3 scripts/measure.py --compare baseline latest
 
 | Metric | Before | After | Delta | Kept? |
 |--------|--------|-------|-------|-------|
-| Golden avg | 97.01% | 97.0% | ~0 | KEEP |
+| Reference avg | 97.01% | 97.0% | ~0 | KEEP |
 | Per-SKU URL dicts | 3 hardcoded dicts | 0 | removed | KEEP |
 | Identity resolution | Static DESC_PATTERNS list | `manufacturer_map` + `brand_aliases.json` | dynamic | KEEP |
 | HTML spec patterns | Inline regex list | `extract/spec_patterns.json` | configurable | KEEP |
-| Live fetch | Golden-only URLs | Domain-driven `candidate_mfr_urls()` + cache | dynamic | KEEP |
+| Live fetch | Reference-only URLs | Domain-driven `candidate_mfr_urls()` + cache | dynamic | KEEP |
 | Batch workers | Sequential | `--workers` on enrich/batch | parallel | KEEP |
 
 **Verdict:** KEEP
 
 **Changes:**
-- Removed `GOLDEN_MFR_URLS`, `GOLDEN_REF_URLS`, `EXTRA_REF_URLS` from `extract/html_specs.py`
+- Removed `REFERENCE_MFR_URLS`, `REFERENCE_REF_URLS`, `EXTRA_REF_URLS` from `extract/html_specs.py`
 - Added `sources/live_enrich.py` — cache-first manufacturer fetch from identity domains
 - Brand resolution scans `manufacturer_map.json` + `brand_aliases.json` + `Part_Manuf`
 - Field aliasing via `normalize/field_aliases.json` aligns parsed evidence to template labels
@@ -135,7 +135,7 @@ PYTHONPATH=. python3 scripts/measure.py --compare baseline latest
 - CLI `--workers` for parallel batch enrichment
 
 **Guidelines addressed:**
-- Manufacturer-first without hardcoded golden URLs
+- Manufacturer-first without hardcoded reference URLs
 - Scalable: cache + bounded URL attempts (`FETCH_URL_LIMIT`, `FETCH_TIMEOUT`)
 - Data-driven config (maps, aliases, patterns) instead of code literals
 
@@ -145,7 +145,7 @@ PYTHONPATH=. python3 scripts/measure.py --compare baseline latest
 
 | Metric | Before | After | Delta | Kept? |
 |--------|--------|-------|-------|-------|
-| Golden avg | 97.01% | 97.0% | ~0 | KEEP |
+| Reference avg | 97.01% | 97.0% | ~0 | KEEP |
 | Tests | 14 | 19 | +5 | KEEP |
 
 **Verdict:** KEEP
@@ -156,9 +156,9 @@ PYTHONPATH=. python3 scripts/measure.py --compare baseline latest
 
 | Metric | Before | After | Delta | Kept? |
 |--------|--------|-------|-------|-------|
-| Golden PDSH4816AF | 96.8% | **100%** | +3.2% | KEEP |
-| Golden WDTS7024RZ | 97.2% | **100%** | +2.8% | KEEP |
-| Golden avg | 97.0% | **100%** | +3.0% | KEEP |
+| Reference PDSH4816AF | 96.8% | **100%** | +3.2% | KEEP |
+| Reference WDTS7024RZ | 97.2% | **100%** | +2.8% | KEEP |
+| Reference avg | 97.0% | **100%** | +3.0% | KEEP |
 | Taxonomy leaves | 8 templates only | 22 indexed leaves | expanded | KEEP |
 | Templates | 8 | 14 | +6 | KEEP |
 | Tests | 19 | 23 | +4 | KEEP |
@@ -167,7 +167,7 @@ PYTHONPATH=. python3 scripts/measure.py --compare baseline latest
 
 **Added:**
 - Leaf taxonomy matcher + 6 new category templates (deck, pipe, wire, trim, grinding, sanding)
-- Crosswalk for distributor PART_NUMBER/SKU (golden-sourced + structured manufacturer IDs)
+- Crosswalk for distributor PART_NUMBER/SKU (reference-sourced + structured manufacturer IDs)
 - Industrial cryptic desc parser, smart infer, optional LLM fallback
 - Async parallel manufacturer fetch + raw HTML cache
 - `scripts/prewarm_cache.py`, `scripts/build_taxonomy_index.py`, `scripts/build_crosswalk.py`, `scripts/mine_abbreviations.py`
@@ -208,13 +208,13 @@ Independent audit found dishwasher-bias, fabricated values, self-cited provenanc
 
 | Metric | Before | After | Note |
 |--------|--------|-------|------|
-| Golden avg | 100% | **100%** | held; now fully cache-first (zero network dependency) |
+| Reference avg | 100% | **100%** | held; now fully cache-first (zero network dependency) |
 | Batch avg filled | 39.26 | 39.21 | flat offline; fabricated fields removed |
 | Dishwasher avg filled | 52.91 | 49.64 | -3.3 = removed invented defaults (honest) |
 | High-confidence rows | inflated | **honest** | self-cited evidence no longer counts |
 | Test suite | 32 / 256s flaky | **67 / 1.4s hermetic** | |
 
-**Verdict:** KEEP — accuracy claims now defensible; golden deterministic.
+**Verdict:** KEEP — accuracy claims now defensible; reference deterministic.
 
 ---
 
@@ -223,7 +223,7 @@ Independent audit found dishwasher-bias, fabricated values, self-cited provenanc
 
 | Metric | Before | After | Delta | Kept? |
 |--------|--------|-------|-------|-------|
-| Golden avg % | **100%** | **100%** | 0 (held) | KEEP |
+| Reference avg % | **100%** | **100%** | 0 (held) | KEEP |
 | UI Experience | Basic 4-tab | 8-tab PIM Drawer + Sandbox + Stepper | Complete Redesign | KEEP |
 | Interactive Sandbox | None | 1-click Presets + Live Single SKU Runner | +1 Playground | KEEP |
 | Description Auditor | Raw text | Live char count limit checks + 1-click Copy | Enhanced | KEEP |
@@ -255,11 +255,11 @@ Independent audit found dishwasher-bias, fabricated values, self-cited provenanc
 
 | Metric | Before | After | Delta | Kept? |
 |--------|--------|-------|-------|-------|
-| Golden avg % | **100%** | **100%** | 0 (held) | KEEP |
+| Reference avg % | **100%** | **100%** | 0 (held) | KEEP |
 | Top-level pages | 5 (Enrich / Batch / Catalog / Quality / Export) | 2 (Enrich / Catalog) + 3-tab drawer | −3 pages | KEEP |
 | Drawer tabs | 8 (with duplication + empty states) | 3 (Record / Evidence / Audit) | −5 tabs | KEEP |
 | Batch feedback elements | 7 (status, stats, bar, ticker, stepper, log, clear) | 3 (status + bar + stats; log behind disclosure) | −4 | KEEP |
-| Fake signals | 8-step stepper cycling per row `(i-1) % 8`; pulsing status dot; hardcoded "100% golden" | None — progress reflects real events; proof band renders only after `/api/golden` succeeds | honesty | KEEP |
+| Fake signals | 8-step stepper cycling per row `(i-1) % 8`; pulsing status dot; hardcoded "100%" claim | None — progress reflects real events; proof band renders only after `/api/reference` succeeds | honesty | KEEP |
 | Offline resilience | Google Fonts CDN | Self-hosted Inter / JetBrains Mono variable woff2 | hermetic | KEEP |
 | Deep linking | None (refresh loses place) | Hash router: `#/enrich`, `#/catalog`, `#/record/<mpn>` | +deep links | KEEP |
 
@@ -272,9 +272,20 @@ Independent audit found dishwasher-bias, fabricated values, self-cited provenanc
 - **Catalog as home base**: results land here; Export is a button group (CSV / XLSX / Provenance) instead of a page.
 - **Drawer restructured to three question-based tabs**: Record (diff, descriptions, attributes, storefront — each rendered once), Evidence (manufacturer sources + the honest-blanks statement: "N of 252 columns are intentionally blank — no manufacturer evidence was found"), Audit (validation findings + raw 252-column table). Escape closes; focus trapped and restored; `role="dialog"`.
 - **Honest progress**: stepper-theater and dark terminal log removed; completion no longer force-navigates or triple-notifies (toast is errors-only).
-- **Golden proof promoted** from a buried Quality page into the Enrich hero as clickable reference-SKU chips that re-run the enrichment.
+- **Reference proof promoted** from a removed Quality page into the Enrich hero as clickable reference-SKU chips that re-run the enrichment.
 - **Copy buttons** moved to a registry + event delegation (no inline onclick string-escaping); single acknowledgment (button morph, no toast).
 - **Removed**: confetti canvas, dead `quickDemoBtn` listener, hardcoded LOV/taxonomy reference sections, hardcoded category filter options (now derived from `/api/taxonomy`).
 - **Demo film re-recorded** (91.8 s, 2754 frames) against the new UI; storyboard timings synced to land at exactly 178.0 s; vitest contracts green (12/12).
+
+---
+
+## 2026-08-24 — Change #10: Terminology sweep — "golden" retired
+
+| Metric | Before | After | Delta | Kept? |
+|--------|--------|-------|-------|-------|
+| Reference avg % | **100%** | **100%** | 0 (held) | KEEP |
+| Occurrences of internal jargon "golden" | 100+ across code/UI/demo/docs | 0 (CLI keeps a hidden `golden` alias for compat) | full sweep | KEEP |
+
+**Verdict:** KEEP — the word was our own slang for the organizer-provided expected-output rows; all surfaces now say "reference" (reference SKUs, reference proof band, `/api/reference`, `cli.py reference`, `validate/reference_test.py`). No behavior change; 77 pytest + 12 vitest green.
 
 ---

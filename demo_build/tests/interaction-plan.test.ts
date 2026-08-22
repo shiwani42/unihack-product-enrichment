@@ -66,8 +66,8 @@ describe("interaction plan contract", () => {
       "close-drawer-esc",
       "click-run-batch",
       "batch-complete",
-      "click-golden-sku",
-      "golden-sku-enriched",
+      "click-reference-sku",
+      "reference-sku-enriched",
       "click-csv-download",
       "download-saved",
     ]) {

@@ -10,7 +10,7 @@ Expected inputs (guidelines/references/):
   Unilog_Master_UOM_Standards_Abbreviations_and_Terms.xlsx -> uom_standards.json
   UniCat_Manufacturer_and_Brand_List.xlsx        -> manufacturers.json (27k rows)
   Decimal_Fraction.xlsx                          -> fraction_inch.json (63 conversions)
-  Unilog-Sample_200_Items-Input-vs-Output.xlsx   -> golden200_input.csv + golden200_expected.csv
+  Unilog-Sample_200_Items-Input-vs-Output.xlsx   -> reference200_input.csv + reference200_expected.csv
 
 Usage:
   PYTHONPATH=. python3 scripts/import_references.py [--src guidelines/references]
@@ -30,7 +30,7 @@ sys.path.insert(0, str(ROOT))
 
 REF_DIR = ROOT / "guidelines" / "references"
 OUT_DIR = ROOT / "data" / "reference"
-GOLDEN200_DIR = ROOT / "data" / "golden200"
+REFERENCE200_DIR = ROOT / "data" / "reference200"
 
 PLACEHOLDER_TOKENS = {"-- unbranded --", "-- no unilog brand --", "-- no dib brand --"}
 
@@ -240,7 +240,7 @@ def _sheet_to_csv(xlsx: Path, sheet_name_hint: list[str], out_path: Path) -> boo
         workbook.close()
 
 
-def import_golden200(src: Path) -> Path | None:
+def import_reference200(src: Path) -> Path | None:
     path = src / "Unilog-Sample_200_Items-Input-vs-Output.xlsx"
     if not path.exists():
         return None
@@ -249,15 +249,15 @@ def import_golden200(src: Path) -> Path | None:
     workbook = load_workbook(path, read_only=True, data_only=True)
     names = [n.lower() for n in workbook.sheetnames]
     if not names:
-        print(f"Golden200: {path.name} has no sheets")
+        print(f"Reference200: {path.name} has no sheets")
         return None
     workbook.close()
 
-    data_dir = GOLDEN200_DIR
+    data_dir = REFERENCE200_DIR
     data_dir.mkdir(parents=True, exist_ok=True)
     _sheet_to_csv(path, ["input"], data_dir / "input.csv")
     _sheet_to_csv(path, ["delivery", "output"], data_dir / "expected.csv")
-    print(f"Golden200: wrote {data_dir/'input.csv'} and {data_dir/'expected.csv'}")
+    print(f"Reference200: wrote {data_dir/'input.csv'} and {data_dir/'expected.csv'}")
     return data_dir
 
 
@@ -275,7 +275,7 @@ def main() -> None:
         "uom": import_uom(src),
         "manufacturers": import_manufacturers(src),
         "fractions": import_fractions(src),
-        "golden200": import_golden200(src),
+        "reference200": import_reference200(src),
     }
     found = sum(1 for v in results.values() if v)
     print(f"\n{found}/5 reference sets imported.")

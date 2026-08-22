@@ -6,11 +6,11 @@
   "output": "walkthrough.mp4",
   "raw_output": "walkthrough_raw.webm",
   "segments": [
-    { "id": "seg-hero", "label": "Hero load: Six columns in. 252 out. + golden proof band" },
+    { "id": "seg-hero", "label": "Hero load: Six columns in. 252 out. + reference proof band" },
     { "id": "seg-enrich", "label": "Type part line and enrich PDSH4816AF" },
     { "id": "seg-catalog-drawer", "label": "Catalog row -> drawer -> Evidence (sources + honest blanks), close via Escape" },
     { "id": "seg-batch", "label": "Run batch stream (1000 SKUs) to completion" },
-    { "id": "seg-proof", "label": "Golden proof band: click reference SKU, re-enrich" },
+    { "id": "seg-proof", "label": "Reference proof band: click reference SKU, re-enrich" },
     { "id": "seg-export", "label": "Export CSV download from catalog" }
   ],
   "actions": [
@@ -27,8 +27,8 @@
     { "label": "set-limit-1000", "target": "#sampleLimit", "value": "1000" },
     { "label": "click-run-batch", "target": "#liveBtn", "expect": { "text-prefix": "#progress-message|Complete" } },
     { "label": "proof-band-shown", "target": "#proof-band" },
-    { "label": "click-golden-sku", "target": "#proof-band button" },
-    { "label": "golden-sku-enriched", "expect": { "selector-detached": "#sb-result-container .skeleton" } },
+    { "label": "click-reference-sku", "target": "#proof-band button" },
+    { "label": "reference-sku-enriched", "expect": { "selector-detached": "#sb-result-container .skeleton" } },
     { "label": "nav-catalog-export", "target": "[data-page=\"catalog\"]" },
     { "label": "click-csv-download", "target": ".export-group a[href=\"/download/csv\"]", "download": true }
   ]

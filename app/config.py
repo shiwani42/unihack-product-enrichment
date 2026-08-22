@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GUIDELINES = ROOT / "guidelines"
 DEFAULT_INPUT = GUIDELINES / "Unihack_ Sample Dataset - Input.csv"
 DEFAULT_OUTPUT_HEADERS = GUIDELINES / "Unihack_ Expected Output - Delivery Format.csv"
-GOLDEN_MPNS = ("PDSH4816AF", "WDTS7024RZ")
+REFERENCE_MPNS = ("PDSH4816AF", "WDTS7024RZ")
 
 ECOMMERCE_BLOCKLIST = (
     "amazon.",

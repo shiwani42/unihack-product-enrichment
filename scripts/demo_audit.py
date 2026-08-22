@@ -109,7 +109,7 @@ def audit():
         "top_issue_fields": issue_counter.most_common(15),
         "confidence_overall": dict(Counter(r["confidence"] for r in results)),
         "worst_20_rows": sorted(results, key=lambda x: x["filled"])[:20],
-        "best_non_golden": sorted(
+        "best_non_reference": sorted(
             [r for r in results if r["mpn"] not in ("PDSH4816AF", "WDTS7024RZ")],
             key=lambda x: -x["filled"],
         )[:10],
@@ -122,10 +122,10 @@ def audit():
 
 if __name__ == "__main__":
     s = audit()
-    print(json.dumps({k: v for k, v in s.items() if k not in ("worst_20_rows", "best_non_golden")}, indent=2))
+    print(json.dumps({k: v for k, v in s.items() if k not in ("worst_20_rows", "best_non_reference")}, indent=2))
     print("\n=== WORST 10 ROWS ===")
     for r in s["worst_20_rows"][:10]:
         print(f"  {r['filled']:3d} fields | {r['category']:22s} | {r['mpn']} | {r['desc'][:50]}")
-    print("\n=== BEST NON-GOLDEN ===")
-    for r in s["best_non_golden"][:5]:
+    print("\n=== BEST NON-REFERENCE ===")
+    for r in s["best_non_reference"][:5]:
         print(f"  {r['filled']:3d} fields | {r['category']:22s} | {r['mpn']} | ev={r['evidence']}")

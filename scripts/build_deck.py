@@ -1,62 +1,74 @@
 #!/usr/bin/env python3
-"""Fill the official UniHack prototype template with the thExplorers submission.
+"""Fill the official UniHack prototype template. Always rebuilds from the pristine file.
 
 Usage: PYTHONPATH=. python3 scripts/build_deck.py
-Reads guidelines/[EXT] UniHack-Protoype Template .pptx and writes
-submission/UniHack_thExplorers_Prototype.pptx. Screenshots come from
-demo_build/screenshots/. Idempotent: always rebuilds from the pristine template.
 """
+from __future__ import annotations
+
 from pathlib import Path
 
+from PIL import Image
 from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.enum.text import PP_ALIGN
+from pptx.oxml.ns import qn
 from pptx.util import Emu, Inches, Pt
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "guidelines" / "[EXT] UniHack-Protoype Template .pptx"
-SHOTS = ROOT / "demo_build" / "screenshots"
+SHOTS = ROOT / "demo_build" / "deck_shots"
+FALLBACK = ROOT / "demo_build" / "screenshots"
+CROP = ROOT / "demo_build" / "deck_crops"
 OUT = ROOT / "submission" / "UniHack_thExplorers_Prototype.pptx"
 
-INK = RGBColor(0x0D, 0x0D, 0x0F)
-MUTED = RGBColor(0x55, 0x55, 0x5C)
+INK = RGBColor(0x11, 0x18, 0x27)
+MUTED = RGBColor(0x4B, 0x55, 0x63)
 GREEN = RGBColor(0x06, 0x76, 0x47)
-HAIR = RGBColor(0xE8, 0xE8, 0xED)
+MINT = RGBColor(0xEC, 0xF8, 0xF2)
+HAIR = RGBColor(0xE5, 0xE7, 0xEB)
+PALE = RGBColor(0xF8, 0xF9, 0xFB)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
-SANS = "Segoe UI"
+NAVY = RGBColor(0x00, 0x38, 0x78)
+SANS = "Calibri"
 MONO = "Consolas"
 
 GITHUB = "https://github.com/shiwani42/unihack-product-enrichment"
+DEMO = "https://vimeo.com/1220615209"
+PROTO = "https://unilog-tau.vercel.app"
+
+# Official template: 10.00 x 5.625. Navy header ~0.61", cyan footer from ~5.51".
+L, R = 0.42, 9.58
+W = R - L
+TOP = 1.66
+BOT = 5.34
+H = BOT - TOP
 
 
 def box(slide, x, y, w, h):
     tb = slide.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h))
     tf = tb.text_frame
     tf.word_wrap = True
+    tf.auto_size = None
     return tb, tf
 
 
 def style(par, text, size=12, bold=False, color=INK, font=SANS, align=None,
-          space_after=4, bullet=False):
-    par.text = ("\u2022  " + text) if bullet else text
-    if align is not None:
-        par.alignment = align
+          space_after=3, space_before=0):
+    par.clear()
+    par.alignment = align if align is not None else PP_ALIGN.LEFT
+    par.space_before = Pt(space_before)
     par.space_after = Pt(space_after)
-    for run in par.runs:
-        run.font.size = Pt(size)
-        run.font.bold = bold
-        run.font.color.rgb = color
-        run.font.name = font
+    run = par.add_run()
+    run.text = text
+    run.font.size = Pt(size)
+    run.font.bold = bold
+    run.font.color.rgb = color
+    run.font.name = font
     return par
 
 
-def line(tf, text, **kw):
-    return style(tf.add_paragraph(), text, **kw)
-
-
 def fill_tf(tf, items):
-    """items: list of (text, kwargs)."""
     first = True
     for text, kw in items:
         p = tf.paragraphs[0] if first else tf.add_paragraph()
@@ -64,343 +76,508 @@ def fill_tf(tf, items):
         style(p, text, **kw)
 
 
-def card(slide, x, y, w, h, fill=WHITE, border=HAIR):
+def card(slide, x, y, w, h, fill=WHITE, border=HAIR, radius=0.08):
     sh = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(x), Inches(y),
                                 Inches(w), Inches(h))
-    sh.adjustments[0] = 0.06
+    try:
+        sh.adjustments[0] = radius
+    except Exception:
+        pass
     sh.fill.solid()
     sh.fill.fore_color.rgb = fill
     sh.line.color.rgb = border
-    sh.line.width = Pt(1)
+    sh.line.width = Pt(0.75)
     sh.shadow.inherit = False
     return sh
 
 
-def arrow(slide, x, y, w=Inches(0.28)):
-    ar = slide.shapes.add_shape(MSO_SHAPE.RIGHT_ARROW, x, y, w, Inches(0.22))
-    ar.fill.solid()
-    ar.fill.fore_color.rgb = MUTED
-    ar.line.fill.background()
-    ar.shadow.inherit = False
-    return ar
+def rect(slide, x, y, w, h, fill, line=None):
+    sh = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(x), Inches(y),
+                                Inches(w), Inches(h))
+    sh.fill.solid()
+    sh.fill.fore_color.rgb = fill
+    if line is None:
+        sh.line.fill.background()
+    else:
+        sh.line.color.rgb = line
+        sh.line.width = Pt(0.75)
+    sh.shadow.inherit = False
+    return sh
 
 
-def shot(slide, path, x, y, w, caption=None):
-    img = slide.shapes.add_picture(str(path), Inches(x), Inches(y), width=Inches(w))
-    if caption:
-        _, tf = box(slide, x, y + img.height / 914400 + 0.03, w, 0.3)
-        fill_tf(tf, [(caption, dict(size=9, color=MUTED))])
-    fr = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(x - 0.01),
-                                Inches(y - 0.01),
-                                Emu(int(img.width) + 18288),
-                                Emu(int(img.height) + 18288))
+def wipe_text(slide, keep_titles=True):
+    """Remove leftover instructional text. Keep pictures and official titles."""
+    titles = ("guidelines", "team details", "brief about", "opportunities",
+              "list of features", "process flow", "wireframes", "architecture",
+              "technologies", "estimated implementation", "snapshots",
+              "additional details", "provide links", "thank")
+    for shape in list(slide.shapes):
+        if not shape.has_text_frame:
+            continue
+        if keep_titles:
+            t = (shape.text_frame.text or "").strip().lower()
+            if any(t.startswith(k) for k in titles) and len(t) < 90:
+                continue
+            if shape.is_placeholder and "how does your solution" in t:
+                slide.shapes._spTree.remove(shape._element)
+                continue
+        if shape.is_placeholder or True:
+            # drop long instructional copy; keep short official titles
+            t = (shape.text_frame.text or "").strip()
+            if keep_titles and len(t) < 90 and "\n" not in t:
+                continue
+            if keep_titles and t.lower().startswith(("guidelines", "team details",
+                                                     "brief about your solution",
+                                                     "opportunities",
+                                                     "list of features offered",
+                                                     "process flow diagram",
+                                                     "wireframes",
+                                                     "architecture diagram",
+                                                     "technologies used",
+                                                     "estimated implementation",
+                                                     "snapshots of the mvp",
+                                                     "additional details",
+                                                     "provide links to your")):
+                continue
+            slide.shapes._spTree.remove(shape._element)
+
+
+def crop_png(src: Path, dest: Path, box_px):
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    with Image.open(src) as im:
+        im.convert("RGB").crop(box_px).save(dest, "PNG")
+    return dest
+
+
+def prepare_crops():
+    CROP.mkdir(parents=True, exist_ok=True)
+    hero = SHOTS / "hero.png"
+    rec = SHOTS / "record_panel.png"
+    rec_wp = SHOTS / "record_panel_wp.png"
+    drawer_e = SHOTS / "drawer_evidence.png"
+    drawer_r = SHOTS / "drawer_record.png"
+    catalog = SHOTS / "catalog_page.png"
+    batch = SHOTS / "batch_progress.png"
+
+    # hero: workbench only (drop giant headline so type stays readable)
+    if hero.exists():
+        with Image.open(hero) as im:
+            w, h = im.size
+            crop_png(hero, CROP / "workbench.png", (0, int(h * 0.42), w, h))
+    if rec.exists():
+        with Image.open(rec) as im:
+            w, h = im.size
+            crop_png(rec, CROP / "record.png", (0, 0, w, min(h, int(w * 0.92))))
+    if rec_wp.exists():
+        with Image.open(rec_wp) as im:
+            w, h = im.size
+            crop_png(rec_wp, CROP / "record_wp.png", (0, 0, w, min(h, int(w * 0.92))))
+    if drawer_e.exists():
+        with Image.open(drawer_e) as im:
+            w, h = im.size
+            crop_png(drawer_e, CROP / "evidence.png", (0, 0, w, min(h, int(w * 1.05))))
+    if drawer_r.exists():
+        with Image.open(drawer_r) as im:
+            w, h = im.size
+            crop_png(drawer_r, CROP / "drawer_record.png", (0, 0, w, min(h, int(w * 1.05))))
+    if catalog.exists():
+        with Image.open(catalog) as im:
+            w, _h = im.size
+            crop_png(catalog, CROP / "catalog.png", (0, 0, w, int(w * 0.48)))
+    if batch.exists():
+        crop_png(batch, CROP / "batch.png", (0, 0, *Image.open(batch).size))
+
+    # fallbacks from older screenshots if a crop is missing
+    for name, src in (
+        ("workbench.png", FALLBACK / "hero.png"),
+        ("record.png", FALLBACK / "enrich_result.png"),
+        ("evidence.png", FALLBACK / "drawer_evidence.png"),
+        ("catalog.png", FALLBACK / "catalog_table.png"),
+    ):
+        if not (CROP / name).exists() and src.exists():
+            crop_png(src, CROP / name, (0, 0, *Image.open(src).size))
+
+
+def framed(slide, path, x, y, w, max_h=None, caption=None):
+    """Place an image at width w, never exceeding max_h. Thin hairline frame."""
+    path = Path(path)
+    with Image.open(path) as im:
+        ar = im.height / im.width
+    h = w * ar
+    if max_h and h > max_h:
+        h = max_h
+        w = h / ar
+    img = slide.shapes.add_picture(str(path), Inches(x), Inches(y),
+                                   width=Inches(w), height=Inches(h))
+    fr = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE,
+        Inches(x), Inches(y), Inches(w), Inches(h),
+    )
     fr.fill.background()
     fr.line.color.rgb = HAIR
+    fr.line.width = Pt(0.75)
     fr.shadow.inherit = False
-    slide.shapes._spTree.remove(fr._element)
-    slide.shapes._spTree.insert(list(slide.shapes._spTree).index(img._element), fr._element)
-    return img
+    # send frame behind picture
+    tree = slide.shapes._spTree
+    tree.remove(fr._element)
+    tree.insert(list(tree).index(img._element), fr._element)
+    used_h = h
+    if caption:
+        _, tf = box(slide, x, y + h + 0.04, w, 0.22)
+        fill_tf(tf, [(caption, dict(size=9, color=MUTED, space_after=0))])
+        used_h += 0.26
+    return w, used_h
+
+
+def stat_card(slide, x, y, w, h, value, label, fill=PALE):
+    card(slide, x, y, w, h, fill=fill, border=HAIR)
+    _, tf = box(slide, x + 0.10, y + 0.10, w - 0.20, h - 0.18)
+    fill_tf(tf, [
+        (value, dict(size=20, bold=True, color=GREEN, space_after=1)),
+        (label, dict(size=10, color=MUTED, space_after=0)),
+    ])
 
 
 def main() -> None:
+    prepare_crops()
     prs = Presentation(str(TEMPLATE))
     slides = list(prs.slides)
 
-    def wipe(slide, keep_ids=()):
-        for shape in list(slide.shapes):
-            if shape.has_text_frame and shape.shape_id not in keep_ids:
-                slide.shapes._spTree.remove(shape._element)
-
-    # ---- S1 title ----
+    # ========== 0 Title (white canvas under navy header) ==========
     s = slides[0]
-    wipe(s)
-    _, tf = box(s, 0.7, 1.55, 8.6, 2.4)
+    for shape in list(s.shapes):
+        if shape.has_text_frame:
+            s.shapes._spTree.remove(shape._element)
+    _, tf = box(s, 0.50, 0.95, 9.0, 2.20)
     fill_tf(tf, [
-        ("unilog enrichment engine", dict(size=40, bold=True)),
-        ("Evidence-first product intelligence for industrial commerce",
-         dict(size=18, color=MUTED)),
-        ("Six columns in. 252 out. Every value traceable to its source.",
-         dict(size=14, color=GREEN, bold=True)),
+        ("unilog enrichment engine", dict(size=32, bold=True, color=NAVY, space_after=8)),
+        ("Evidence-first product intelligence for industrial commerce.",
+         dict(size=16, color=INK, space_after=6)),
+        ("Six columns in.  252 out.  Every value traceable to its source.",
+         dict(size=14, bold=True, color=GREEN, space_after=4)),
+        ("Team thExplorers  ·  Shiwani Mishra  ·  Saurabh Gupta  ·  UniHack 2026",
+         dict(size=12, color=MUTED, space_after=0)),
     ])
-    _, tf = box(s, 0.7, 4.35, 8.6, 0.6)
-    fill_tf(tf, [("Team thExplorers \u00b7 Shiwani Mishra \u00b7 Saurabh Gupta \u00b7 UniHack 2026",
-                  dict(size=12, color=MUTED))])
+    metrics = [
+        ("100%", "field match vs organizer\nexpected output (134 / 134)"),
+        ("1,000 / 1,000", "input rows classified\nto a leaf template"),
+        ("77 tests", "hermetic suite, ~2 s\noffline by default"),
+        ("$0.0004", "compute per SKU\non the rules path"),
+    ]
+    for i, (val, lab) in enumerate(metrics):
+        x = 0.50 + i * 2.35
+        card(s, x, 3.48, 2.22, 1.28, fill=PALE)
+        _, tf = box(s, x + 0.12, 3.56, 1.98, 1.12)
+        fill_tf(tf, [
+            (val, dict(size=18, bold=True, color=GREEN, space_after=2)),
+            (lab, dict(size=10, color=MUTED, space_after=0)),
+        ])
 
-    # ---- S2 team ----
+    # ========== 1 Team — wipe ALL leftover template copy ==========
     s = slides[1]
-    _, tf = box(s, 0.4, 2.6, 9.2, 1.6)
+    for shape in list(s.shapes):
+        if shape.has_text_frame:
+            s.shapes._spTree.remove(shape._element)
+    _, tf = box(s, 0.55, 3.58, 8.9, 1.50)
     fill_tf(tf, [
-        ("Team name:  thExplorers", dict(size=16)),
-        ("Team leader name:  Shiwani Mishra", dict(size=16)),
-        ("Member:  Saurabh Gupta", dict(size=16)),
+        ("Team details", dict(size=14, bold=True, color=NAVY, space_after=8)),
+        ("Team name:   thExplorers", dict(size=16, bold=True, space_after=4)),
+        ("Team leader:   Shiwani Mishra", dict(size=15, space_after=3)),
+        ("Member:   Saurabh Gupta", dict(size=15, space_after=0)),
     ])
 
-    # ---- S3 brief ----
+    # ========== 2 Brief ==========
     s = slides[2]
-    _, tf = box(s, 0.45, 1.75, 9.1, 3.5)
+    wipe_text(s)
+    _, tf = box(s, L, TOP, W, 1.15)
     fill_tf(tf, [
-        ("Distributors hand us six columns: a part number, a cryptic description and "
-         "brand placeholders. We hand back a commerce-ready record in Unilog's 252-column "
-         "delivery format.", dict(size=15, bold=True)),
-        ("How: manufacturer-first sourcing (\u2265 Amazon/eBay blocked) \u2192 identity resolution "
-         "(brand aliases, MPN prefix rules) \u2192 leaf-level classification \u2192 category attribute "
-         "slots \u2192 HTML/PDF evidence extraction \u2192 normalisation \u2192 five description types "
-         "\u2192 validation.", dict(size=13), ),
-        ("Deterministic rules do the heavy lifting; an LLM only handles the last mile for "
-         "cryptic rows \u2014 and blank beats invented. Every populated value carries a source URL "
-         "and a confidence band.", dict(size=13)),
+        ("Distributors hand us six columns. We return a 252-column Unilog "
+         "delivery record — every filled cell traced to a source URL.",
+         dict(size=15, bold=True, space_after=6)),
+        ("Manufacturer-first sourcing (Amazon / eBay blocked) → identity → "
+         "leaf classification → HTML / JSON-LD / PDF extraction → unit & LOV "
+         "normalisation → five governed descriptions → validation. Rules do the "
+         "work. An LLM is last-mile only, off by default. Blank beats invented.",
+         dict(size=12, color=MUTED, space_after=0)),
     ])
-    stats = [("100%", "field match vs organizer\nexpected output (134/134)"),
-             ("1000/1000", "input rows classified,\nzero unroutable"),
-             ("77", "hermetic tests,\n~2s suite"),
-             ("$0.0004", "compute cost per SKU\n(rules path)")]
-    for i, (big, small) in enumerate(stats):
-        x = 0.45 + i * 2.33
-        c = card(s, x, 4.05, 2.13, 1.05)
-        tf = c.text_frame
-        tf.word_wrap = True
-        fill_tf(tf, [(big, dict(size=20, bold=True, color=GREEN, align=PP_ALIGN.CENTER)),
-                     (small, dict(size=9, color=MUTED, align=PP_ALIGN.CENTER))])
+    stats = [
+        ("100%", "Reference field match\nPDSH4816AF · WDTS7024RZ"),
+        ("39.28", "Avg fields filled\nacross 1,000 rows"),
+        ("26", "Manufacturer domains\ncited in provenance"),
+        ("$0.0004", "Rules-path cost\nper SKU, zero APIs"),
+    ]
+    for i, (val, lab) in enumerate(stats):
+        x = L + i * (W + 0.12) / 4
+        stat_card(s, x, 3.00, 2.20, 1.18, val, lab, fill=MINT if i == 0 else PALE)
 
-    # ---- S4 three questions ----
+    # ========== 3 Three questions ==========
     s = slides[3]
-    ph = next(sh for sh in s.shapes if sh.is_placeholder)
-    tf = ph.text_frame
-    tf.clear()
+    wipe_text(s, keep_titles=False)
+    # restore a title since we wiped the placeholder
+    _, tf = box(s, L, 0.86, W, 0.42)
+    fill_tf(tf, [("How it enriches, stays accurate, and scales",
+                  dict(size=20, bold=True, space_after=0))])
     qa = [
-        ("1. How does your solution enrich minimal product information?",
-         dict(size=12, bold=True, space_after=2)),
-        ("Input analysis \u2192 de-duplication \u2192 identity (brand aliases, MPN-prefix rules) \u2192 "
-         "leaf-level routing into 13 category templates \u2192 manufacturer-site extraction "
-         "(HTML specs, JSON-LD, PDF datasheets) \u2192 unit/LOV normalisation \u2192 five governed "
-         "descriptions \u2192 validated 252-column delivery row.", dict(size=11, space_after=8)),
-        ("2. How does your solution ensure accuracy and trust?",
-         dict(size=12, bold=True, space_after=2)),
-        ("Golden regression vs the organizer's expected output: 100% on both reference SKUs "
-         "(134/134 fields). Per-value provenance JSON (source URL per cell). Honest confidence "
-         "bands \u2014 \u201chigh\u201d requires externally verified manufacturer evidence; self-cited values "
-         "are capped at medium/review. Validators enforce LOV membership, character limits, UOM "
-         "style and attribute sanity. Integrity tests ban fabricated defaults: blank beats "
-         "invented.", dict(size=11, space_after=8)),
-        ("3. What makes your solution scalable for enterprise catalogs?",
-         dict(size=12, bold=True, space_after=2)),
-        ("Stateless row pipeline \u2192 parallel workers with dedup merge, not drop. Cache-first "
-         "fetching under a hard per-run network budget; atomic cache writes; retry/backoff. "
-         "Streaming SSE API for live ops plus CLI batch for millions of rows. Adding a category "
-         "= one JSON template, no code. 1,000-row sample runs offline-deterministic in ~60s.",
-         dict(size=11)),
+        ("01  Enrichment",
+         "Input analysis → de-dup merge → brand / MPN identity → leaf routing "
+         "across 14 templates → manufacturer HTML, JSON-LD and PDF extraction "
+         "→ unit & LOV normalisation → five descriptions → 252-column delivery."),
+        ("02  Accuracy & trust",
+         "100% vs the organizer expected output (63/63 and 71/71). Per-cell "
+         "source URLs. High confidence requires external manufacturer evidence. "
+         "Validators: LOV, char limits, UOM style, attribute sanity. Integrity "
+         "tests ban fabricated defaults."),
+        ("03  Scale",
+         "Stateless row pipeline, parallel workers, cache-first fetch under a "
+         "hard network budget. SSE for live ops, CLI for millions of rows. "
+         "Add a category = one JSON template. 1,000 rows offline in ~60 s."),
     ]
-    fill_tf(tf, qa)
+    cw = (W - 0.24) / 3
+    for i, (title, body) in enumerate(qa):
+        x = L + i * (cw + 0.12)
+        card(s, x, TOP, cw, 3.52, fill=PALE)
+        _, tf = box(s, x + 0.14, TOP + 0.12, cw - 0.28, 3.28)
+        fill_tf(tf, [
+            (title, dict(size=13, bold=True, color=GREEN, space_after=8)),
+            (body, dict(size=11, color=INK, space_after=0)),
+        ])
 
-    # ---- S5 opportunities ----
+    # ========== 4 Opportunities / USP ==========
     s = slides[4]
-    _, tf = box(s, 0.4, 1.85, 9.2, 3.4)
-    fill_tf(tf, [
-        ("Different from existing ideas", dict(size=14, bold=True, space_after=2)),
-        ("Enrichment tools stop at filling fields. Ours makes every filled cell auditable: a "
-         "provenance drawer exposes the exact source URL behind each attribute, and confidence "
-         "bands say which values a buyer can trust without re-checking.", dict(size=12,
-                                                                               space_after=8)),
-        ("USP", dict(size=14, bold=True, space_after=2)),
-        ("Audit-proof enrichment: \u201cevery value verifiable in one click.\u201d Accuracy is measured, "
-         "not claimed \u2014 scored field-by-field against the organizer's own expected output.",
-         dict(size=12, space_after=8)),
-        ("Fit to the problem statement", dict(size=14, bold=True, space_after=2)),
-        ("Manual involvement drops from research-per-SKU to review-by-exception: rows that lack "
-         "manufacturer evidence are flagged for human review instead of being silently guessed. "
-         "That is exactly the trust bar a 100%-accuracy target demands.", dict(size=12)),
-    ])
+    wipe_text(s)
+    cols = [
+        ("Different",
+         "Most enrichment tools fill fields. Ours makes every filled cell "
+         "auditable: a provenance drawer opens the exact source URL, and "
+         "confidence bands say what a buyer can trust without re-checking."),
+        ("USP",
+         "Audit-proof enrichment — every value verifiable in one click. "
+         "Accuracy is scored field-by-field against the organizer’s own "
+         "expected output, not claimed."),
+        ("Fit",
+         "Manual work drops from research-per-SKU to review-by-exception. "
+         "Rows without manufacturer evidence are flagged, never guessed. "
+         "That is the trust bar a 100% accuracy target requires."),
+    ]
+    cw = (W - 0.24) / 3
+    for i, (title, body) in enumerate(cols):
+        x = L + i * (cw + 0.12)
+        card(s, x, TOP, cw, 3.52, fill=WHITE)
+        accent = rect(s, x, TOP, 0.08, 3.52, GREEN)
+        _, tf = box(s, x + 0.22, TOP + 0.16, cw - 0.36, 3.20)
+        fill_tf(tf, [
+            (title, dict(size=14, bold=True, space_after=8)),
+            (body, dict(size=12, color=MUTED, space_after=0)),
+        ])
 
-    # ---- S6 features ----
+    # ========== 5 Features ==========
     s = slides[5]
-    feats_l = [
-        "6-column input \u2192 252-column delivery CSV/XLSX, headers untouched",
-        "Manufacturer-first sourcing; marketplace blocklist (Amazon/eBay\u2026)",
-        "Leaf-level classification: 13 templates + generic industrial fallback",
-        "Category attribute slots filled only when evidence exists",
-        "Per-value provenance: source URL for every populated cell",
-        "Five description types within char limits (invoice/mobile/short/long/retail)",
+    wipe_text(s)
+    left = [
+        "6-column input → 252-column CSV / XLSX, headers untouched",
+        "Manufacturer-first sourcing; marketplace blocklist",
+        "14 leaf templates + generic industrial fallback",
+        "Attribute slots filled only when evidence exists",
+        "Per-value provenance JSON — source URL per cell",
+        "Five description types inside character limits",
     ]
-    feats_r = [
-        "Marketing copy & item features only from manufacturer pages",
-        "Digital assets named per delivery convention; honest Actual Image flag",
-        "Validation suite: LOV, char limits, UOM style, ecommerce block, sanity",
-        "Confidence bands: high/medium/review, evidence-gated",
-        "Live ops: SSE stream UI, catalog grid, SKU drawer, storefront preview",
-        "Golden regression harness + 77 hermetic tests guard every change",
+    right = [
+        "Marketing copy & features only from manufacturer pages",
+        "Honest Actual Image flag — Yes only with mfr imagery",
+        "Validators: LOV, limits, UOM, ecommerce block, sanity",
+        "Confidence bands: high / medium / review, evidence-gated",
+        "Live UI: enrich, catalog, evidence drawer, SSE batch",
+        "Reference harness + 77 hermetic tests on every change",
     ]
-    _, tf = box(s, 0.4, 1.8, 4.55, 3.5)
-    fill_tf(tf, [(t, dict(size=11.5, space_after=6, bullet=True)) for t in feats_l])
-    _, tf = box(s, 5.1, 1.8, 4.55, 3.5)
-    fill_tf(tf, [(t, dict(size=11.5, space_after=6, bullet=True)) for t in feats_r])
+    card(s, L, TOP, 4.46, 3.52, fill=PALE)
+    card(s, L + 4.70, TOP, 4.46, 3.52, fill=PALE)
+    _, tf = box(s, L + 0.18, TOP + 0.16, 4.10, 3.20)
+    fill_tf(tf, [(f"•  {t}", dict(size=12, space_after=8)) for t in left])
+    _, tf = box(s, L + 4.88, TOP + 0.16, 4.10, 3.20)
+    fill_tf(tf, [(f"•  {t}", dict(size=12, space_after=8)) for t in right])
 
-    # ---- S7 process flow ----
+    # ========== 6 Process flow ==========
     s = slides[6]
+    wipe_text(s)
     stages = [
-        ("1. Input analysis", "6 cols, placeholders,\ndupes detected"),
-        ("2. Identity", "brand aliases,\nMPN prefix rules"),
-        ("3. Classification", "leaf-level routing,\n13 templates"),
-        ("4. Extraction", "HTML \u00b7 JSON-LD \u00b7\nPDF \u00b7 cache-first"),
-        ("5. Normalisation", "units \u00b7 LOV \u00b7\ncanonical brands"),
-        ("6. Descriptions", "5 governed types,\nchar limits"),
-        ("7. Validation", "rules \u00b7 confidence\nbands \u00b7 issues"),
-        ("8. Delivery", "CSV/XLSX +\nprovenance JSON"),
+        ("1  Ingest", "6 columns, placeholders,\ndedupe merge — never drop"),
+        ("2  Identity", "Brand aliases, DIB / E1,\nMPN prefix rules"),
+        ("3  Classify", "Leaf routing across\n14 category templates"),
+        ("4  Extract", "HTML · JSON-LD · PDF\ncache-first fetch"),
+        ("5  Normalise", "Units, LOV, canonical\nbrand casing"),
+        ("6  Compose", "5 governed descriptions\n+ delivery asset names"),
+        ("7  Validate", "Rules, confidence bands,\nintegrity tests"),
+        ("8  Deliver", "CSV / XLSX +\nper-cell provenance JSON"),
     ]
-    x0, y0 = 0.42, 2.15
-    cw, ch = 2.0, 1.06
-    step = 2.34
+    cw, ch = 2.16, 1.28
+    gap_x, gap_y = 0.16, 0.18
     for i, (title, sub) in enumerate(stages):
         r, c = divmod(i, 4)
-        x = x0 + c * step
-        y = y0 + r * (ch + 0.62)
-        cshape = card(s, x, y, cw, ch)
-        tfc = cshape.text_frame
-        tfc.word_wrap = True
-        fill_tf(tfc, [
+        x = L + c * (cw + gap_x)
+        y = TOP + r * (ch + gap_y)
+        fill = MINT if i in (0, 7) else PALE
+        card(s, x, y, cw, ch, fill=fill)
+        _, tf = box(s, x + 0.12, y + 0.12, cw - 0.24, ch - 0.20)
+        fill_tf(tf, [
             (title, dict(size=12, bold=True, color=GREEN if i in (0, 7) else INK,
-                         space_after=1)),
-            (sub, dict(size=9, color=MUTED)),
+                         space_after=4)),
+            (sub, dict(size=10, color=MUTED, space_after=0)),
         ])
-        if c < 3:
-            arrow(s, Emu(Inches(x + cw + 0.04)), Emu(Inches(y + ch / 2 - 0.11)))
-    ln = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(x0), Inches(y0 + 2 * ch + 0.66),
-                            Inches(9.2), Pt(1))
-    ln.fill.solid(); ln.fill.fore_color.rgb = HAIR; ln.line.fill.background()
-    _, tf = box(s, x0, y0 + 2 * ch + 0.72, 9.2, 0.35)
-    fill_tf(tf, [("Fail-safe: every row wrapped in try/except \u2014 a bad row never kills the batch.",
-                  dict(size=10, color=MUTED))])
+    _, tf = box(s, L, TOP + 2 * ch + gap_y + 0.10, W, 0.28)
+    fill_tf(tf, [("Fail-safe: every row is wrapped — a bad SKU never kills the batch.",
+                  dict(size=11, color=MUTED, space_after=0))])
 
-    # ---- S8 wireframes ----
+    # ========== 7 Wireframes / product ==========
     s = slides[7]
-    shot(s, SHOTS / "hero.png", 0.45, 1.75, 4.35, "Enrich workbench \u2014 default view")
-    shot(s, SHOTS / "enrich_result.png", 5.15, 1.75, 4.35, "Result panel \u2014 spec-sheet record")
+    wipe_text(s)
+    left_p = CROP / "workbench.png"
+    right_p = CROP / "record.png"
+    if left_p.exists():
+        framed(s, left_p, L, TOP, 4.46, max_h=3.40,
+               caption="Enrich workbench — six columns in")
+    if right_p.exists():
+        framed(s, right_p, L + 4.70, TOP, 4.46, max_h=3.40,
+               caption="Result — Frigidaire PDSH4816AF, 100% vs reference")
 
-    # ---- S9 architecture ----
+    # ========== 8 Architecture ==========
     s = slides[8]
+    wipe_text(s)
     layers = [
-        ("Interface", "FastAPI \u00b7 SSE stream \u00b7 static web UI \u00b7 CLI"),
-        ("Orchestration", "pipeline.enrich_input_row \u2014 fail-safe per row \u00b7 dedup merge \u00b7 parallel workers"),
-        ("Intelligence", "identity/ brand resolver \u00b7 classify/ router + templates \u00b7 extract/ HTML-PDF-JSON-LD \u00b7 optional LLM last-mile"),
-        ("Trust", "validate/ LOV + limits + sanity \u00b7 provenance map \u00b7 confidence bands \u00b7 golden harness"),
-        ("Delivery", "CSV \u00b7 XLSX \u00b7 provenance JSON \u00b7 batch reports"),
+        ("Interface", "FastAPI · SSE live stream · static web UI · CLI"),
+        ("Orchestration", "pipeline.enrich_input_row — fail-safe per row · dedup merge · workers"),
+        ("Intelligence", "identity/ resolver · classify/ templates · extract/ HTML-PDF-JSON-LD · optional LLM"),
+        ("Trust", "validate/ LOV + limits + sanity · provenance map · confidence bands · reference harness"),
+        ("Delivery", "CSV · XLSX · provenance JSON · batch reports"),
     ]
-    y = 1.8
+    lh = 0.54
     for i, (name, tech) in enumerate(layers):
-        cshape = card(s, 0.7, y, 8.6, 0.62)
-        tf = cshape.text_frame
-        fill_tf(tf, [(f"{name}   \u2014   {tech}",
-                      dict(size=11.5, bold=(i == 0)))])
-        y += 0.78
-    _, tf = box(s, 0.7, y + 0.02, 8.6, 0.5)
-    fill_tf(tf, [("Uniform cache-first fetch policy: retry/backoff, atomic writes, raw-cache TTL, "
-                  "per-run budget (UNILOG_FETCH_BUDGET). Optional Playwright fallback on 403.",
-                  dict(size=10, color=MUTED))])
+        y = TOP + i * (lh + 0.08)
+        card(s, L, y, W, lh, fill=MINT if i == 3 else PALE)
+        _, tf = box(s, L + 0.16, y + 0.10, 1.70, 0.36)
+        fill_tf(tf, [(name, dict(size=13, bold=True, space_after=0))])
+        _, tf = box(s, L + 1.95, y + 0.10, W - 2.20, 0.36)
+        fill_tf(tf, [(tech, dict(size=12, color=MUTED, space_after=0))])
+    _, tf = box(s, L, TOP + 5 * (lh + 0.08) + 0.02, W, 0.30)
+    fill_tf(tf, [("Uniform cache-first fetch: retry / backoff, atomic writes, TTL, "
+                  "UNILOG_FETCH_BUDGET. Playwright only on 403. UNILOG_LIVE_FETCH=0 kills the network.",
+                  dict(size=10, color=MUTED, space_after=0))])
 
-    # ---- S10 technologies ----
+    # ========== 9 Technologies ==========
     s = slides[9]
+    wipe_text(s)
     techs = [
-        ("Python 3.11", "pipeline core, fully typed modules"),
-        ("FastAPI + SSE", "upload, live stream, downloads"),
-        ("httpx + Playwright", "resilient fetching, 403 fallback"),
+        ("Python 3.11", "Pipeline core, typed modules"),
+        ("FastAPI + SSE", "Upload, live stream, downloads"),
+        ("httpx + Playwright", "Resilient fetch, 403 fallback"),
         ("BeautifulSoup + extruct", "HTML tables, JSON-LD, microdata"),
-        ("pdfplumber", "manufacturer PDF datasheets"),
-        ("openpyxl", "delivery-format XLSX"),
-        ("pytest \u00d7 77", "hermetic suite, offline by default"),
-        ("Remotion + FFmpeg", "reproducible demo film build"),
+        ("pdfplumber", "Manufacturer PDF datasheets"),
+        ("openpyxl", "Delivery-format XLSX"),
+        ("pytest × 77", "Hermetic suite, offline default"),
+        ("Remotion + FFmpeg", "Reproducible 3-minute demo film"),
     ]
+    cw, ch = 4.46, 0.72
     for i, (name, why) in enumerate(techs):
         r, c = divmod(i, 2)
-        x = 0.5 + c * 4.65
-        yy = 1.85 + r * 0.82
-        cshape = card(s, x, yy, 4.4, 0.68)
-        fill_tf(cshape.text_frame, [
-            (name, dict(size=13, bold=True, font=MONO, space_after=0)),
-            (why, dict(size=9.5, color=MUTED)),
+        x = L + c * (cw + 0.24)
+        y = TOP + r * (ch + 0.10)
+        card(s, x, y, cw, ch, fill=PALE)
+        _, tf = box(s, x + 0.16, y + 0.10, cw - 0.32, 0.54)
+        fill_tf(tf, [
+            (name, dict(size=13, bold=True, font=MONO, space_after=1)),
+            (why, dict(size=11, color=MUTED, space_after=0)),
         ])
-    _, tf = box(s, 0.5, 5.0, 9.0, 0.4)
-    fill_tf(tf, [("Optional LLM fallback (gpt-4o-mini, hard-capped calls) only for cryptic rows "
-                  "with unknown brand \u2014 off by default.", dict(size=10, color=MUTED))])
 
-    # ---- S11 cost ----
+    # ========== 10 Cost ==========
     s = slides[10]
+    wipe_text(s)
     rows = [
-        ("Approach", "Cost per SKU", "Notes"),
-        ("Manual enrichment (offshore)", "$5.00\u2013$15.00", "industry rate for research + entry"),
-        ("unilog \u2014 rules path", "$0.0004", "CPU only; 1,000 rows \u2248 60s, zero API calls"),
-        ("unilog \u2014 LLM last-mile (worst case)", "$0.0204 max", "hard-capped calls/run; off by default"),
+        ("Approach", "Cost / SKU", "Notes", True),
+        ("Manual enrichment (offshore)", "$5.00 – $15.00", "Industry rate for research + entry", False),
+        ("unilog — rules path", "$0.0004", "CPU only · 1,000 rows ≈ 60 s · zero API calls", False),
+        ("unilog — LLM last-mile (worst)", "$0.0204 max", "Hard-capped calls / run · off by default", False),
     ]
-    y = 2.0
-    for i, (a, b, c) in enumerate(rows):
-        head = i == 0
-        cshape = card(s, 0.7, y, 8.6, 0.6, fill=HAIR if head else WHITE)
-        fill_tf(cshape.text_frame, [("", dict(size=1))])
-        _, tfa = box(s, 0.95, y + 0.12, 3.6, 0.4)
-        style(tfa.paragraphs[0], a, size=12, bold=head)
-        _, tfb = box(s, 4.7, y + 0.12, 1.7, 0.4)
-        style(tfb.paragraphs[0], b, size=12, bold=True,
-              color=GREEN if not head else INK, font=MONO)
-        _, tfc = box(s, 6.5, y + 0.12, 2.7, 0.4)
-        style(tfc.paragraphs[0], c, size=9.5, color=MUTED)
-        y += 0.72
-    _, tf = box(s, 0.7, y + 0.1, 8.6, 0.6)
-    fill_tf(tf, [("A 1M-SKU catalog: ~$400 compute on the rules path vs $5M\u201315M manually \u2014 four "
-                  "orders of magnitude, with provenance humans can audit.", dict(size=12,
-                                                                                 bold=True))])
+    rh = 0.52
+    for i, (a, b, c, head) in enumerate(rows):
+        y = TOP + i * (rh + 0.08)
+        card(s, L, y, W, rh, fill=HAIR if head else WHITE)
+        _, tfa = box(s, L + 0.16, y + 0.12, 3.70, 0.30)
+        fill_tf(tfa, [(a, dict(size=12, bold=head, space_after=0))])
+        _, tfb = box(s, L + 4.00, y + 0.12, 1.80, 0.30)
+        fill_tf(tfb, [(b, dict(size=12, bold=True, color=INK if head else GREEN,
+                              font=MONO, space_after=0))])
+        _, tfc = box(s, L + 5.90, y + 0.12, 3.10, 0.30)
+        fill_tf(tfc, [(c, dict(size=11, color=MUTED, space_after=0))])
+    _, tf = box(s, L, TOP + 4 * (rh + 0.08) + 0.06, W, 0.50)
+    fill_tf(tf, [("A 1M-SKU catalog: ~$400 compute on the rules path vs $5–15M "
+                  "manually — four orders of magnitude, with provenance a human can audit.",
+                  dict(size=13, bold=True, space_after=0))])
 
-    # ---- S12 MVP snapshots (aspect-aware grid, no overlaps) ----
+    # ========== 11 MVP snapshots — TWO images only, no overflow ==========
     s = slides[11]
-    from PIL import Image
+    wipe_text(s)
+    cat = CROP / "catalog.png"
+    ev = CROP / "evidence.png"
+    if cat.exists():
+        framed(s, cat, L, TOP, 4.46, max_h=3.40,
+               caption="Catalog — 1,000 enriched rows, ready for PIM")
+    if ev.exists():
+        framed(s, ev, L + 4.70, TOP, 4.46, max_h=3.40,
+               caption="Evidence drawer — blank beats invented")
 
-    def place(path, x, y, w, caption=None):
-        with Image.open(path) as im:
-            ar = im.height / im.width
-        h = w * ar
-        shot(s, path, x, y, w, caption)
-        return h
-
-    h1 = place(SHOTS / "proof_band.png", 0.7, 1.62, 4.0, "Golden accuracy \u2014 verified on home")
-    place(SHOTS / "catalog_table.png", 5.3, 1.62, 4.0, "Catalog \u2014 enriched results")
-    y2 = 1.62 + max(h1, 2.45) + 0.18
-    bw = min(2.9, (5.5 - y2) / 0.5625)
-    place(SHOTS / "drawer_evidence.png", 2.0, y2, bw)
-    place(SHOTS / "catalog_export.png", 5.4, y2, bw)
-
-    # ---- S13 future ----
+    # ========== 12 Future ==========
     s = slides[12]
+    wipe_text(s)
     fut = [
-        ("Organizer reference packs", "drop-in importer already ships: real LOV (~161k rows), UOM standards, 27k brand list, 200-row ground-truth scorer activate automatically."),
-        ("Taxonomy at 14k scale", "embedding-based matcher over the full leaf index alongside current rule router."),
-        ("Human review queue", "review-band rows land in a triage UI; approvers publish to CX1-style PIM."),
-        ("HyperScale agent fit", "packaged as a Merchandising-Agent accelerator: same provenance contract, streaming connector for distributor ERPs."),
+        ("Organizer reference packs",
+         "Drop-in importer already ships. Real LOV (~161k), UOM standards, "
+         "27k brand list and the 200-row ground-truth scorer activate automatically."),
+        ("Taxonomy at 14k scale",
+         "Embedding matcher over the full leaf index, sitting beside the current rule router."),
+        ("Human review queue",
+         "Review-band rows land in a triage UI; approvers publish into a CX1-style PIM."),
+        ("HyperScale agent fit",
+         "Packaged as a merchandising-agent accelerator: same provenance contract, "
+         "streaming connector for distributor ERPs."),
     ]
-    _, tf = box(s, 0.5, 1.8, 9.0, 3.4)
-    items = []
-    for name, desc in fut:
-        items.append((name, dict(size=13, bold=True, space_after=1)))
-        items.append((desc, dict(size=11.5, space_after=8)))
-    fill_tf(tf, items)
+    cw, ch = 4.46, 1.64
+    for i, (name, desc) in enumerate(fut):
+        r, c = divmod(i, 2)
+        x = L + c * (cw + 0.24)
+        y = TOP + r * (ch + 0.16)
+        card(s, x, y, cw, ch, fill=PALE)
+        _, tf = box(s, x + 0.16, y + 0.14, cw - 0.32, ch - 0.24)
+        fill_tf(tf, [
+            (name, dict(size=13, bold=True, space_after=6)),
+            (desc, dict(size=12, color=MUTED, space_after=0)),
+        ])
 
-    # ---- S14 links ----
+    # ========== 13 Links ==========
     s = slides[13]
-    wipe(s)
+    wipe_text(s)
     links = [
-        ("GitHub Public Repository", GITHUB),
-        ("Demo Video Link (3 Minutes)", "https://vimeo.com/1220615209"),
-        ("Working Prototype Link", "https://unilog-tau.vercel.app"),
+        ("GitHub public repository", GITHUB),
+        ("Demo video — 3 minutes", DEMO),
+        ("Working prototype", PROTO),
     ]
-    y = 2.1
-    for label, url in links:
-        _, tf = box(s, 0.7, y, 8.8, 0.75)
-        fill_tf(tf, [(label, dict(size=13, bold=True, space_after=0)),
-                     (url, dict(size=12, font=MONO, color=GREEN))])
-        y += 1.05
+    lh = 0.92
+    for i, (label, url) in enumerate(links):
+        y = TOP + i * (lh + 0.16)
+        card(s, L, y, W, lh, fill=PALE)
+        _, tf = box(s, L + 0.28, y + 0.14, W - 0.56, 0.68)
+        fill_tf(tf, [
+            (label, dict(size=13, bold=True, space_after=2)),
+            (url, dict(size=14, font=MONO, color=GREEN, space_after=0)),
+        ])
 
-    # ---- S15 closing ----
+    # ========== 14 Closing — template already has Thank You baked in ==========
     s = slides[14]
-    _, tf = box(s, 0.7, 2.3, 8.6, 1.0)
+    for shape in list(s.shapes):
+        if shape.has_text_frame:
+            s.shapes._spTree.remove(shape._element)
+    _, tf = box(s, 0.50, 4.85, 6.4, 0.38)
     fill_tf(tf, [
-        ("Thank you", dict(size=30, bold=True)),
-        ("thExplorers \u00b7 UniHack 2026", dict(size=13, color=MUTED)),
+        ("thExplorers  ·  Shiwani Mishra  ·  Saurabh Gupta",
+         dict(size=12, color=WHITE, space_after=0)),
     ])
 
     OUT.parent.mkdir(parents=True, exist_ok=True)

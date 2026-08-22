@@ -1,0 +1,65 @@
+{
+  "voice": "coral",
+  "edge_voice": "en-US-AndrewNeural",
+  "model": "gpt-4o-mini-tts",
+  "fallback_model": "tts-1-hd",
+  "sample_rate": 24000,
+  "instructions": "Speak like a thoughtful documentary narrator inside a product film. Warm, precise, unhurried. Conversational American English. Slight breath after numbers. Never salesy, never chirpy, never robotic. Pronounce Unilog as YOO-nih-log. Pronounce thExplorers as the Explorers. Pronounce SKU as skew. Pronounce MPN as M-P-N.",
+  "lines": [
+    {
+      "id": "cold-open",
+      "start_s": 0.9,
+      "text": "A distributor sends you six columns. A part number. A short description. A few brand placeholders. That is the entire input. Unilog turns it into a two-hundred-fifty-two column delivery record — and every filled cell cites the page it came from."
+    },
+    {
+      "id": "mechanism",
+      "start_s": 17.6,
+      "text": "The pipeline is deterministic. Resolve the manufacturer. Classify to a leaf. Extract from official HTML, JSON-L-D, and PDFs. Normalize, validate, compose five descriptions. Rules first. A language model is last-mile only. No evidence — the field stays blank."
+    },
+    {
+      "id": "proof-intro",
+      "start_s": 39.6,
+      "text": "This is the live product. One take. No mocked data."
+    },
+    {
+      "id": "proof-enrich",
+      "start_s": 46.0,
+      "text": "Paste a Frigidaire dishwasher part number. Enrich. The record comes back with invoice, mobile, and short descriptions — inside their character limits — plus attributes, each with a source URL."
+    },
+    {
+      "id": "proof-drawer",
+      "start_s": 60.3,
+      "text": "Open any row. The evidence drawer shows exactly where a value came from. Two hundred thirteen columns are blank on purpose. No manufacturer evidence — so nothing was invented."
+    },
+    {
+      "id": "proof-batch-a",
+      "start_s": 76.2,
+      "text": "Now the sample catalog. One thousand rows, streamed live. Every SKU classified. About thirty-nine fields filled per row — only what the sources actually support."
+    },
+    {
+      "id": "proof-batch-b",
+      "start_s": 96.0,
+      "text": "Confidence stays honest. High requires an external manufacturer page. Everything else is flagged for review."
+    },
+    {
+      "id": "proof-quality",
+      "start_s": 112.2,
+      "text": "Against the organizer expected output: one hundred percent. Sixty-three of sixty-three on Frigidaire. Seventy-one of seventy-one on Whirlpool."
+    },
+    {
+      "id": "proof-export",
+      "start_s": 123.4,
+      "text": "Export is the delivery format they asked for. CSV. Excel. And a provenance file for every cell."
+    },
+    {
+      "id": "trust",
+      "start_s": 132.4,
+      "text": "That is the trust bar. One hundred thirty-four fields matched. One thousand of one thousand rows classified. Seventy-seven hermetic tests. Two seconds. No network. High confidence is never self-cited. Blank beats invented."
+    },
+    {
+      "id": "close",
+      "start_s": 157.2,
+      "text": "Unilog. Evidence-first product intelligence for industrial commerce. Built by the Explorers for UniHack twenty twenty-six. The prototype is live. The repository is public."
+    }
+  ]
+}

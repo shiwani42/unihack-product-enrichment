@@ -6,7 +6,7 @@
   "scripts": {
     "capture": "python3 capture_walkthrough.py",
     "assets": "python3 prepare_assets.py",
-    "audio": "python3 scripts/generate_score.py public/audio/score.wav --duration 179.0 --bpm 96",
+    "audio": "python3 scripts/generate_score.py public/audio/score.wav --duration 179.0 --bpm 96 && python3 scripts/generate_voiceover.py",
     "dev": "npm run assets && remotion studio src/index.ts --no-open",
     "test": "vitest run",
     "lint": "tsc --noEmit",

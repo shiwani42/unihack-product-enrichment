@@ -220,7 +220,7 @@ def _validation_issue_rate(rows: list[dict[str, str]]) -> dict:
     return {"rows_with_errors": error_rows, "top_issues": [[k, v] for k, v in top]}
 
 
-def golden_accuracy() -> dict | None:
+def reference_accuracy() -> dict | None:
     expected_rows = read_input_rows(DEFAULT_OUTPUT_HEADERS)
     if len(expected_rows) <= 2:
         return {
@@ -254,7 +254,7 @@ def main() -> None:
         "uom_style": _uom_style(rows),
         "source_url_coverage": _source_url_coverage(rows),
         "validation_issues": _validation_issue_rate(rows),
-        "golden_accuracy": golden_accuracy(),
+        "reference_accuracy": reference_accuracy(),
     }
     print(json.dumps(payload, indent=2))
 

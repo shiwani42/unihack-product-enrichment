@@ -4,11 +4,11 @@ import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-from app.config import DEFAULT_INPUT, DEFAULT_OUTPUT_HEADERS, GOLDEN_MPNS, OUTPUT_DIR
+from app.config import DEFAULT_INPUT, DEFAULT_OUTPUT_HEADERS, REFERENCE_MPNS, OUTPUT_DIR
 from ingest.csv_io import load_output_headers, read_input_rows, write_output_rows
 from ingest.export_io import write_output_xlsx, write_provenance_json
 from pipeline import enrich_input_row
-from validate.golden_test import compare_rows
+from validate.reference_test import compare_rows
 from validate.report import build_row_report, reports_to_dicts, summarize_reports
 
 
@@ -68,20 +68,20 @@ def cmd_enrich(args: argparse.Namespace) -> None:
         print(f"Wrote provenance to {provenance_path}")
 
 
-def cmd_golden(args: argparse.Namespace) -> None:
+def cmd_reference(args: argparse.Namespace) -> None:
     headers = load_output_headers()
-    golden_rows = read_input_rows(DEFAULT_OUTPUT_HEADERS)
-    golden_by_mpn = {row["Mfg_Part_Num"]: row for row in golden_rows if row.get("Mfg_Part_Num")}
+    reference_rows = read_input_rows(DEFAULT_OUTPUT_HEADERS)
+    reference_by_mpn = {row["Mfg_Part_Num"]: row for row in reference_rows if row.get("Mfg_Part_Num")}
 
     input_rows = read_input_rows(DEFAULT_INPUT)
     input_by_mpn = {row["Mfg_Part_Num"]: row for row in input_rows}
 
     results = []
-    for mpn in GOLDEN_MPNS:
-        expected = golden_by_mpn.get(mpn)
+    for mpn in REFERENCE_MPNS:
+        expected = reference_by_mpn.get(mpn)
         source = input_by_mpn.get(mpn)
         if not expected or not source:
-            print(f"Skipping {mpn}: missing golden or input row")
+            print(f"Skipping {mpn}: missing reference or input row")
             continue
         actual = enrich_input_row(source, headers).row
         score = compare_rows(expected, actual, mpn)
@@ -182,9 +182,12 @@ def build_parser() -> argparse.ArgumentParser:
     enrich.add_argument("--dedupe", action="store_true", help="Skip duplicate MPNS in input")
     enrich.set_defaults(func=cmd_enrich)
 
-    golden = sub.add_parser("golden", help="Score output against golden examples")
-    golden.add_argument("--report", default=str(OUTPUT_DIR / "golden_report.json"))
-    golden.set_defaults(func=cmd_golden)
+    reference = sub.add_parser(
+        "reference", aliases=["golden"],
+        help="Score output against the organizer reference rows (alias: golden)",
+    )
+    reference.add_argument("--report", default=str(OUTPUT_DIR / "reference_report.json"))
+    reference.set_defaults(func=cmd_reference)
 
     batch = sub.add_parser("batch", help="Batch enrich with validation report")
     batch.add_argument("--input", default=str(DEFAULT_INPUT))
