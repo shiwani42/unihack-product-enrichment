@@ -253,7 +253,7 @@ def main() -> None:
         ("unilog enrichment engine", dict(size=32, bold=True, color=NAVY, space_after=8)),
         ("Evidence-first product intelligence for industrial commerce.",
          dict(size=16, color=INK, space_after=6)),
-        ("Six columns in.  252 out.  Every value traceable to its source.",
+        ("Distributor input in. Catalog row out. Every value traceable to its source.",
          dict(size=14, bold=True, color=GREEN, space_after=4)),
         ("Team thExplorers  ·  Shiwani Mishra  ·  Saurabh Gupta  ·  UniHack 2026",
          dict(size=12, color=MUTED, space_after=0)),
@@ -291,8 +291,8 @@ def main() -> None:
     wipe_text(s)
     _, tf = box(s, L, TOP, W, 1.15)
     fill_tf(tf, [
-        ("Distributors hand us six columns. We return a 252-column Unilog "
-         "delivery record — every filled cell traced to a source URL.",
+        ("Distributors hand us an input table. We return a Unilog "
+         "catalog row. Every filled cell is traced to a source URL.",
          dict(size=15, bold=True, space_after=6)),
         ("Manufacturer-first sourcing (Amazon / eBay blocked) → identity → "
          "leaf classification → HTML / JSON-LD / PDF extraction → unit & LOV "
@@ -374,7 +374,7 @@ def main() -> None:
     s = slides[5]
     wipe_text(s)
     left = [
-        "6-column input → 252-column CSV / XLSX, headers untouched",
+        "Distributor input to catalog CSV / XLSX, headers untouched",
         "Manufacturer-first sourcing; marketplace blocklist",
         "14 leaf templates + generic industrial fallback",
         "Attribute slots filled only when evidence exists",
@@ -400,7 +400,7 @@ def main() -> None:
     s = slides[6]
     wipe_text(s)
     stages = [
-        ("1  Ingest", "6 columns, placeholders,\ndedupe merge — never drop"),
+        ("1  Ingest", "input table, placeholders,\ndedupe merge, never drop"),
         ("2  Identity", "Brand aliases, DIB / E1,\nMPN prefix rules"),
         ("3  Classify", "Leaf routing across\n14 category templates"),
         ("4  Extract", "HTML · JSON-LD · PDF\ncache-first fetch"),
@@ -434,7 +434,7 @@ def main() -> None:
     right_p = CROP / "record.png"
     if left_p.exists():
         framed(s, left_p, L, TOP, 4.46, max_h=3.40,
-               caption="Enrich workbench — six columns in")
+               caption="Enrich workbench, input table")
     if right_p.exists():
         framed(s, right_p, L + 4.70, TOP, 4.46, max_h=3.40,
                caption="Result — Frigidaire PDSH4816AF, 100% vs reference")

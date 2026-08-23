@@ -6,7 +6,7 @@
   "output": "walkthrough.mp4",
   "raw_output": "walkthrough_raw.webm",
   "segments": [
-    { "id": "seg-hero", "label": "Hero load: Six columns in. 252 out. + reference proof band" },
+    { "id": "seg-hero", "label": "Hero load: Enrich workbench" },
     { "id": "seg-enrich", "label": "Type part line and enrich PDSH4816AF" },
     { "id": "seg-catalog-drawer", "label": "Catalog row -> drawer -> Evidence (sources + honest blanks), close via Escape" },
     { "id": "seg-batch", "label": "Run batch stream (1000 SKUs) to completion" },
@@ -14,7 +14,7 @@
     { "id": "seg-export", "label": "Export CSV download from catalog" }
   ],
   "actions": [
-    { "label": "load-hero", "expect": { "text": "Six columns in." } },
+    { "label": "load-hero", "expect": { "text": "Enrich" } },
     { "label": "proof-band-visible", "target": "#proof-band" },
     { "label": "type-mpn", "target": "#sb_mpn", "value": "PDSH4816AF" },
     { "label": "type-desc", "target": "#sb_desc", "value": "24in built-in dishwasher" },

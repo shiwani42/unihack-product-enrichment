@@ -235,7 +235,7 @@ Independent audit found dishwasher-bias, fabricated values, self-cited provenanc
 **Added:**
 - **Interactive SKU Sandbox / Playground**: Live 1-click preset testing (< 400ms) with instant output rendering.
 - **Enhanced 8-Tab Product Inspector Drawer**:
-  1. *Split Diff View*: Sparse 6-column input vs rich 252-column commercial record.
+  1. *Split Diff View*: Sparse distributor input vs rich catalog record.
   2. *50-Slot Attribute Table*: Structured values, units (UOM), and evidence source citations.
   3. *5 Commercial Descriptions*: Invoice (&le;40c), Mobile (60-80c), Short (&le;240c), Long, Retail with character validity indicators and 1-click copy buttons.
   4. *Storefront Simulator*: Realistic distributor B2B product detail page (CX1 PDP mockup).

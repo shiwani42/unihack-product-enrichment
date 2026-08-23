@@ -9,7 +9,7 @@
     {
       "id": "cold-open",
       "start_s": 0.9,
-      "text": "A distributor sends you six columns. A part number. A short description. A few brand placeholders. That is the entire input. Unilog turns it into a two-hundred-fifty-two column delivery record — and every filled cell cites the page it came from."
+      "text": "A distributor sends you an input table. A part number. A short description. A few brand placeholders. That is the entire input. Unilog turns it into a sourced catalog row, and every filled cell cites the page it came from."
     },
     {
       "id": "mechanism",

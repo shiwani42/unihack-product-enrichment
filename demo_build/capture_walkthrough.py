@@ -188,7 +188,7 @@ def run_walkthrough(record_video: bool) -> tuple[Path, dict]:
         # ---- Beat 1: hero -------------------------------------------------
         rec.open_segment("seg-hero")
         page.goto(BASE_URL, wait_until="networkidle")
-        page.wait_for_selector("text=Six columns in.", timeout=20000)
+        page.wait_for_selector("text=Enrich", timeout=20000)
         rec.log_action("load-hero")
         wait_nonempty(page, "#presets-list")
         page.wait_for_selector("#proof-band", state="visible", timeout=20000)

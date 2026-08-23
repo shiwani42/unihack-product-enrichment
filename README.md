@@ -1,12 +1,10 @@
 # Unilog
 
-Unilog fills a product catalog row from a distributor input table. It starts with manufacturer pages, never fetches shopping hosts, and cites a source URL for every filled cell.
+Unilog fills a product catalog row from a distributor input table. It starts with manufacturer pages, never fetches shopping hosts, and cites a source URL for every filled cell. Blank beats invented.
 
 App: https://unilog-tau.vercel.app
 
 Demo: https://vimeo.com/1220615209
-
-The input fields are `Mfg_Part_Num`, `Part_Desc`, `E1_Brand`, `Unilog_Brand`, `DIB_Brand`, and `Part_Manuf`. Blank beats invented.
 
 ## How it works
 

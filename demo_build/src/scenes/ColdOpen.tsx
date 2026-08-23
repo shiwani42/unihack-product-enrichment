@@ -71,7 +71,7 @@ export const ColdOpen: React.FC = () => {
         >
           Distributors hand you
           <br />
-          six columns.
+          an input table.
         </div>
 
         <div
@@ -140,7 +140,7 @@ export const ColdOpen: React.FC = () => {
               color: COLORS.paper,
             }}
           >
-            Six columns in. <span style={{color: COLORS.green}}>252 out.</span>
+            Input table. <span style={{color: COLORS.green}}>Catalog row.</span>
           </span>
           <span
             style={{

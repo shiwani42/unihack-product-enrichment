@@ -4,7 +4,7 @@ Maps `guidelines/challenge.txt` requirements to implementation status (updated a
 
 | Requirement | Status | Implementation |
 |-------------|--------|----------------|
-| 6-column input → 252-column output | Done | `ingest/csv_io.py`, headers unchanged |
+| Distributor input → catalog row | Done | `ingest/csv_io.py`, headers unchanged |
 | Manufacturer-first sourcing | Partial+ | Cache-first live fetch for **all** categories (uniform policy); PDF mining for appliance templates; desc parsing labeled `input:Part_Desc` honestly |
 | Block Amazon/eBay/etc. | Done | `sources/finder.py`, `validate/rules.py` |
 | Leaf-level taxonomy | Partial | Keyword routing → 14 templates (13 leaves + generic fallback); 22 indexed leaves |

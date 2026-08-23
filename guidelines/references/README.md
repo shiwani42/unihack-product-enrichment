@@ -15,7 +15,7 @@ UNILOG_REFERENCES_DIR      ← optional extra folder
 Then run enrich as usual (`cli.py batch`, `cli.py enrich`, or the local UI).
 Import is automatic. You do not have to run the importer first.
 
-This folder is **not** for the 6-column product CSV. That file is:
+This folder is **not** for the product input CSV. That file is:
 
 - sample: `guidelines/Unihack_ Sample Dataset - Input.csv`
 - or `--input path/to/your.csv` / Enrich → drop CSV in the UI

@@ -10,7 +10,7 @@ This document is the single source of truth for any coding agent continuing work
 
 ## 1. What this project does
 
-Transforms **6-column distributor input** into **252-column Unilog delivery format** using a manufacturer-first enrichment pipeline.
+Transforms a distributor input table into a Unilog catalog row using a manufacturer-first enrichment pipeline.
 
 | Input columns | `Mfg_Part_Num`, `Part_Desc`, `E1_Brand`, `Unilog_Brand`, `DIB_Brand`, `Part_Manuf` |
 | Output | Fixed 252 headers from `guidelines/Unihack_ Expected Output - Delivery Format.csv` |
@@ -59,7 +59,7 @@ PYTHONPATH=. uvicorn app.main:app --host 0.0.0.0 --port 8000
 ## 3. Architecture
 
 ```
-Input CSV (6 cols)
+Input CSV
     │
     ▼
 ingest/csv_io.py          Read/write CSV, empty row factory

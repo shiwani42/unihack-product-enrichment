@@ -12,7 +12,7 @@ URLs, and exports a delivery-ready 252-column record — proven, not promised.
 
 | # | id | frames | content |
 |---|----|--------|---------|
-| S1 | cold-open | 520 | dark card: "Distributors hand you six columns." + cryptic row `DCB518ASTS06G — Diablo 1/2x18 Sanding Belt` |
+| S1 | cold-open | 520 | dark card: "Distributors hand you an input table." + cryptic row `DCB518ASTS06G — Diablo 1/2x18 Sanding Belt` |
 | S2 | mechanism | 690 | 5 pipeline cards; "Rules first. LLM only for the last mile. Blank beats invented." |
 | S3 | live-proof | 2700 | recorded walkthrough in a browser frame with slow zooms + captions: intro → live enrich → evidence drawer → batch stream → reference proof band → catalog export |
 | S4 | trust | 842 | stat cards: 134/134 fields vs organizer expected output (2 reference SKUs), 1000/1000 rows classified, 77 hermetic tests, high-confidence evidence rule |
