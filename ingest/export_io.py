@@ -2,7 +2,7 @@ from pathlib import Path
 
 from openpyxl import Workbook
 
-from ingest.csv_io import load_output_headers, read_input_rows, write_output_rows
+from ingest.csv_io import load_output_headers, read_input_rows, sanitize_cell, write_output_rows
 
 
 def write_output_xlsx(path: Path, headers: list[str], rows: list[dict[str, str]]) -> None:
@@ -12,7 +12,7 @@ def write_output_xlsx(path: Path, headers: list[str], rows: list[dict[str, str]]
     sheet.title = "Enriched"
     sheet.append(headers)
     for row in rows:
-        sheet.append([row.get(header, "") for header in headers])
+        sheet.append([sanitize_cell(row.get(header, "")) for header in headers])
     workbook.save(path)
 
 

@@ -59,8 +59,9 @@ pip install -r requirements.txt
 
 PYTHONPATH=. python3 cli.py reference       # 100% deterministic, zero network (alias: golden)
 PYTHONPATH=. pytest -q                      # hermetic tests, offline by default
-PYTHONPATH=. python3 cli.py batch --filter all --xlsx --workers 4 \
-    --provenance output/field_provenance.json
+PYTHONPATH=. python3 cli.py batch --filter all --xlsx --workers 4
+# Checkpoints every SKU. If the process dies, run the same command again to
+# resume. Pass --fresh to replace an existing output instead of resuming.
 PYTHONPATH=. python3 cli.py harvest-brands --dry-run
 PYTHONPATH=. python3 cli.py harvest-brands --scope leftover
 uvicorn app.main:app --port 8000            # web UI at http://localhost:8000

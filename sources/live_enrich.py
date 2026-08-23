@@ -34,6 +34,7 @@ from sources.finder import (
     candidate_third_party_urls,
     first_fetch_window,
     is_blocked_url,
+    is_pdf_url,
     is_search_url,
     official_url_score,
 )
@@ -384,6 +385,10 @@ def fetch_manufacturer_evidence(
         )
 
     known_primary, known_fallback = _split_known_urls(mpn, manufacturer_domains)
+    known_pdfs = [url for url in known_primary + known_fallback if is_pdf_url(url)]
+    known_primary = [url for url in known_primary if not is_pdf_url(url)]
+    known_fallback = [url for url in known_fallback if not is_pdf_url(url)]
+    pdf_links.extend(known_pdfs)
     if known_primary:
         manufacturer_domains = list(dict.fromkeys(manufacturer_domains + _hosts_from_urls(known_primary)))
         pdf_links.extend(fetch_tier(known_primary[:url_limit]))

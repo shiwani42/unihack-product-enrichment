@@ -64,7 +64,7 @@ def host_has_product_template(domains: list[str], extras: dict[str, list[str]] |
         for key, templates in extras.items():
             if key not in host and host not in key:
                 continue
-            if any(not is_search_url(str(item)) for item in templates or []):
+            if any(not is_search_url(str(item)) and "/appliance/" not in str(item).lower() for item in templates or []):
                 return True
     return False
 

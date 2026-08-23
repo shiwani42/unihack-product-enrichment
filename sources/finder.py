@@ -233,6 +233,25 @@ def is_search_url(url: str) -> bool:
     return any(token in low for token in ("search?", "search.html", "/search/", "smartsearchresults"))
 
 
+def is_pdf_url(url: str) -> bool:
+    path = urlparse(url or "").path.lower()
+    return path.endswith(".pdf")
+
+
+def host_uses_appliance_path(host: str) -> bool:
+    """True only for GE/Cafe-style hosts. Tool brands must not inherit /appliance/{mpn}."""
+    return "appliance" in (host or "").lower()
+
+
+def is_appliance_path_template(template: str) -> bool:
+    raw = (template or "").strip()
+    if not raw:
+        return False
+    parsed = urlparse(raw if "://" in raw else f"https://placeholder.example{raw}")
+    path = (parsed.path or "").lower()
+    return path.startswith("/appliance/") or path == "/appliance/{mpn}" or "/appliance/{mpn}" in path
+
+
 def first_fetch_window(urls: list[str], limit: int) -> list[str]:
     """Product-page guesses first, with on-site search kept even if the host is crowded.
 
@@ -246,6 +265,8 @@ def first_fetch_window(urls: list[str], limit: int) -> list[str]:
     host_searches: list[str] = []
     generics: list[str] = []
     for url in urls:
+        if is_pdf_url(url):
+            continue
         if not is_search_url(url):
             products.append(url)
         elif "search?q=" in url.lower():
@@ -275,10 +296,13 @@ def _urls_for_domains(mpn: str, domains: list[str]) -> list[str]:
         origin = _origin(domain)
         host = urlparse(origin).netloc.lower()
         host_has_product_extra = False
+        allow_appliance = host_uses_appliance_path(host)
         for key, templates in extras.items():
             if key not in host:
                 continue
             for template in templates:
+                if is_appliance_path_template(template) and not allow_appliance:
+                    continue
                 urls.append(template.format(**tokens))
                 if not is_search_url(template):
                     host_has_product_extra = True
@@ -288,7 +312,9 @@ def _urls_for_domains(mpn: str, domains: list[str]) -> list[str]:
         if host_has_product_extra:
             paths = SEARCH_PATHS
         else:
-            paths = OFFICIAL_PATHS + _learned_paths() + SEARCH_PATHS
+            paths = list(OFFICIAL_PATHS + _learned_paths() + SEARCH_PATHS)
+            if not allow_appliance:
+                paths = [path for path in paths if not is_appliance_path_template(path)]
         for path in paths:
             urls.append(origin + path.format(**tokens))
     from sources.dead_paths import drop_dead_urls
@@ -315,7 +341,7 @@ def candidate_mfr_urls(mpn: str, domains: list[str]) -> list[str]:
 
     remembered = []
     for url in known_urls_for(mpn):
-        if is_blocked_url(url) or is_distributor_url(url):
+        if is_blocked_url(url) or is_distributor_url(url) or is_pdf_url(url):
             continue
         if not domains or url_on_domains(url, domains):
             remembered.append(url)

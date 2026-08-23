@@ -440,7 +440,7 @@ def test_unknown_brand_keeps_search_in_first_fetch_window():
     assert "https://www.newbrandtools.com/search?q=ZZ-JUDGE-NEW" in urls
     assert "https://www.newbrandtools.com/p/ZZ-JUDGE-NEW" in urls
     assert "https://www.newbrandtools.com/products/ZZ-JUDGE-NEW" in urls
-    assert "https://www.newbrandtools.com/appliance/ZZ-JUDGE-NEW" in urls
+    assert "https://www.newbrandtools.com/appliance/ZZ-JUDGE-NEW" not in urls
     assert "owner-center" not in joined
     assert "gea-specs" not in joined
     assert "learnwhirlpool" not in joined
@@ -1460,4 +1460,51 @@ def test_vercel_skips_ipv6_retry_on_timeouts(monkeypatch):
 
     asyncio.run(async_fetcher.fetch_all_pages(["https://www.frigidaire.com/p/X1"], timeout=2))
     assert stacks == [True]
+
+
+def test_tool_brand_does_not_treat_appliance_path_as_product_cms():
+    from app.config import FETCH_URL_LIMIT
+    from sources.finder import candidate_mfr_urls, first_fetch_window
+
+    urls = first_fetch_window(candidate_mfr_urls("JET-X", ["jettools.com"]), FETCH_URL_LIMIT)
+    joined = " ".join(urls)
+    assert "/appliance/" not in joined
+    assert any("/product/" in url or "/p/" in url for url in urls)
+    assert "https://www.jettools.com/search?q=JET-X" in urls
+
+
+def test_ge_family_still_uses_appliance_product_path():
+    from app.config import FETCH_URL_LIMIT
+    from sources.finder import candidate_mfr_urls, first_fetch_window
+
+    urls = first_fetch_window(candidate_mfr_urls("PDT715SYVFS", ["geappliances.com"]), FETCH_URL_LIMIT)
+    assert any("/appliance/PDT715SYVFS" in url for url in urls)
+
+
+def test_known_pdfs_are_extracted_not_html_fetched(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
+    pdp = "https://www.milwaukeetool.com/products/details/49-94-NEW"
+    pdf = "https://www.milwaukeetool.com/-/media/PDFs/Objective-Data/guide.pdf"
+    from sources.known_urls import remember_urls
+
+    remember_urls("49-94-NEW", [pdp, pdf])
+    pdf_seen: list[str] = []
+
+    def capture_pdfs(urls):
+        pdf_seen.extend(urls)
+        return EvidenceBundle()
+
+    rich = (
+        "<html><body>Voltage Rating 120 Color White "
+        "Material Steel Amperage Rating 15</body></html>"
+    )
+    requested = _stub_fetch_pages(monkeypatch, lambda url: rich if "products/details" in url else "")
+    monkeypatch.setattr("sources.live_enrich.fetch_pdf_evidence", capture_pdfs)
+    from sources.live_enrich import fetch_manufacturer_evidence
+
+    fetch_manufacturer_evidence("49-94-NEW", ["milwaukeetool.com"], fetch_pdfs=True)
+    assert all(not url.lower().endswith(".pdf") for url in requested)
+    assert pdf in pdf_seen
+    assert pdp in requested
 

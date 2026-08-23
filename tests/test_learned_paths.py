@@ -33,14 +33,14 @@ def test_deep_brand_cms_is_not_a_generic_shape():
     assert template_path_shape("https://www.southwire.com/search?q={mpn}") is None
 
 
-def test_unseen_host_gets_learned_appliance_and_adobe_paths():
+def test_unseen_host_gets_adobe_path_not_appliance_404s():
     from app.config import FETCH_URL_LIMIT
 
     urls = first_fetch_window(candidate_mfr_urls("ZZ-JUDGE-NEW", ["newbrandtools.com"]), FETCH_URL_LIMIT)
     joined = " ".join(urls)
     assert "https://www.newbrandtools.com/search?q=ZZ-JUDGE-NEW" in urls
     assert "https://www.newbrandtools.com/p/ZZ-JUDGE-NEW" in urls
-    assert "https://www.newbrandtools.com/appliance/ZZ-JUDGE-NEW" in urls
+    assert "https://www.newbrandtools.com/appliance/ZZ-JUDGE-NEW" not in urls
     assert "https://www.newbrandtools.com/en-us/product/ZZ-JUDGE-NEW" in urls
     assert "owner-center" not in joined
     assert "gea-specs" not in joined

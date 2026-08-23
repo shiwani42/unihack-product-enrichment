@@ -13,11 +13,18 @@
     "https://www.bekocorp.com/search?q={mpn}"
   ],
   "bow-products.com": [
-    "https://www.bow-products.com/appliance/{mpn}"
+    "https://www.bow-products.com/products/{mpn}",
+    "https://www.bow-products.com/product-support/{mpn}"
   ],
   "cafeappliances.com": [
     "https://www.cafeappliances.com/appliance/{mpn}",
     "https://products.geappliances.com/appliance/gea-specs/{mpn}"
+  ],
+  "colorguardrailing.com": [
+    "https://www.colorguardrailing.com/products/{mpn}"
+  ],
+  "cooperlighting.com": [
+    "https://www.cooperlighting.com/global/{mpn}"
   ],
   "dewalt.com": [
     "https://www.dewalt.com/en-us/product/{mpn}",
@@ -33,6 +40,9 @@
   ],
   "firstalert.com": [
     "https://www.firstalert.com/search?q={mpn}"
+  ],
+  "frigidaire.ca": [
+    "https://www.frigidaire.ca/Product-Support/{mpn}"
   ],
   "frigidaire.com": [
     "https://support.frigidaire.com/Owner-Center/Product-Support/{mpn}",
@@ -54,14 +64,15 @@
     "https://www.jennair.com/search.html?searchTerm={mpn}"
   ],
   "jettools.com": [
-    "https://www.jettools.com/appliance/{mpn}"
+    "https://www.jettools.com/product/{mpn}",
+    "https://www.jettools.com/en-us/product/{mpn}"
   ],
   "kichler.com": [
     "https://www.kichler.com/en-us/product/{mpn}",
     "https://www.kichler.com/search?q={mpn}"
   ],
   "kingcanada.com": [
-    "https://www.kingcanada.com/appliance/{mpn}"
+    "https://www.kingcanada.com/products/{mpn}"
   ],
   "kitchenaid.com": [
     "https://learnwhirlpool.com/smartsearchresults?searchtext={search_mpn}",
@@ -105,7 +116,12 @@
     "https://www.mirka.com/en-us/p/{mpn}?ls=true",
     "https://www.mirka.com/en-us/p/{mpn}/",
     "https://www.mirka.com/en/search/?q={mpn}",
-    "https://www.mirka.com/en-us/search/?q={mpn}"
+    "https://www.mirka.com/en-us/search/?q={mpn}",
+    "https://www.mirka.com/en/search?q={mpn}"
+  ],
+  "products.geappliances.com": [
+    "https://products.geappliances.com/appliance/gea-specs/{mpn}",
+    "https://products.geappliances.com/appliance/gea-specs/{mpn}/support"
   ],
   "samsung.com": [
     "https://www.samsung.com/us/search/searchMain/?searchTerm={mpn}"
@@ -123,7 +139,11 @@
     "https://www.southwire.com/search?q={mpn}"
   ],
   "speedqueen.com": [
+    "https://speedqueen.com/products/{mpn}",
     "https://speedqueen.com/search/{mpn}"
+  ],
+  "support.lutron.com": [
+    "https://support.lutron.com/p/{mpn}"
   ],
   "timbertech.com": [
     "https://www.timbertech.com/search/?q={mpn}",
@@ -143,7 +163,11 @@
     "https://www.veluxusa.com/search?q={mpn}"
   ],
   "vesseltools.com": [
-    "https://www.vesseltools.com/appliance/{mpn}"
+    "https://www.vesseltools.com/product-support/{mpn}"
+  ],
+  "westwoodlumbersales.com": [
+    "https://www.westwoodlumbersales.com/p/{mpn}",
+    "https://www.westwoodlumbersales.com/support/{mpn}"
   ],
   "whirlpool.com": [
     "https://learnwhirlpool.com/smartsearchresults?searchtext={search_mpn}",

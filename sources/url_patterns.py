@@ -17,7 +17,14 @@ import threading
 from urllib.parse import parse_qsl, quote, urlencode, urlparse, urlunparse
 
 from io_utils import atomic_write_text
-from sources.finder import SEARCH_PATHS_FILE, is_blocked_url, is_distributor_url, reset_search_path_cache
+from sources.finder import (
+    SEARCH_PATHS_FILE,
+    host_uses_appliance_path,
+    is_appliance_path_template,
+    is_blocked_url,
+    is_distributor_url,
+    reset_search_path_cache,
+)
 
 # Tokens that may remain in a promoted host template. Category/SEO slugs
 # (wire-cable, major-appliances, m18-brushless-...) are stripped. Do not add
@@ -251,6 +258,8 @@ def promote_templates(mpn: str, urls: list[str]) -> list[str]:
         for template in portable_templates(url, mpn):
             host = _host_key(template)
             if not host:
+                continue
+            if is_appliance_path_template(template) and not host_uses_appliance_path(host):
                 continue
             bucket = incoming.setdefault(host, [])
             if template not in bucket:
