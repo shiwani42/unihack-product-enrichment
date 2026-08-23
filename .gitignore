@@ -21,6 +21,8 @@ data/llm_cache/
 data/raw/
 data/taxonomy/official_leaves.json
 data/dead_paths.json
+data/learned_hosts.json
+data/reviewer_memory.json
 data/url_runtime/
 guidelines/.~lock.*
 *.lock

@@ -122,14 +122,12 @@ def looks_like_dealer_storefront(url: str) -> bool:
     return False
 
 
-def is_blocked_url(url: str) -> bool:
-    """True for shopping/e-commerce and search-noise hosts. Distributors are not blocked."""
+def is_shopping_or_noise_url(url: str) -> bool:
+    """Amazon-class shopping and search-noise hosts. Dealers are not included."""
     if not url:
         return False
     lowered = url.lower()
     if any(marker in lowered for marker in ECOMMERCE_PATH_MARKERS):
-        return True
-    if looks_like_dealer_storefront(url):
         return True
     host = _hostname(url)
     if not host:
@@ -140,6 +138,21 @@ def is_blocked_url(url: str) -> bool:
     if labels & noise_host_labels():
         return True
     return _host_in_list(host, _taxonomy_hosts("shopping_hosts") | _taxonomy_hosts("noise_hosts"))
+
+
+def is_blocked_url(url: str) -> bool:
+    """True for shopping/e-commerce and search-noise hosts. Distributors are not blocked."""
+    if not url:
+        return False
+    if is_shopping_or_noise_url(url):
+        return True
+    if looks_like_dealer_storefront(url):
+        return True
+    from sources.learned_hosts import is_learned_storefront
+
+    if is_learned_storefront(url):
+        return True
+    return False
 
 
 def is_distributor_url(url: str) -> bool:

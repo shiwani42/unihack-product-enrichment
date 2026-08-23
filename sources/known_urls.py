@@ -180,7 +180,14 @@ def remember_urls(mpn: str, urls: list[str]) -> None:
         _cache = payload
     from sources.url_patterns import promote_templates
 
-    promote_templates(key, incoming)
+    added = promote_templates(key, incoming)
+    if added:
+        from sources.learned_paths import refresh_learned_paths
+
+        try:
+            refresh_learned_paths()
+        except OSError:
+            pass
 
 
 def forget_urls(mpn: str, urls: list[str]) -> None:

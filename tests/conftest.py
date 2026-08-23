@@ -100,6 +100,26 @@ def _isolate_harvest_links(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _isolate_learned_hosts(tmp_path, monkeypatch):
+    import sources.learned_hosts as learned_hosts
+
+    monkeypatch.setattr(learned_hosts, "LEARNED_HOSTS_FILE", tmp_path / "learned_hosts.json")
+    learned_hosts._reset_cache()
+    yield
+    learned_hosts._reset_cache()
+
+
+@pytest.fixture(autouse=True)
+def _isolate_reviewer_memory(tmp_path, monkeypatch):
+    import sources.reviewer as reviewer
+
+    monkeypatch.setattr(reviewer, "REVIEWER_FILE", tmp_path / "reviewer_memory.json")
+    reviewer._reset_cache()
+    yield
+    reviewer._reset_cache()
+
+
+@pytest.fixture(autouse=True)
 def _isolate_known_urls(tmp_path, monkeypatch):
     """Keep live-search URL memory out of the committed seed file during tests."""
     import sources.known_urls as known_urls

@@ -255,6 +255,8 @@ def promote_templates(mpn: str, urls: list[str]) -> list[str]:
     """Merge portable host templates so the next unseen SKU on that brand hits them."""
     incoming: dict[str, list[str]] = {}
     for url in urls or []:
+        if is_blocked_url(url) or is_distributor_url(url):
+            continue
         for template in portable_templates(url, mpn):
             host = _host_key(template)
             if not host:

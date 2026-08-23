@@ -8,7 +8,7 @@ function loadUrlMemory() {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return null;
-    if (!parsed.known_urls && !parsed.search_paths) return null;
+    if (!parsed.known_urls && !parsed.search_paths && !parsed.reviewer) return null;
     return parsed;
   } catch (_err) {
     return null;
@@ -569,6 +569,7 @@ function openDrawer(row, { silent = false } = {}) {
   renderRecordTab(row);
   renderEvidenceTab(row);
   renderAuditTab(row);
+  bindReviewerForms(row);
 
   setDrawerTab("record");
   drawer.classList.add("open");
@@ -619,6 +620,169 @@ drawer.addEventListener("keydown", (e) => {
     first.focus();
   }
 });
+
+function emptySpecOptions(row) {
+  const filled = new Set((row.specs || []).map((item) => (item.label || "").toLowerCase()));
+  const template = taxonomyTemplates.find((item) => item.category_id === row.category_id);
+  const labels = (template && template.attribute_labels) || [];
+  const missing = labels.filter((label) => !filled.has(String(label).toLowerCase()));
+  const options = missing.length ? missing : ["Color", "Voltage Rating", "Material"];
+  return `<option value="">Attribute…</option>${options
+    .slice(0, 24)
+    .map((label) => `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`)
+    .join("")}<option value="__custom">Other…</option>`;
+}
+
+function patchPreview(preview) {
+  if (!preview || !preview.mpn) return;
+  const list = lastData.previews || [];
+  const index = list.findIndex((item) => item.mpn === preview.mpn);
+  if (index >= 0) list[index] = preview;
+  else list.push(preview);
+  lastData.previews = list;
+  if (!lastData.summary) lastData.summary = { rows: list.length };
+  lastData.summary.rows = list.length;
+  if (currentSandboxPreview && currentSandboxPreview.mpn === preview.mpn) {
+    currentSandboxPreview = preview;
+    renderSandboxOutput(preview);
+  }
+  renderDashboard();
+  renderResults();
+}
+
+function activeDrawerTab() {
+  const tab = document.querySelector(".drawer-tab.active");
+  return (tab && tab.dataset.dtab) || "record";
+}
+
+async function contributeToRow(row, payload) {
+  const tab = activeDrawerTab();
+  const res = await fetch("/api/catalog/contribute", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      mpn: row.mpn,
+      preview: row,
+      input: row.input || {},
+      category_id: row.category_id || "",
+      url_memory: urlMemory,
+      ...payload,
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || data.detail || `HTTP ${res.status}`);
+  if (data.url_memory) {
+    urlMemory = data.url_memory;
+    saveUrlMemory(urlMemory);
+  }
+  if (data.preview) {
+    patchPreview(data.preview);
+    openDrawer(data.preview, { silent: true });
+    setDrawerTab(tab);
+  }
+  const message = (data.messages || []).filter(Boolean).join(" ");
+  if (message) showToast(message);
+}
+
+function bindReviewerForms(row) {
+  const record = el("dtab-record");
+  const evidence = el("dtab-evidence");
+  record.querySelectorAll("form[data-review='attribute']").forEach((form) => {
+      const select = form.querySelector(".reviewer-label");
+      const custom = form.querySelector(".reviewer-custom");
+      const input = form.querySelector(".reviewer-value");
+      if (select && custom) {
+        select.addEventListener("change", () => {
+          custom.hidden = select.value !== "__custom";
+          if (!custom.hidden) custom.focus();
+        });
+      }
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        let label = (select && select.value) || "";
+        if (label === "__custom") label = (custom && custom.value.trim()) || "";
+      const value = (input && input.value.trim()) || "";
+      if (!label || !value) {
+        showToast("Add an attribute and a value", true);
+        return;
+      }
+      const button = form.querySelector("button[type='submit']");
+      button.disabled = true;
+      try {
+        await contributeToRow(row, { attributes: [{ label, value }] });
+      } catch (err) {
+        showToast(err.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+  evidence.querySelectorAll("form[data-review='url']").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const input = form.querySelector(".reviewer-url");
+      const url = (input && input.value.trim()) || "";
+      if (!url) {
+        showToast("Paste a product page URL", true);
+        return;
+      }
+      const button = form.querySelector("button[type='submit']");
+      button.disabled = true;
+      button.textContent = "Fetching…";
+      try {
+        await contributeToRow(row, { url });
+      } catch (err) {
+        showToast(err.message, true);
+      } finally {
+        button.disabled = false;
+        button.textContent = "Fetch";
+      }
+    });
+  });
+  record.querySelectorAll(".flag-open").forEach((button) => {
+    button.addEventListener("click", () => {
+      const host = button.closest("td");
+      if (!host) return;
+      const existing = host.querySelector(".flag-form");
+      if (existing) {
+        existing.remove();
+        return;
+      }
+      const form = document.createElement("form");
+      form.className = "flag-form";
+      form.innerHTML = `
+        <input type="text" class="flag-reason" placeholder="What’s wrong?" maxlength="400" />
+        <button class="btn btn-ghost btn-xs" type="submit">Send</button>`;
+      host.appendChild(form);
+      form.querySelector(".flag-reason").focus();
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const reason = form.querySelector(".flag-reason").value.trim();
+        if (!reason) {
+          showToast("Say why this value is wrong", true);
+          return;
+        }
+        const send = form.querySelector("button[type='submit']");
+        send.disabled = true;
+        try {
+          await contributeToRow(row, {
+            flags: [
+              {
+                label: button.dataset.label,
+                value: button.dataset.value,
+                source: button.dataset.source,
+                reason,
+              },
+            ],
+          });
+        } catch (err) {
+          showToast(err.message, true);
+          send.disabled = false;
+        }
+      });
+    });
+  });
+}
 
 function kvTable(rows) {
   return `
@@ -697,16 +861,19 @@ function renderRecordTab(p) {
           ? `
       <table class="drawer-table">
         <thead>
-          <tr><th>Attribute</th><th>Value</th><th>Source</th></tr>
+          <tr><th>Attribute</th><th>Value</th><th>Source</th><th></th></tr>
         </thead>
         <tbody>
           ${specs
             .map(
               (s) => `
-            <tr>
+            <tr class="spec-row">
               <th>${escapeHtml(s.label)}</th>
               <td>${escapeHtml(s.display)}</td>
               <td>${s.source ? escapeHtml(s.source) : "—"}</td>
+              <td class="spec-flag">
+                <button class="copy-btn flag-open" type="button" data-label="${escapeHtml(s.label)}" data-value="${escapeHtml(s.value)}" data-source="${escapeHtml(s.source || "")}">Flag</button>
+              </td>
             </tr>`
             )
             .join("")}
@@ -714,6 +881,19 @@ function renderRecordTab(p) {
       </table>`
           : "<p>No attributes populated for this part.</p>"
       }
+      <details class="reviewer-fold">
+        <summary>Add a value you know</summary>
+        <form class="reviewer-form" data-review="attribute">
+          <div class="reviewer-form-row">
+            <select class="reviewer-label" aria-label="Attribute">
+              ${emptySpecOptions(p)}
+            </select>
+            <input class="reviewer-custom" type="text" placeholder="Name" maxlength="80" hidden />
+            <input class="reviewer-value" type="text" placeholder="Value" maxlength="200" />
+            <button class="btn btn-ghost btn-xs" type="submit">Save</button>
+          </div>
+        </form>
+      </details>
     </section>
   `;
 }
@@ -745,6 +925,16 @@ function renderEvidenceTab(p) {
     </table>`
         : "<p>No source URLs captured for this record.</p>"
     }
+    <details class="reviewer-fold">
+      <summary>Have a product page?</summary>
+      <form class="reviewer-form" data-review="url">
+        <div class="reviewer-form-row">
+          <input class="reviewer-url" type="url" placeholder="https://" maxlength="2000" />
+          <button class="btn btn-ghost btn-xs" type="submit">Fetch</button>
+        </div>
+        <p class="hint-note">We’ll pull specs from that page and remember the link for later parts on this brand.</p>
+      </form>
+    </details>
   `;
 }
 

@@ -72,7 +72,12 @@ def _fill_named_column(row: dict[str, str], column: str, value: str, uom: str = 
             row[uom_col] = uom.strip()
 
 
-def apply_template_attributes(row: dict[str, str], template: CategoryTemplate, bundle: EvidenceBundle) -> None:
+def apply_template_attributes(
+    row: dict[str, str],
+    template: CategoryTemplate,
+    bundle: EvidenceBundle,
+    only_empty: bool = False,
+) -> None:
     """Fill template slots, named delivery columns, then leftover attribute slots.
 
     Unilog always has 50 attribute triples. Templates only name the slots that
@@ -82,14 +87,21 @@ def apply_template_attributes(row: dict[str, str], template: CategoryTemplate, b
     aliases = _load_aliases()
     used: set[str] = set()
     mpn = (row.get("MANUFACTURER_PART_NUMBER") or row.get("Mfg_Part_Num") or "").strip()
+    from sources.reviewer import is_rejected_value
+
     for index, label in enumerate(template.attribute_labels, start=1):
         row[f"ATTRIBUTE_LABEL {index}"] = label
+        if only_empty and (row.get(f"ATTRIBUTE_VALUE {index}") or "").strip():
+            used.add(_norm_label(label))
+            continue
         evidence = _match_evidence(bundle, label, aliases)
         if evidence and (evidence.value or "").strip():
+            if is_rejected_value(label, evidence.value):
+                continue
             value, uom = cleanse_attribute(
                 label, evidence.value, evidence.uom or "", template.category_id, mpn=mpn
             )
-            if value:
+            if value and not is_rejected_value(label, value):
                 row[f"ATTRIBUTE_VALUE {index}"] = value
                 row[f"ATTRIBUTE_UOM {index}"] = uom
                 used.add(_norm_label(label))
@@ -144,6 +156,8 @@ def apply_template_attributes(row: dict[str, str], template: CategoryTemplate, b
         _fill_named_column(row, "Warranty", bundle.warranty)
 
     slot = len(template.attribute_labels) + 1
+    from sources.reviewer import is_rejected_value
+
     for item in bundle.items:
         if slot > _MAX_ATTR_SLOTS:
             break
@@ -160,11 +174,18 @@ def apply_template_attributes(row: dict[str, str], template: CategoryTemplate, b
             continue
         if "{{" in value or "attributeValue" in value:
             continue
+        if is_rejected_value(label, value):
+            continue
         cleaned_value, cleaned_uom = cleanse_attribute(
             label, value, item.uom or "", template.category_id, mpn=mpn
         )
-        if not cleaned_value:
+        if not cleaned_value or is_rejected_value(label, cleaned_value):
             continue
+        while slot <= _MAX_ATTR_SLOTS and (row.get(f"ATTRIBUTE_VALUE {slot}") or "").strip():
+            used.add(_norm_label(row.get(f"ATTRIBUTE_LABEL {slot}") or ""))
+            slot += 1
+        if slot > _MAX_ATTR_SLOTS:
+            break
         row[f"ATTRIBUTE_LABEL {slot}"] = label
         row[f"ATTRIBUTE_VALUE {slot}"] = cleaned_value
         row[f"ATTRIBUTE_UOM {slot}"] = cleaned_uom

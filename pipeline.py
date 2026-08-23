@@ -313,6 +313,9 @@ def _enrich_row_internal(input_row: dict[str, str], headers: list[str]) -> Enric
 
     # Stage 6: Cleansing and normalisation
     cleanse_output_row(output, category_id)
+    from sources.reviewer import apply_saved_overrides
+
+    apply_saved_overrides(output, mpn)
     if bundle:
         apply_product_ids(output, bundle)
     apply_crosswalk(output, mpn)

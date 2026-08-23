@@ -45,15 +45,22 @@ def _redirect_writers(directory: Path) -> None:
     import sources.dead_paths as dead_paths
     import sources.finder as finder
     import sources.known_urls as known_urls
+    import sources.learned_hosts as learned_hosts
     import sources.url_patterns as url_patterns
 
     known_urls.KNOWN_URLS_FILE = directory / "known_urls.json"
     finder.SEARCH_PATHS_FILE = directory / "search_paths.json"
     url_patterns.SEARCH_PATHS_FILE = directory / "search_paths.json"
     dead_paths.DEAD_PATHS_FILE = directory / "dead_paths.json"
+    learned_hosts.LEARNED_HOSTS_FILE = directory / "learned_hosts.json"
+    import sources.reviewer as reviewer
+
+    reviewer.REVIEWER_FILE = directory / "reviewer_memory.json"
     known_urls._reset_cache()
     finder.reset_search_path_cache()
     dead_paths._reset_cache()
+    learned_hosts._reset_cache()
+    reviewer._reset_cache()
 
 
 def activate() -> None:
@@ -71,6 +78,12 @@ def activate() -> None:
     dead = directory / "dead_paths.json"
     if not dead.exists():
         _write_json(dead, {})
+    learned = directory / "learned_hosts.json"
+    if not learned.exists():
+        _write_json(learned, {"storefront": []})
+    reviewer_mem = directory / "reviewer_memory.json"
+    if not reviewer_mem.exists():
+        _write_json(reviewer_mem, {"rejected": {}, "overrides": {}, "urls": {}, "flags": []})
     _redirect_writers(directory)
 
 
@@ -82,12 +95,16 @@ def snapshot() -> dict:
     import sources.dead_paths as dead_paths
     import sources.finder as finder
     import sources.known_urls as known_urls
+    import sources.learned_hosts as learned_hosts
+    import sources.reviewer as reviewer
     from sources.web_search import last_search_engine
 
     return {
         "known_urls": dict(known_urls._payload()),
         "search_paths": dict(finder._domain_paths()),
         "dead_paths": dict(dead_paths._read()),
+        "learned_hosts": {"storefront": list(learned_hosts.storefront_hosts())},
+        "reviewer": reviewer.snapshot_payload(),
         "search_engine": last_search_engine(),
     }
 
@@ -98,6 +115,7 @@ def restore(memory: dict | None) -> None:
     import sources.dead_paths as dead_paths
     import sources.finder as finder
     import sources.known_urls as known_urls
+    import sources.learned_hosts as learned_hosts
     import sources.url_patterns as url_patterns
 
     known = memory.get("known_urls")
@@ -112,6 +130,17 @@ def restore(memory: dict | None) -> None:
     if isinstance(dead, dict):
         _write_json(dead_paths.DEAD_PATHS_FILE, dead)
         dead_paths._reset_cache()
+    learned = memory.get("learned_hosts")
+    if isinstance(learned, dict):
+        _write_json(learned_hosts.LEARNED_HOSTS_FILE, learned)
+        learned_hosts._reset_cache()
+    elif isinstance(learned, list):
+        _write_json(learned_hosts.LEARNED_HOSTS_FILE, {"storefront": learned})
+        learned_hosts._reset_cache()
+    import sources.reviewer as reviewer
+
+    if isinstance(memory.get("reviewer"), dict):
+        reviewer.restore_payload(memory.get("reviewer"))
     url_patterns.SEARCH_PATHS_FILE = finder.SEARCH_PATHS_FILE
     if "search_engine" in memory:
         from sources.web_search import set_last_search_engine

@@ -123,7 +123,7 @@ def test_url_memory_restore_keeps_learned_product_url():
     remember_urls("LEARNED-1", ["https://www.milwaukeetool.com/en-us/LEARNED-1"])
     memory = snapshot()
     assert "LEARNED-1" in memory["known_urls"]
-    restore({"known_urls": {}, "search_paths": memory["search_paths"], "dead_paths": {}})
+    restore({"known_urls": {}, "search_paths": memory["search_paths"], "dead_paths": {}, "learned_hosts": {"storefront": []}})
     assert known_urls_for("LEARNED-1") == []
     restore(memory)
     assert known_urls_for("LEARNED-1")[0].endswith("/LEARNED-1")
@@ -166,3 +166,62 @@ def test_enrich_stream_window_then_commit():
     )
     assert commit.status_code == 200
     assert commit.json() == {"ok": True, "rows": 0}
+
+
+def test_catalog_contribute_attribute_and_flag(tmp_path, monkeypatch):
+    monkeypatch.setattr("app.main.OUTPUT_DIR", tmp_path)
+    monkeypatch.setattr("app.main.LAST_REPORT_PATH", tmp_path / "last_report.json")
+    preview = {
+        "mpn": "ZZ-API-1",
+        "category_id": "generic_industrial",
+        "input": {
+            "Mfg_Part_Num": "ZZ-API-1",
+            "Part_Desc": "Brass bushing",
+            "E1_Brand": "",
+            "Unilog_Brand": "",
+            "DIB_Brand": "",
+            "Part_Manuf": "Acme",
+        },
+        "specs": [
+            {
+                "slot": 2,
+                "label": "Size",
+                "value": "1440",
+                "uom": "",
+                "display": "1440",
+                "source": "https://www.newdealer.example/p/ZZ-API-1",
+            }
+        ],
+        "identity": {"BRAND_NAME": "Acme"},
+        "taxonomy": {},
+        "evidence_count": 1,
+    }
+    added = client.post(
+        "/api/catalog/contribute",
+        json={
+            "mpn": "ZZ-API-1",
+            "preview": preview,
+            "input": preview["input"],
+            "category_id": "generic_industrial",
+            "attributes": [{"label": "Material", "value": "Brass"}],
+        },
+    )
+    assert added.status_code == 200
+    body = added.json()
+    assert body["preview"]["mpn"] == "ZZ-API-1"
+    labels = [item["label"] for item in body["preview"]["specs"]]
+    assert "Material" in labels
+    flagged = client.post(
+        "/api/catalog/contribute",
+        json={
+            "mpn": "ZZ-API-1",
+            "preview": body["preview"],
+            "input": preview["input"],
+            "category_id": "generic_industrial",
+            "flags": [{"label": "Size", "value": "1440", "reason": "OG image width", "source": "https://www.newdealer.example/p/ZZ-API-1"}],
+        },
+    )
+    assert flagged.status_code == 200
+    specs = flagged.json()["preview"]["specs"]
+    assert all(item.get("value") != "1440" for item in specs)
+    assert flagged.json()["url_memory"]["reviewer"]["rejected"]

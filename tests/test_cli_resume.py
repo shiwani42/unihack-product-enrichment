@@ -75,12 +75,14 @@ def test_activate_on_vercel_writes_under_tmp(monkeypatch):
     import sources.dead_paths as dead_paths
     import sources.finder as finder
     import sources.known_urls as known_urls
+    import sources.learned_hosts as learned_hosts
 
     root = str(runtime_dir())
     assert root.startswith("/tmp/unilog")
     assert str(known_urls.KNOWN_URLS_FILE).startswith(root)
     assert str(finder.SEARCH_PATHS_FILE).startswith(root)
     assert str(dead_paths.DEAD_PATHS_FILE).startswith(root)
+    assert str(learned_hosts.LEARNED_HOSTS_FILE).startswith(root)
     monkeypatch.setenv("VERCEL", "1")
     monkeypatch.delenv("UNILOG_RAW_CACHE_DIR", raising=False)
     monkeypatch.delenv("UNILOG_EVIDENCE_CACHE_DIR", raising=False)

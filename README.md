@@ -2,25 +2,21 @@
 
 [Live app](https://unilog-tau.vercel.app) · [3-min demo](https://vimeo.com/1220615209) · Deck: `submission/UniHack_thExplorers_Prototype.pptx`
 
-We turn Unilog's six distributor columns (`Mfg_Part_Num`, `Part_Desc`, `E1_Brand`, `Unilog_Brand`, `DIB_Brand`, `Part_Manuf`) into a 252-column catalog row. Manufacturer pages first. Shopping hosts never. Every filled cell cites a source.
+We turn a distributor input table (`Mfg_Part_Num`, `Part_Desc`, `E1_Brand`, `Unilog_Brand`, `DIB_Brand`, `Part_Manuf`) into a Unilog catalog row. Manufacturer pages first. Shopping hosts never. Every filled cell cites a source.
 
 Delivery we already ran: `output/batch_enriched.csv`, `output/batch_enriched.xlsx`, `output/field_provenance.json`.
 
 ## How it works
 
 <p align="center">
-  <img src="./docs/diagrams/pipeline.png" alt="How one SKU is enriched: 6-col CSV to resolve brand and category, fetch manufacturer-first evidence, write a 252-column record" width="100%">
+  <img src="./docs/diagrams/pipeline.png" alt="How one SKU is enriched: input table through identity, host discovery, fetch, and extract into a sourced catalog row. Wikidata, Brave Search, DuckDuckGo, Bing, httpx, and Playwright sit on the path." width="100%">
 </p>
 
 <p align="center">
   <img src="./docs/diagrams/source-policy.png" alt="Evidence order: manufacturer site, family literature, third-party catalogs, distributors last. Shopping never." width="100%">
 </p>
 
-<p align="center">
-  <img src="./docs/diagrams/runtime.png" alt="Vercel and cli.py batch both call enrich_input_row" width="720">
-</p>
-
-Excalidraw sources for the figures: `docs/diagrams/*.excalidraw`.
+Figure sources: `docs/diagrams/*.svg` and `docs/diagrams/*.excalidraw`.
 
 ```
 ingest → identity → classify → fetch → extract → normalize → compose → validate

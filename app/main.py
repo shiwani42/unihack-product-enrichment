@@ -332,6 +332,128 @@ def last_run() -> dict:
     return json.loads(LAST_REPORT_PATH.read_text(encoding="utf-8"))
 
 
+def _output_csv_path() -> Path:
+    return OUTPUT_DIR / "upload_output.csv"
+
+
+def _load_output_row(mpn: str, headers: list[str]) -> dict[str, str] | None:
+    path = _output_csv_path()
+    if not path.exists():
+        return None
+    for row in read_input_rows(path):
+        if (row.get("Mfg_Part_Num") or "").strip() == mpn:
+            filled = {header: "" for header in headers}
+            filled.update(row)
+            return filled
+    return None
+
+
+def _preview_from_last_run(mpn: str) -> dict | None:
+    if not LAST_REPORT_PATH.exists():
+        return None
+    try:
+        payload = json.loads(LAST_REPORT_PATH.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    for preview in payload.get("previews") or []:
+        if isinstance(preview, dict) and preview.get("mpn") == mpn:
+            return preview
+    return None
+
+
+def _upsert_catalog_row(mpn: str, row: dict[str, str], preview: dict, report_dict: dict) -> None:
+    headers = load_output_headers()
+    path = _output_csv_path()
+    existing = read_input_rows(path) if path.exists() else []
+    replaced = False
+    merged_rows: list[dict[str, str]] = []
+    for item in existing:
+        if (item.get("Mfg_Part_Num") or "").strip() == mpn and not replaced:
+            merged_rows.append(row)
+            replaced = True
+        else:
+            merged_rows.append(item)
+    if not replaced:
+        merged_rows.append(row)
+    payload = last_run()
+    previews = [item for item in (payload.get("previews") or []) if isinstance(item, dict)]
+    reports = [item for item in (payload.get("rows") or []) if isinstance(item, dict)]
+    previews = [item for item in previews if item.get("mpn") != mpn] + [preview]
+    reports = [item for item in reports if item.get("mpn") != mpn] + [report_dict]
+    payload["previews"] = previews
+    payload["rows"] = reports
+    payload["summary"] = payload.get("summary") or {}
+    payload["summary"]["rows"] = len(previews)
+    _save_last_run(payload, filter_name=payload.get("filter"), enriched_rows=merged_rows)
+
+
+@app.post("/api/catalog/contribute")
+async def catalog_contribute(request: Request) -> dict:
+    """Inspect-drawer hint: a known product URL, typed specs, or a flagged value."""
+    from identity.brand_resolver import resolve_identity
+    from sources.reviewer import contribute
+    from sources.url_store import persist_shared, snapshot
+    from validate.rules import ValidationIssue
+
+    body = await request.json()
+    mpn = str(body.get("mpn") or "").strip()
+    if not mpn:
+        return JSONResponse({"error": "mpn required"}, status_code=400)
+    memory = body.get("url_memory") if isinstance(body.get("url_memory"), dict) else None
+    begin_request(memory)
+    headers = load_output_headers()
+    preview = body.get("preview") if isinstance(body.get("preview"), dict) else _preview_from_last_run(mpn)
+    input_row = {}
+    if isinstance(body.get("input"), dict):
+        input_row = {key: str(body["input"].get(key) or "") for key in INPUT_COLUMNS}
+    elif preview:
+        input_row = {key: str((preview.get("input") or {}).get(key) or "") for key in INPUT_COLUMNS}
+    input_row["Mfg_Part_Num"] = mpn
+    identity = resolve_identity(
+        mpn=mpn,
+        part_desc=input_row.get("Part_Desc", ""),
+        e1_brand=input_row.get("E1_Brand", ""),
+        dib_brand=input_row.get("DIB_Brand", ""),
+        part_manuf=input_row.get("Part_Manuf", ""),
+        unilog_brand=input_row.get("Unilog_Brand", ""),
+    )
+    names = [identity.manufacturer_name, identity.brand_name, identity.brand_key]
+    result = await run_in_threadpool(
+        lambda: contribute(
+            mpn=mpn,
+            preview=preview,
+            row=_load_output_row(mpn, headers),
+            headers=headers,
+            url=str(body.get("url") or ""),
+            attributes=body.get("attributes") if isinstance(body.get("attributes"), list) else [],
+            flags=body.get("flags") if isinstance(body.get("flags"), list) else [],
+            names=[name for name in names if name],
+            domains=list(identity.domains or []),
+            category_id=str(body.get("category_id") or (preview or {}).get("category_id") or ""),
+        )
+    )
+    issues = result.get("issues") or []
+    report = build_row_report(
+        mpn=mpn,
+        row=result["row"],
+        confidence_band=result.get("confidence_band") or "review",
+        evidence_count=int(result.get("evidence_count") or 0),
+        issues=issues if issues and isinstance(issues[0], ValidationIssue) else issues,
+        field_sources=result.get("field_sources") or {},
+        category_id=result.get("category_id") or "",
+    )
+    report_dict = reports_to_dicts([report])[0]
+    preview_out = row_preview(result["row"], report_dict, input_row=input_row or result["row"])
+    _upsert_catalog_row(mpn, result["row"], preview_out, report_dict)
+    url_memory = persist_shared(snapshot())
+    return {
+        "mpn": mpn,
+        "preview": preview_out,
+        "messages": result.get("messages") or [],
+        "url_memory": url_memory,
+    }
+
+
 @app.post("/api/enrich/single")
 async def enrich_single(request: Request) -> dict:
     headers = load_output_headers()

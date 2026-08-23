@@ -25,6 +25,7 @@ from extract.ref_discovery import discover_pdf_links, discover_product_links
 from extract.structured import extract_structured_data
 from sources.async_fetcher import fetch_all_pages, looks_like_js_shell
 from sources.dead_paths import drop_dead_urls, note_outcome
+from sources.learned_hosts import apply_run_lessons, learn_from_page
 from sources.page_ok import is_error_url, is_not_found, is_usable_page, looks_like_empty_search, looks_like_pdf
 from sources.finder import (
     best_mfr_url,
@@ -128,6 +129,7 @@ def _ingest_page(
     mpn: str,
     manufacturer_domains: list[str],
     prior: EvidenceBundle | None = None,
+    names: list[str] | None = None,
 ) -> tuple[list[str], list[str]]:
     if not is_allowed_url(url, manufacturer_domains) or is_error_url(url):
         return [], []
@@ -136,6 +138,9 @@ def _ingest_page(
             page_bundle = extract_from_pdf_bytes(html.encode("latin-1", errors="replace"), url)
         except Exception:
             page_bundle = EvidenceBundle()
+        learn_from_page(url, "", page_bundle, names)
+        if is_blocked_url(url):
+            return [], []
         apply_source_policy(page_bundle, url, manufacturer_domains)
         if page_bundle.items or page_bundle.approvals or page_bundle.warranty:
             merged = merge_bundles(bundle, page_bundle)
@@ -177,6 +182,9 @@ def _ingest_page(
         extract_structured_data(html, url),
         extract_page_state(html, url),
     )
+    learn_from_page(url, html, page_bundle, names)
+    if is_blocked_url(url):
+        return products, pdfs
     apply_source_policy(page_bundle, url, manufacturer_domains)
     unreadable = primary and looks_like_js_shell(html) and not page_bundle.items
     contributed = (
@@ -215,6 +223,7 @@ def _handle_fetched_page(
     follow_urls: list[str],
     pdf_links: list[str],
     prior: EvidenceBundle | None,
+    names: list[str] | None = None,
 ) -> None:
     note_outcome(requested, mpn, status, html, final_url)
     if is_not_found(status, html, final_url) or is_not_found(status, html, requested):
@@ -224,7 +233,7 @@ def _handle_fetched_page(
     if not is_usable_page(status, html, final_url):
         return
     products, pdfs = _ingest_page(
-        bundle, html, final_url, mpn, manufacturer_domains, prior=prior
+        bundle, html, final_url, mpn, manufacturer_domains, prior=prior, names=names
     )
     pdf_links.extend(pdfs)
     for product in products:
@@ -242,6 +251,7 @@ def _fetch_tier(
     follow: bool = True,
     prior: EvidenceBundle | None = None,
     stop_when=None,
+    names: list[str] | None = None,
 ) -> list[str]:
     start_urls = drop_dead_urls(
         [u for u in start_urls if u not in seen and not is_blocked_url(u) and not is_error_url(u)],
@@ -269,6 +279,7 @@ def _fetch_tier(
             follow_urls,
             pdf_links,
             prior,
+            names=names,
         )
         handled.append(requested)
         return bool(stop_when and stop_when())
@@ -296,6 +307,7 @@ def _fetch_tier(
                 follow_urls,
                 pdf_links,
                 prior,
+                names=names,
             )
             more_handled.append(requested)
             return bool(stop_when and stop_when())
@@ -399,6 +411,7 @@ def fetch_manufacturer_evidence(
             follow=follow,
             prior=prior,
             stop_when=settled,
+            names=names,
         )
 
     known_primary, known_fallback = _split_known_urls(mpn, manufacturer_domains)
@@ -495,6 +508,7 @@ def fetch_manufacturer_evidence(
         merged = merge_bundles(bundle, pdf_bundle)
         _replace(bundle, merged)
 
+    apply_run_lessons(bundle, names)
     remember_bundle(mpn, bundle)
 
     if is_error_url(bundle.mfr_url or "") or is_blocked_url(bundle.mfr_url or "") or looks_like_dealer_storefront(bundle.mfr_url or "") or is_search_url(bundle.mfr_url or ""):

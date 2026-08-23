@@ -14,6 +14,7 @@ def test_merge_memory_unions_hosts_and_templates():
     overlay = {
         "known_urls": {"A": ["https://a.com/A"], "B": ["https://b.com/B"]},
         "search_paths": {"a.com": ["https://a.com/search?q={mpn}"]},
+        "learned_hosts": {"storefront": ["newdealer.example"]},
         "search_engine": "brave",
     }
     merged = merge_memory(base, overlay)
@@ -21,6 +22,7 @@ def test_merge_memory_unions_hosts_and_templates():
     assert merged["known_urls"]["B"] == ["https://b.com/B"]
     assert "https://a.com/p/{mpn}" in merged["search_paths"]["a.com"]
     assert "https://a.com/search?q={mpn}" in merged["search_paths"]["a.com"]
+    assert merged["learned_hosts"]["storefront"] == ["newdealer.example"]
     assert merged["search_engine"] == "brave"
 
 

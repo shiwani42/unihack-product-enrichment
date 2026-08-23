@@ -37,6 +37,61 @@ def configured() -> bool:
     return bool((_upstash_url() and _upstash_token()) or _blob_token())
 
 
+def _union_hosts(left, right) -> list[str]:
+    hosts: list[str] = []
+    for source in (left, right):
+        raw = source
+        if isinstance(source, dict):
+            raw = source.get("storefront")
+            if isinstance(raw, dict):
+                raw = list(raw)
+        for item in raw if isinstance(raw, list) else []:
+            host = str(item or "").strip().lower().removeprefix("www.")
+            if host and host not in hosts:
+                hosts.append(host)
+    return hosts[:500]
+
+
+def _merge_reviewer(left, right) -> dict:
+    a = left if isinstance(left, dict) else {}
+    b = right if isinstance(right, dict) else {}
+    rejected: dict = dict(a.get("rejected") or {}) if isinstance(a.get("rejected"), dict) else {}
+    incoming = b.get("rejected") if isinstance(b.get("rejected"), dict) else {}
+    for key, rec in incoming.items():
+        if not isinstance(rec, dict):
+            continue
+        old = rejected.get(key) if isinstance(rejected.get(key), dict) else {}
+        count = max(int(old.get("n") or 0), int(rec.get("n") or 0))
+        rejected[str(key)] = {
+            **old,
+            **rec,
+            "n": count,
+            "global": bool(old.get("global") or rec.get("global") or count >= 2),
+        }
+    overrides = dict(a.get("overrides") or {}) if isinstance(a.get("overrides"), dict) else {}
+    if isinstance(b.get("overrides"), dict):
+        overrides.update(b["overrides"])
+    urls: dict[str, list] = {}
+    for source in (a.get("urls"), b.get("urls")):
+        if not isinstance(source, dict):
+            continue
+        for mpn, items in source.items():
+            bucket = urls.setdefault(str(mpn), [])
+            for url in items if isinstance(items, list) else []:
+                if url and url not in bucket:
+                    bucket.append(url)
+    flags: list = []
+    for source in (a.get("flags"), b.get("flags")):
+        if isinstance(source, list):
+            flags.extend(item for item in source if isinstance(item, dict))
+    return {
+        "rejected": rejected,
+        "overrides": overrides,
+        "urls": urls,
+        "flags": flags[-300:],
+    }
+
+
 def merge_memory(base: dict | None, overlay: dict | None) -> dict:
     """Union host intelligence. Overlay wins for the same MPN / search_engine."""
     left = base if isinstance(base, dict) else {}
@@ -70,6 +125,10 @@ def merge_memory(base: dict | None, overlay: dict | None) -> dict:
         "known_urls": known,
         "search_paths": paths,
         "dead_paths": dead,
+        "learned_hosts": {
+            "storefront": _union_hosts(left.get("learned_hosts"), right.get("learned_hosts")),
+        },
+        "reviewer": _merge_reviewer(left.get("reviewer"), right.get("reviewer")),
         "search_engine": engine if isinstance(engine, str) else None,
     }
 

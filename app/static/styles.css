@@ -1054,11 +1054,61 @@ body {
 
 .kv-row .v { word-break: break-word; }
 
-.drawer-subhead {
-  margin: 1.75rem 0 0.6rem;
-  font-size: 0.85rem;
+.reviewer-fold {
+  margin-top: 0.9rem;
+}
+.reviewer-fold summary {
+  cursor: pointer;
+  font-size: 0.8rem;
   font-weight: 550;
   color: var(--ink-3);
+  user-select: none;
+  width: fit-content;
+}
+.reviewer-fold summary:hover { color: var(--ink); }
+.reviewer-form { margin-top: 0.7rem; }
+.reviewer-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+.reviewer-form-row input,
+.reviewer-form-row select {
+  font: inherit;
+  font-size: 0.9rem;
+  border: 1px solid var(--hairline);
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 0.35rem 0.55rem;
+  min-width: 0;
+  flex: 1 1 8rem;
+}
+.reviewer-form-row input:focus,
+.reviewer-form-row select:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+.reviewer-form .hint-note { margin: 0.45rem 0 0; }
+.spec-flag {
+  width: 4.2rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.flag-form {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+  align-items: center;
+}
+.flag-form input {
+  font: inherit;
+  font-size: 0.85rem;
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
+  padding: 0.25rem 0.45rem;
+  width: 11rem;
 }
 
 /* Descriptions cards */
