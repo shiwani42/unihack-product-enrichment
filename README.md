@@ -18,10 +18,6 @@ Demo: https://vimeo.com/1220615209
 
 Figure sources: `docs/diagrams/*.svg` and `docs/diagrams/*.excalidraw`.
 
-```
-ingest → identity → classify → fetch → extract → normalize → compose → validate
-```
-
 `enrich_input_row` in `pipeline.py` is the entry the app and `cli.py batch` both call. Pasting input does not replay a precooked CSV.
 
 ## Results
