@@ -17,7 +17,7 @@ columns in, a validated, source-traced record in Unilog's 252-column delivery fo
 | Input rows classified to a leaf category | **1000 / 1000** (14 templates: 13 leaves + generic industrial fallback) |
 | Avg fields populated per row (full online batch) | **39.28** of the fields evidence supports; blank beats invented |
 | Confidence bands | 29 high · 25 medium · 946 review — "high" requires external manufacturer evidence |
-| Hermetic test suite | **77 tests, ~2s**, offline by default |
+| Hermetic test suite | **176 tests**, offline by default |
 | Compute cost | **≈ $0.0004/SKU** rules path (1000 rows ≈ 60s, zero API calls); LLM last-mile capped, off by default |
 
 ## How it works
@@ -58,7 +58,7 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 PYTHONPATH=. python3 cli.py reference       # 100% deterministic, zero network (alias: golden)
-PYTHONPATH=. pytest -q                      # 77 hermetic tests, ~2s
+PYTHONPATH=. pytest -q                      # hermetic tests, offline by default
 PYTHONPATH=. python3 cli.py batch --filter all --xlsx --workers 4 \
     --provenance output/field_provenance.json
 uvicorn app.main:app --port 8000            # web UI at http://localhost:8000
@@ -74,6 +74,8 @@ If you have downloaded the dashboard `.xlsx` files and you want official LOV che
 
 A full 1,000-row CLI batch with workers, resume, and checkpoint, plus `pytest`, is also local. The Vercel function enriches a small window per request (typically one SKU) so it does not time out, which is why the hosted demo is a live walkthrough rather than a dump of the whole sample in one click.
 
+Manufacturer URLs show up when the live fetch actually reaches a product or literature page on the brand site (Hunter’s Shopify PDP for variant SKU 59243, Milwaukee `/products/details/…`, Frigidaire owner-center when that host answers). The Enrich dropzone still only takes the six-column CSV; we look up manufacturer hosts from the brand map and from on-site search, and we do not ask you to paste a MFR URL. If the manufacturer page never loads, or the part number is a distributor prefix the brand site does not use, or the brand is not in the map so there is no domain to start from, attributes and descriptions stay cited as `input:Part_Desc`. That is honest provenance, not a missing button. Blade span or finish can still say `Part_Desc` even when `MFR URL` is filled, if those values were already parsed from the distributor line and the manufacturer HTML did not repeat them as structured specs. A full pass over the 1,000-row sample, with every brand’s search templates, is `cli.py batch` on your machine; the hosted app is for walking SKUs, not for scraping the whole catalog in one request.
+
 ## Repository map
 
 | Path | Purpose |
@@ -83,7 +85,7 @@ A full 1,000-row CLI batch with workers, resume, and checkpoint, plus `pytest`, 
 | `scripts/` | measure, compliance, deck builder, artifact restore, reference importer |
 | `demo_build/` | Reproducible 3-minute demo film (Remotion + verified UI capture) |
 | `guidelines/` | Challenge input, expected output format, solution guide |
-| `tests/` | 77 hermetic tests incl. integrity, uniform-fetch, units-honesty |
+| `tests/` | Hermetic tests incl. integrity, uniform-fetch, units-honesty |
 
 ## License
 
