@@ -1,8 +1,10 @@
 import json
 import re
+from html import unescape
 from pathlib import Path
 
 from extract.evidence import Evidence, EvidenceBundle
+from extract.labeled_specs import extract_labeled_specs
 from extract.ref_discovery import discover_feature_lines, discover_marketing_text
 
 PATTERNS_PATH = Path(__file__).resolve().parent / "spec_patterns.json"
@@ -16,7 +18,8 @@ def _load_patterns() -> list[tuple[str, str, str, float]]:
 
 
 def _clean_text(html: str) -> str:
-    text = re.sub(r"<script[^>]*>.*?</script>", " ", html, flags=re.I | re.S)
+    text = unescape(html or "")
+    text = re.sub(r"<script[^>]*>.*?</script>", " ", text, flags=re.I | re.S)
     text = re.sub(r"<style[^>]*>.*?</style>", " ", text, flags=re.I | re.S)
     text = re.sub(r"<[^>]+>", " ", text)
     return re.sub(r"\s+", " ", text)
@@ -117,6 +120,16 @@ def extract_from_html(html: str, url: str) -> EvidenceBundle:
     )
     if warranty_match:
         bundle.warranty = warranty_match.group(1)
+    elif not bundle.warranty:
+        loose_warranty = re.search(
+            r"Warranty\s*[:\-]\s*((?:\d+\s*[- ]?Year|Limited Lifetime)[^\n.]{0,40})",
+            text,
+            re.I,
+        )
+        if loose_warranty:
+            candidate = loose_warranty.group(1).strip()
+            if not re.search(r"register|portal|login|click here", candidate, re.I):
+                bundle.warranty = candidate
 
     energy_match = re.search(
         r"(\d+\s*kW-hr Annual Energy,\s*\d+\s*to\s*\d+\s*hr Delay Start Hours)",
@@ -129,6 +142,8 @@ def extract_from_html(html: str, url: str) -> EvidenceBundle:
     marketing_src = html[:80_000] if html and len(html) > 80_000 else html
     bundle.marketing = discover_marketing_text(marketing_src)
     bundle.features = discover_feature_lines(working)
+    for item in extract_labeled_specs(html, url).items:
+        bundle.set(item)
     return bundle
 
 

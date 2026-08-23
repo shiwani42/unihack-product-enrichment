@@ -77,3 +77,24 @@ def test_has_image_evidence_via_captured_image_urls():
     bundle = EvidenceBundle()
     bundle.image_urls = ["https://acme.com/img.jpg"]
     assert has_image_evidence(bundle)
+
+
+def test_document_filenames_only_when_matching_pdf_was_seen():
+    row = {"BRAND_NAME": "ACME"}
+    bundle = EvidenceBundle(ref_urls=["https://acme.com/docs/MPN-1-sds.pdf"])
+    apply_asset_fields(row, "MPN-1", bundle)
+    assert row["SDS"] == "ACME_MPN-1_SDS.pdf"
+    bare = {"BRAND_NAME": "ACME"}
+    apply_asset_fields(bare, "MPN-1", EvidenceBundle())
+    assert not bare.get("SDS")
+
+
+def test_video_link_from_manufacturer_media_urls():
+    row = {"BRAND_NAME": "ACME"}
+    bundle = EvidenceBundle(
+        ref_urls=["https://www.youtube.com/watch?v=abc123"],
+        image_urls=["https://vimeo.com/555"],
+    )
+    apply_asset_fields(row, "MPN-1", bundle)
+    assert row["Video Link"] == "https://www.youtube.com/watch?v=abc123"
+    assert row["Video Link 1"] == "https://vimeo.com/555"

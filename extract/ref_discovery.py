@@ -98,43 +98,62 @@ _SKIP_FOLLOW = (
     "/api/auth",
     "lwfilters",
 )
+_OFFICIAL_FOLLOW = (
+    "owner-center",
+    "product-support",
+    "gea-specs",
+    "/appliance/",
+    "/en-us/p/",
+    "/en/p/",
+    "/products/details/",
+)
+_EMBEDDED_PDP = re.compile(
+    r"(?:https?://[^\"'\s<>]+)?(/(?:products/details/[^\"'\s<>]+|(?:en-us|en)/p)/[^\"'\s<>]+)",
+    re.I,
+)
 
 
 def discover_product_links(html: str, base_url: str, mpn: str, domains: list[str], limit: int = 6) -> list[str]:
     """Follow official product/support hits that stay on allowed hosts."""
     found: list[str] = []
-    for url in shopify_product_urls(html, base_url, mpn):
-        if is_blocked_url(url) or not url_on_domains(url, domains):
-            continue
+    needle = (mpn or "").lower()
+
+    def _keep(url: str) -> bool:
+        if not url or is_blocked_url(url) or not url_on_domains(url, domains):
+            return False
+        if url.lower().endswith(".pdf"):
+            return False
+        if any(token in url.lower() for token in _SKIP_FOLLOW):
+            return False
         if url not in found:
             found.append(url)
-        if len(found) >= limit:
+        return len(found) >= limit
+
+    for url in shopify_product_urls(html, base_url, mpn):
+        if _keep(url):
             return found
     if found:
         return found
+    compact = needle.replace("-", "")
+    for match in _EMBEDDED_PDP.finditer(html or ""):
+        url = _absolute(match.group(1), base_url)
+        low = url.lower()
+        if needle and needle not in low and compact not in low.replace("-", ""):
+            continue
+        if _keep(url):
+            return found
     soup = BeautifulSoup(html, "lxml")
-    needle = mpn.lower()
     for anchor in soup.find_all("a", href=True):
         href = anchor["href"].strip()
         if not href or href.startswith("#") or href.lower().startswith("javascript:"):
             continue
         url = _absolute(href, base_url)
-        low = url.lower()
-        if is_blocked_url(url) or low.endswith(".pdf"):
-            continue
-        if any(token in low for token in _SKIP_FOLLOW):
-            continue
-        if not url_on_domains(url, domains):
-            continue
         path = urlparse(url).path.lower()
         text = " ".join(anchor.get_text(" ", strip=True).split()).lower()
-        compact = needle.replace("-", "")
-        official = any(token in low for token in ("owner-center", "product-support", "gea-specs", "/appliance/"))
-        if needle not in low and needle not in text and compact not in path.replace("-", "") and not official:
+        official = any(token in url.lower() for token in _OFFICIAL_FOLLOW)
+        if needle not in url.lower() and needle not in text and compact not in path.replace("-", "") and not official:
             continue
-        if url not in found:
-            found.append(url)
-        if len(found) >= limit:
+        if _keep(url):
             break
     return found
 

@@ -145,6 +145,9 @@ def known_urls_for(mpn: str) -> list[str]:
     for key in _lookup_keys(mpn):
         match = payload.get(key) or payload.get(by_lower.get(key.lower(), ""), [])
         found.extend(match)
+    from sources.harvest_links import urls_for_mpn
+
+    found.extend(urls_for_mpn(mpn))
     return _finalize(found)
 
 

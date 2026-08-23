@@ -12,6 +12,9 @@
   "bekocorp.com": [
     "https://www.bekocorp.com/search?q={mpn}"
   ],
+  "bow-products.com": [
+    "https://www.bow-products.com/appliance/{mpn}"
+  ],
   "cafeappliances.com": [
     "https://www.cafeappliances.com/appliance/{mpn}",
     "https://products.geappliances.com/appliance/gea-specs/{mpn}"
@@ -28,6 +31,9 @@
   "elementelectronics.com": [
     "https://www.elementelectronics.com/search?q={mpn}"
   ],
+  "firstalert.com": [
+    "https://www.firstalert.com/search?q={mpn}"
+  ],
   "frigidaire.com": [
     "https://support.frigidaire.com/Owner-Center/Product-Support/{mpn}",
     "https://www.frigidaire.com/en/p/owner-center/product-support/{mpn}"
@@ -39,12 +45,23 @@
   "hunterfan.com": [
     "https://www.hunterfan.com/search?q={mpn}"
   ],
+  "jameshardie.com": [
+    "https://www.jameshardie.com/search/?q={mpn}",
+    "https://www.jameshardie.com/search?q={mpn}"
+  ],
   "jennair.com": [
     "https://learnwhirlpool.com/smartsearchresults?searchtext={search_mpn}",
     "https://www.jennair.com/search.html?searchTerm={mpn}"
   ],
+  "jettools.com": [
+    "https://www.jettools.com/appliance/{mpn}"
+  ],
   "kichler.com": [
+    "https://www.kichler.com/en-us/product/{mpn}",
     "https://www.kichler.com/search?q={mpn}"
+  ],
+  "kingcanada.com": [
+    "https://www.kingcanada.com/appliance/{mpn}"
   ],
   "kitchenaid.com": [
     "https://learnwhirlpool.com/smartsearchresults?searchtext={search_mpn}",
@@ -75,11 +92,18 @@
     "https://learnwhirlpool.com/smartsearchresults?searchtext={search_mpn}",
     "https://www.maytag.com/search.html?searchTerm={mpn}"
   ],
+  "millertech.com": [
+    "https://www.millertech.com/en-us/product/{mpn}"
+  ],
   "milwaukeetool.com": [
-    "https://www.milwaukeetool.com/products/details/{mpn}",
-    "https://www.milwaukeetool.com/Search/{mpn}"
+    "https://www.milwaukeetool.com/products/details/{mpn}"
   ],
   "mirka.com": [
+    "https://www.mirka.com/en-us/p/{mpn}",
+    "https://www.mirka.com/en/p/{mpn}",
+    "https://www.mirka.com/en-us/p/{mpn}/?ls=true",
+    "https://www.mirka.com/en-us/p/{mpn}?ls=true",
+    "https://www.mirka.com/en-us/p/{mpn}/",
     "https://www.mirka.com/en/search/?q={mpn}",
     "https://www.mirka.com/en-us/search/?q={mpn}"
   ],
@@ -101,6 +125,10 @@
   "speedqueen.com": [
     "https://speedqueen.com/search/{mpn}"
   ],
+  "timbertech.com": [
+    "https://www.timbertech.com/search/?q={mpn}",
+    "https://www.timbertech.com/search?q={mpn}"
+  ],
   "trex.com": [
     "https://www.trex.com/search/?q={mpn}",
     "https://www.trex.com/search?q={mpn}"
@@ -108,8 +136,20 @@
   "u-line.com": [
     "https://www.u-line.com/search?q={mpn}"
   ],
+  "unitedwindowdoor.com": [
+    "https://www.unitedwindowdoor.com/en-us/product/{mpn}"
+  ],
+  "veluxusa.com": [
+    "https://www.veluxusa.com/search?q={mpn}"
+  ],
+  "vesseltools.com": [
+    "https://www.vesseltools.com/appliance/{mpn}"
+  ],
   "whirlpool.com": [
     "https://learnwhirlpool.com/smartsearchresults?searchtext={search_mpn}",
     "https://www.whirlpool.com/search.html?searchTerm={mpn}"
+  ],
+  "whitesiderouterbits.com": [
+    "https://www.whitesiderouterbits.com/products/{mpn}"
   ]
 }

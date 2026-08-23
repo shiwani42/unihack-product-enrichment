@@ -690,7 +690,7 @@ def test_unmapped_search_keeps_parent_company_product_url():
 def _stub_fetch_pages(monkeypatch, html_for):
     requested: list[str] = []
 
-    async def fake_pages(urls, timeout=None):
+    async def fake_pages(urls, timeout=None, on_page=None, **kwargs):
         requested.extend(urls)
         pages = []
         for url in urls:
@@ -701,7 +701,7 @@ def _stub_fetch_pages(monkeypatch, html_for):
                 pages.append((0, "", url, url))
         return pages
 
-    async def fake_successful(urls, timeout=None):
+    async def fake_successful(urls, timeout=None, **kwargs):
         return [(status, html, final) for status, html, final, _req in await fake_pages(urls, timeout) if html]
 
     monkeypatch.setattr("sources.live_enrich.fetch_all_pages", fake_pages)
@@ -762,7 +762,7 @@ def test_soft_404_is_not_used_as_manufacturer_page(tmp_path, monkeypatch):
     monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
     error = "<html><title>404 Page Not Found</title><body>18W ELECTRIC</body></html>"
 
-    async def fake_pages(urls, timeout=None):
+    async def fake_pages(urls, timeout=None, on_page=None, **kwargs):
         pages = []
         for url in urls:
             if "leviton" in url.lower():
@@ -771,7 +771,7 @@ def test_soft_404_is_not_used_as_manufacturer_page(tmp_path, monkeypatch):
                 pages.append((0, "", url, url))
         return pages
 
-    async def fake_successful(urls, timeout=None):
+    async def fake_successful(urls, timeout=None, **kwargs):
         return []
 
     monkeypatch.setattr("sources.live_enrich.fetch_all_pages", fake_pages)
@@ -1186,4 +1186,278 @@ def test_short_number_is_not_rehomed_from_unrelated_page_text():
         ["hunterfan.com"],
     )
     assert bundle.get("Blade Span").source_url == "input:Part_Desc"
+
+
+def test_html_entities_confirm_desc_diameter():
+    from extract.confirm import confirm_desc_evidence
+    from extract.evidence import Evidence
+
+    bundle = EvidenceBundle()
+    bundle.set(
+        Evidence(
+            field="Diameter",
+            value='5"',
+            source_url="input:Part_Desc",
+            extractor="desc_regex",
+            confidence=0.7,
+        )
+    )
+    html = "<html><body>Hiolit JCA2A0 5&quot; PSA Tab. Diameter : 5&quot;</body></html>"
+    confirm_desc_evidence(
+        bundle,
+        html,
+        "https://www.mirka.com/en-us/p/5B-332-080",
+        ["mirka.com"],
+    )
+    assert bundle.get("Diameter").source_url.startswith("https://www.mirka.com/")
+
+
+def test_live_fetch_rehomes_part_desc_citations(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
+    from extract.evidence import Evidence
+    from sources.known_urls import remember_urls
+    from sources.live_enrich import fetch_manufacturer_evidence
+
+    product = "https://www.frigidaire.com/en/p/owner-center/product-support/X1"
+    remember_urls("X1", [product])
+    html = '<html><body>Diameter : 5&quot; Arbor Size : 7/8 in Thickness : .045 in</body></html>'
+    _stub_fetch_pages(monkeypatch, lambda url: html if "frigidaire" in url else "")
+    prior = EvidenceBundle()
+    prior.set(
+        Evidence(
+            field="Diameter",
+            value='5"',
+            source_url="input:Part_Desc",
+            extractor="desc_regex",
+            confidence=0.7,
+        )
+    )
+    fetch_manufacturer_evidence("X1", ["frigidaire.com"], fetch_pdfs=False, prior=prior)
+    assert prior.get("Diameter").source_url == product
+
+
+def test_empty_on_site_search_is_not_ingested(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
+    from sources.live_enrich import fetch_manufacturer_evidence
+
+    empty = '<html><body><h4>0 results for "X1"</h4> Electric Sanders Gas Dual Fuel</body></html>'
+    dist_html = (
+        "<html><body>Voltage Rating 120 Color Stainless Steel "
+        "Material Stainless Steel Buy it today</body></html>"
+    )
+
+    def html_for(url: str) -> str:
+        if "search" in url.lower():
+            return empty
+        if "grainger.com" in url:
+            return dist_html
+        return ""
+
+    _stub_fetch_pages(monkeypatch, html_for)
+    bundle = fetch_manufacturer_evidence("X1", ["frigidaire.com"], fetch_pdfs=False)
+    assert all("search" not in (item.source_url or "").lower() for item in bundle.items)
+    assert "search" not in (bundle.mfr_url or "").lower()
+
+
+def test_host_product_template_is_used_for_unseen_sku_not_only_the_demo_part():
+    from sources.finder import candidate_mfr_urls, first_fetch_window
+
+    urls = first_fetch_window(candidate_mfr_urls("ZZ-JUDGE-MKE", ["milwaukeetool.com"]), 6)
+    joined = " ".join(urls)
+    assert "https://www.milwaukeetool.com/products/details/ZZ-JUDGE-MKE" in urls
+    assert "/Search/ZZ-JUDGE-MKE" not in joined
+    assert "49-94-0013" not in joined
+
+
+def test_host_product_template_beats_learned_appliance_404s():
+    from sources.finder import candidate_mfr_urls, first_fetch_window
+
+    urls = first_fetch_window(candidate_mfr_urls("ZZ-JUDGE-ABR", ["mirka.com"]), 6)
+    joined = " ".join(urls)
+    assert "https://www.mirka.com/en-us/p/ZZ-JUDGE-ABR" in urls
+    assert "/appliance/" not in joined
+    assert "/en-us/product/" not in joined
+    assert "5B-332-080" not in joined
+
+
+def test_search_only_host_still_guesses_generic_product_paths():
+    from sources.finder import candidate_mfr_urls, first_fetch_window
+
+    urls = first_fetch_window(candidate_mfr_urls("ZZ-JUDGE-3M", ["3m.com"]), 6)
+    joined = " ".join(urls)
+    assert any("/p/ZZ-JUDGE-3M" in url or "/products/ZZ-JUDGE-3M" in url for url in urls)
+    assert "search" in joined.lower()
+
+
+def test_web_search_finds_manufacturer_pdp_before_family_or_distributors(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_WEB_SEARCH", "1")
+    pdp = "https://www.frigidaire.com/catalog/item/ZZ-JUDGE-NEW"
+    rich = (
+        "<html><body>Voltage Rating 120 Color White "
+        "Material Steel Amperage Rating 15</body></html>"
+    )
+
+    def html_for(url: str) -> str:
+        return rich if "catalog/item" in url else ""
+
+    requested = _stub_fetch_pages(monkeypatch, html_for)
+    monkeypatch.setattr(
+        "sources.live_enrich._discover_search_urls",
+        lambda *args, **kwargs: ([pdp], ["frigidaire.com"], [pdp]),
+    )
+    from sources.live_enrich import fetch_manufacturer_evidence
+
+    bundle = fetch_manufacturer_evidence("ZZ-JUDGE-NEW", ["frigidaire.com"], fetch_pdfs=False)
+    joined = " ".join(requested).lower()
+    assert pdp in requested
+    assert bundle.get("Voltage Rating") is not None
+    assert "catalog/item" in (bundle.mfr_url or "")
+    assert "grainger.com" not in joined
+    assert "electrolux.com" not in joined
+
+
+def test_embedded_pdp_path_is_followed_from_js():
+    from extract.ref_discovery import discover_product_links
+
+    html = r"""
+    <html><body><script>self.__next_f.push([1,"/products/details/5-x-045-x-7-8-metal-cut-off-wheel-type-1/49-94-0013"])</script></body></html>
+    """
+    links = discover_product_links(
+        html,
+        "https://www.milwaukeetool.com/search?q=49-94-0013",
+        "49-94-0013",
+        ["milwaukeetool.com"],
+    )
+    assert any("49-94-0013" in url and "/products/details/" in url for url in links)
+
+
+def test_empty_oem_search_still_uses_allowed_fallbacks(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
+    empty = '<html><body><h4>0 results for "X1"</h4></body></html>'
+    fallback = (
+        "<html><body>Voltage Rating 120 Color White "
+        "Material Steel Amperage Rating 15 Buy it today</body></html>"
+    )
+
+    def html_for(url: str) -> str:
+        if "3m.com" in url:
+            return empty
+        if "energystar.gov" in url or "grainger.com" in url:
+            return fallback
+        return ""
+
+    requested = _stub_fetch_pages(monkeypatch, html_for)
+    from sources.live_enrich import fetch_manufacturer_evidence
+
+    bundle = fetch_manufacturer_evidence("X1", ["3m.com"], fetch_pdfs=False)
+    joined = " ".join(requested).lower()
+    assert "energystar.gov" in joined
+    voltage = bundle.get("Voltage Rating")
+    assert voltage is not None
+    assert voltage.confidence <= 0.68
+    assert "3m.com" not in (voltage.source_url or "").lower()
+
+
+def test_js_shell_manufacturer_page_still_uses_distributor_specs(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
+    scripts = "".join(f"<script>window._x{i}={{}}</script>" for i in range(10))
+    shell = "<html><body><div id='app'></div>" + scripts + "<!-- " + ("z" * 12000) + " --></body></html>"
+    dist_html = (
+        "<html><body>Voltage Rating 120 Color White "
+        "Material Steel Amperage Rating 15 Buy it today</body></html>"
+    )
+
+    def html_for(url: str) -> str:
+        if "frigidaire." in url:
+            return shell
+        if "grainger.com" in url:
+            return dist_html
+        return ""
+
+    requested = _stub_fetch_pages(monkeypatch, html_for)
+    from sources.live_enrich import fetch_manufacturer_evidence
+
+    bundle = fetch_manufacturer_evidence("X1", ["frigidaire.com"], fetch_pdfs=False)
+    joined = " ".join(requested).lower()
+    assert "grainger.com" in joined
+    assert bundle.get("Voltage Rating") is not None
+    assert "grainger.com" in (bundle.get("Voltage Rating").source_url or "")
+    assert bundle.get("Voltage Rating").confidence <= 0.68
+    assert "frigidaire.com" in (bundle.mfr_url or "")
+    assert "grainger" not in (bundle.mfr_url or "").lower()
+
+
+def test_settled_pdp_cancels_in_flight_urls(monkeypatch):
+    import asyncio
+    import time
+
+    from sources.async_fetcher import fetch_all_pages
+
+    async def fake_html(url, timeout=None, client=None):
+        if "slow" in url:
+            try:
+                await asyncio.sleep(8)
+            except asyncio.CancelledError:
+                raise
+            return 200, "<html>slow</html>", url
+        html = (
+            "<html><body>Voltage Rating 120 Color White "
+            "Material Steel Amperage Rating 15</body></html>"
+        )
+        return 200, html, url
+
+    monkeypatch.setattr("sources.async_fetcher.fetch_html_async", fake_html)
+    monkeypatch.setattr("sources.async_fetcher._playwright_allowed", lambda url: False)
+
+    seen = {"n": 0}
+
+    def on_page(status, html, final_url, requested):
+        seen["n"] += 1
+        return "pdp" in requested
+
+    started_at = time.monotonic()
+    pages = asyncio.run(
+        fetch_all_pages(
+            [
+                "https://www.frigidaire.com/p/pdp",
+                "https://www.frigidaire.com/slow",
+            ],
+            timeout=15,
+            on_page=on_page,
+        )
+    )
+    elapsed = time.monotonic() - started_at
+    assert elapsed < 3
+    assert any("pdp" in item[3] for item in pages)
+    assert seen["n"] >= 1
+
+
+def test_vercel_skips_ipv6_retry_on_timeouts(monkeypatch):
+    import asyncio
+
+    monkeypatch.setenv("VERCEL", "1")
+    stacks: list[bool] = []
+
+    async def fake_html(url, timeout=None, client=None):
+        return 0, "", url
+
+    from sources import async_fetcher
+
+    orig_client = async_fetcher._http_client
+
+    def tracking_client(timeout: int, ipv4: bool):
+        stacks.append(ipv4)
+        return orig_client(timeout, ipv4)
+
+    monkeypatch.setattr(async_fetcher, "fetch_html_async", fake_html)
+    monkeypatch.setattr(async_fetcher, "_http_client", tracking_client)
+    monkeypatch.setattr(async_fetcher, "_playwright_allowed", lambda url: False)
+
+    asyncio.run(async_fetcher.fetch_all_pages(["https://www.frigidaire.com/p/X1"], timeout=2))
+    assert stacks == [True]
 

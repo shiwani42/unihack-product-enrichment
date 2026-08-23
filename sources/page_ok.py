@@ -17,6 +17,10 @@ _ERROR_URL_MARKERS = (
 )
 _TITLE = re.compile(r"<title[^>]*>(.*?)</title>", re.I | re.S)
 _TITLE_MISS = ("404", "not found", "page not found", "error 404", "doesn't exist", "does not exist")
+_EMPTY_SEARCH = re.compile(
+    r"0 results|no results found|no products found|did not match any|no matches",
+    re.I,
+)
 
 
 def is_error_url(url: str) -> bool:
@@ -45,6 +49,17 @@ def is_not_found(status: int, html: str, url: str) -> bool:
     if 200 <= status < 400 and looks_like_error_html(html or ""):
         return True
     return False
+
+
+def looks_like_empty_search(html: str) -> bool:
+    """True when an on-site search page says it found nothing."""
+    text = html or ""
+    if not text.strip():
+        return False
+    visible = re.sub(r"<script[^>]*>.*?</script>", " ", text, flags=re.I | re.S)
+    visible = re.sub(r"<style[^>]*>.*?</style>", " ", visible, flags=re.I | re.S)
+    visible = re.sub(r"<[^>]+>", " ", visible)
+    return bool(_EMPTY_SEARCH.search(visible[:8000]))
 
 
 def is_usable_page(status: int, html: str, url: str) -> bool:

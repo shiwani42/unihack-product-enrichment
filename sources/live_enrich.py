@@ -23,9 +23,9 @@ from extract.confirm import confirm_desc_evidence
 from extract.pdf_specs import fetch_pdf_evidence
 from extract.ref_discovery import discover_pdf_links, discover_product_links
 from extract.structured import extract_structured_data
-from sources.async_fetcher import fetch_all_pages
+from sources.async_fetcher import fetch_all_pages, looks_like_js_shell
 from sources.dead_paths import drop_dead_urls, note_outcome
-from sources.page_ok import is_error_url, is_not_found, is_usable_page
+from sources.page_ok import is_error_url, is_not_found, is_usable_page, looks_like_empty_search
 from sources.finder import (
     best_mfr_url,
     candidate_distributor_urls,
@@ -125,10 +125,10 @@ def _ingest_page(
     url: str,
     mpn: str,
     manufacturer_domains: list[str],
+    prior: EvidenceBundle | None = None,
 ) -> tuple[list[str], list[str]]:
     if not is_allowed_url(url, manufacturer_domains) or is_error_url(url):
         return [], []
-    save_raw_html(mpn, html, url)
     products = discover_product_links(
         html,
         url,
@@ -141,16 +141,27 @@ def _ingest_page(
         for link in discover_pdf_links(html, url)
         if is_primary_url(link, manufacturer_domains)
     ]
-    # Manufacturer listing/search pages: follow PDPs when we found them, otherwise
-    # extract here (Whirlpool smartsearchresults is the product literature page).
-    if is_search_url(url) and is_primary_url(url, manufacturer_domains) and products:
-        return products, pdfs
+    query_search = "search?" in url.lower() or "search.html" in url.lower()
+    primary = is_primary_url(url, manufacturer_domains)
+    # Manufacturer listing/search pages: follow PDPs when we found them.
+    # Empty "0 results" and JS search shells must not be ingested as specs.
+    # That is not a reason to skip family / third-party / distributor pages.
+    if is_search_url(url):
+        if looks_like_empty_search(html):
+            return [], pdfs
+        if primary and products:
+            save_raw_html(mpn, html, url)
+            return products, pdfs
+        if primary and query_search and not products:
+            return [], pdfs
+    save_raw_html(mpn, html, url)
     page_bundle = merge_bundles(
         extract_from_html(html, url),
         extract_structured_data(html, url),
         extract_page_state(html, url),
     )
     apply_source_policy(page_bundle, url, manufacturer_domains)
+    unreadable = primary and looks_like_js_shell(html) and not page_bundle.items
     contributed = (
         page_bundle.items
         or page_bundle.marketing
@@ -159,18 +170,49 @@ def _ingest_page(
         or page_bundle.approvals
         or page_bundle.product_ids
     )
-    if contributed:
+    if contributed and not unreadable:
         merged = merge_bundles(bundle, page_bundle)
         _replace(bundle, merged)
     confirm_desc_evidence(bundle, html, url, manufacturer_domains)
-    query_search = "search?" in url.lower() or url.lower().endswith("search.html")
-    if is_primary_url(url, manufacturer_domains) and not query_search:
+    if prior is not None and prior is not bundle:
+        confirm_desc_evidence(prior, html, url, manufacturer_domains)
+    if primary and not query_search:
         if official_url_score(url, mpn) >= official_url_score(bundle.mfr_url, mpn):
-            if contributed or official_url_score(url, mpn) >= 40:
+            if (contributed and not unreadable) or official_url_score(url, mpn) >= 40:
                 bundle.mfr_url = url
-    elif contributed and url not in bundle.ref_urls:
+    elif contributed and not unreadable and url not in bundle.ref_urls:
         bundle.ref_urls.append(url)
     return products, pdfs
+
+
+def _handle_fetched_page(
+    bundle: EvidenceBundle,
+    status: int,
+    html: str,
+    final_url: str,
+    requested: str,
+    mpn: str,
+    manufacturer_domains: list[str],
+    seen: set[str],
+    follow_urls: list[str],
+    pdf_links: list[str],
+    prior: EvidenceBundle | None,
+) -> None:
+    note_outcome(requested, mpn, status, html, final_url)
+    if is_not_found(status, html, final_url) or is_not_found(status, html, requested):
+        from sources.known_urls import forget_urls
+
+        forget_urls(mpn, [requested, final_url])
+    if not is_usable_page(status, html, final_url):
+        return
+    products, pdfs = _ingest_page(
+        bundle, html, final_url, mpn, manufacturer_domains, prior=prior
+    )
+    pdf_links.extend(pdfs)
+    for product in products:
+        if product not in seen and is_allowed_url(product, manufacturer_domains) and not is_error_url(product):
+            seen.add(product)
+            follow_urls.append(product)
 
 
 def _fetch_tier(
@@ -180,6 +222,8 @@ def _fetch_tier(
     manufacturer_domains: list[str],
     seen: set[str],
     follow: bool = True,
+    prior: EvidenceBundle | None = None,
+    stop_when=None,
 ) -> list[str]:
     start_urls = drop_dead_urls(
         [u for u in start_urls if u not in seen and not is_blocked_url(u) and not is_error_url(u)],
@@ -192,32 +236,58 @@ def _fetch_tier(
 
     pdf_links: list[str] = []
     follow_urls: list[str] = []
-    pages = _run_coroutine_blocking(fetch_all_pages(start_urls, timeout=FETCH_TIMEOUT))
-    for status, html, final_url, requested in pages:
-        note_outcome(requested, mpn, status, html, final_url)
-        if is_not_found(status, html, final_url) or is_not_found(status, html, requested):
-            from sources.known_urls import forget_urls
+    handled: list[str] = []
 
-            forget_urls(mpn, [requested, final_url])
-        if not is_usable_page(status, html, final_url):
-            continue
-        products, pdfs = _ingest_page(bundle, html, final_url, mpn, manufacturer_domains)
-        pdf_links.extend(pdfs)
-        for product in products:
-            if product not in seen and is_allowed_url(product, manufacturer_domains) and not is_error_url(product):
-                seen.add(product)
-                follow_urls.append(product)
-
-    if follow and follow_urls:
-        more = _run_coroutine_blocking(
-            fetch_all_pages(follow_urls[:FOLLOW_URL_LIMIT], timeout=FETCH_TIMEOUT)
+    def on_page(status, html, final_url, requested) -> bool:
+        _handle_fetched_page(
+            bundle,
+            status,
+            html,
+            final_url,
+            requested,
+            mpn,
+            manufacturer_domains,
+            seen,
+            follow_urls,
+            pdf_links,
+            prior,
         )
-        for status, html, final_url, requested in more:
-            note_outcome(requested, mpn, status, html, final_url)
-            if not is_usable_page(status, html, final_url):
-                continue
-            _, pdfs = _ingest_page(bundle, html, final_url, mpn, manufacturer_domains)
-            pdf_links.extend(pdfs)
+        handled.append(requested)
+        return bool(stop_when and stop_when())
+
+    pages = _run_coroutine_blocking(
+        fetch_all_pages(start_urls, timeout=FETCH_TIMEOUT, on_page=on_page)
+    )
+    if not handled:
+        for status, html, final_url, requested in pages:
+            on_page(status, html, final_url, requested)
+
+    if follow and follow_urls and not (stop_when and stop_when()):
+        more_handled: list[str] = []
+
+        def on_follow(status, html, final_url, requested) -> bool:
+            _handle_fetched_page(
+                bundle,
+                status,
+                html,
+                final_url,
+                requested,
+                mpn,
+                manufacturer_domains,
+                seen,
+                follow_urls,
+                pdf_links,
+                prior,
+            )
+            more_handled.append(requested)
+            return bool(stop_when and stop_when())
+
+        more = _run_coroutine_blocking(
+            fetch_all_pages(follow_urls[:FOLLOW_URL_LIMIT], timeout=FETCH_TIMEOUT, on_page=on_follow)
+        )
+        if not more_handled:
+            for status, html, final_url, requested in more:
+                on_follow(status, html, final_url, requested)
     return pdf_links
 
 
@@ -280,6 +350,7 @@ def fetch_manufacturer_evidence(
     fetch_pdfs: bool = True,
     manufacturer_name: str = "",
     brand_name: str = "",
+    prior: EvidenceBundle | None = None,
 ) -> EvidenceBundle:
     bundle = EvidenceBundle()
     names = [name for name in (manufacturer_name, brand_name) if name]
@@ -300,35 +371,31 @@ def fetch_manufacturer_evidence(
     def settled() -> bool:
         return _manufacturer_settled(bundle, mpn, mapped=bool(mapped_domains))
 
+    def fetch_tier(urls: list[str], follow: bool = True) -> list[str]:
+        return _fetch_tier(
+            bundle,
+            urls,
+            mpn,
+            manufacturer_domains,
+            seen,
+            follow=follow,
+            prior=prior,
+            stop_when=settled,
+        )
+
     known_primary, known_fallback = _split_known_urls(mpn, manufacturer_domains)
     if known_primary:
         manufacturer_domains = list(dict.fromkeys(manufacturer_domains + _hosts_from_urls(known_primary)))
-        pdf_links.extend(
-            _fetch_tier(bundle, known_primary[:url_limit], mpn, manufacturer_domains, seen)
-        )
+        pdf_links.extend(fetch_tier(known_primary[:url_limit]))
 
-    # Mapped brands: manufacturer templates, then family literature.
+    # Mapped brands: host product templates first. If those miss, web search
+    # for a manufacturer PDP (that is how an unseen SKU on a new CMS path is
+    # found). Family literature and distributors come after, not instead.
     # Unmapped brands: web search first so we do not spend the window on
     # {name}.com/p/{mpn} 404s before looking up the real host.
     if mapped_domains and not settled():
         pdf_links.extend(
-            _fetch_tier(
-                bundle,
-                first_fetch_window(candidate_mfr_urls(mpn, mapped_domains), url_limit),
-                mpn,
-                manufacturer_domains,
-                seen,
-            )
-        )
-    if mapped_domains and not settled():
-        pdf_links.extend(
-            _fetch_tier(
-                bundle,
-                candidate_family_urls(mpn, manufacturer_domains)[:SECONDARY_URL_LIMIT],
-                mpn,
-                manufacturer_domains,
-                seen,
-            )
+            fetch_tier(first_fetch_window(candidate_mfr_urls(mpn, mapped_domains), url_limit))
         )
     need_search = (not mapped_domains) or _needs_fallback(bundle) or not bundle.mfr_url
     if settled():
@@ -344,29 +411,22 @@ def fetch_manufacturer_evidence(
         if extra_domains:
             manufacturer_domains = list(dict.fromkeys(manufacturer_domains + extra_domains))
         if search_hits:
-            pdf_links.extend(_fetch_tier(bundle, search_hits, mpn, manufacturer_domains, seen))
+            pdf_links.extend(fetch_tier(search_hits))
     else:
         found = []
 
+    if mapped_domains and not settled():
+        pdf_links.extend(
+            fetch_tier(candidate_family_urls(mpn, manufacturer_domains)[:SECONDARY_URL_LIMIT])
+        )
+
     if not mapped_domains and manufacturer_domains and not settled():
         pdf_links.extend(
-            _fetch_tier(
-                bundle,
-                first_fetch_window(candidate_mfr_urls(mpn, manufacturer_domains), url_limit),
-                mpn,
-                manufacturer_domains,
-                seen,
-            )
+            fetch_tier(first_fetch_window(candidate_mfr_urls(mpn, manufacturer_domains), url_limit))
         )
         if not settled():
             pdf_links.extend(
-                _fetch_tier(
-                    bundle,
-                    candidate_family_urls(mpn, manufacturer_domains)[:SECONDARY_URL_LIMIT],
-                    mpn,
-                    manufacturer_domains,
-                    seen,
-                )
+                fetch_tier(candidate_family_urls(mpn, manufacturer_domains)[:SECONDARY_URL_LIMIT])
             )
 
     # Transcript order: third-party, then distributors, only where necessary.
@@ -384,12 +444,8 @@ def fetch_manufacturer_evidence(
             if url not in seen
         ]
         pdf_links.extend(
-            _fetch_tier(
-                bundle,
-                list(dict.fromkeys(known_third + candidate_third_party_urls(mpn)[:THIRD_PARTY_URL_LIMIT] + third_hits)),
-                mpn,
-                manufacturer_domains,
-                seen,
+            fetch_tier(
+                list(dict.fromkeys(known_third + candidate_third_party_urls(mpn)[:THIRD_PARTY_URL_LIMIT] + third_hits))
             )
         )
     if _needs_fallback(bundle):
@@ -406,12 +462,8 @@ def fetch_manufacturer_evidence(
             if url not in seen
         ]
         pdf_links.extend(
-            _fetch_tier(
-                bundle,
-                list(dict.fromkeys(known_dist + candidate_distributor_urls(mpn)[:DISTRIBUTOR_URL_LIMIT] + dist_hits)),
-                mpn,
-                manufacturer_domains,
-                seen,
+            fetch_tier(
+                list(dict.fromkeys(known_dist + candidate_distributor_urls(mpn)[:DISTRIBUTOR_URL_LIMIT] + dist_hits))
             )
         )
 

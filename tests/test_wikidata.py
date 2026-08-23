@@ -78,7 +78,7 @@ def test_unmapped_fetch_uses_wikidata_host(tmp_path, monkeypatch):
     )
     requested = []
 
-    async def fake_pages(urls, timeout=None):
+    async def fake_pages(urls, timeout=None, on_page=None, **kwargs):
         requested.extend(urls)
         pages = []
         for url in urls:

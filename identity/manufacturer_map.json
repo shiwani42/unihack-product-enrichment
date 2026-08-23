@@ -378,5 +378,85 @@
     "manufacturer_name": "MillerTech Energy Solutions",
     "brand_name": "MillerTech",
     "domains": ["millertech.com"]
+  },
+  "Lutron": {
+    "manufacturer_name": "Lutron Electronics",
+    "brand_name": "Lutron",
+    "domains": ["lutron.com", "support.lutron.com"]
+  },
+  "Nicholson": {
+    "manufacturer_name": "Apex Tool Group",
+    "brand_name": "Nicholson",
+    "domains": ["crescenttool.com"]
+  },
+  "GT-Lite": {
+    "manufacturer_name": "GT-Lite",
+    "brand_name": "GT-Lite",
+    "domains": ["gt-lite.com", "gt-liteled.com"]
+  },
+  "Premier Metals": {
+    "manufacturer_name": "Premier Metals",
+    "brand_name": "Premier Metals",
+    "domains": ["premiermetals.com"]
+  },
+  "Westbury": {
+    "manufacturer_name": "Digger Specialties Inc.",
+    "brand_name": "Westbury",
+    "domains": ["diggerspecialties.com"]
+  },
+  "AJ Manufacturing": {
+    "manufacturer_name": "A.J. Manufacturing, Inc.",
+    "brand_name": "AJ Manufacturing",
+    "domains": ["ajdoor.com"]
+  },
+  "Protecto Wrap": {
+    "manufacturer_name": "Protecto Wrap Company",
+    "brand_name": "Protecto Wrap",
+    "domains": ["protectowrap.com"]
+  },
+  "Police Security": {
+    "manufacturer_name": "Police Security",
+    "brand_name": "Police Security",
+    "domains": ["policesecurity.com"]
+  },
+  "NEBO": {
+    "manufacturer_name": "ACG Brands",
+    "brand_name": "NEBO",
+    "domains": ["nebo.acgbrands.com"]
+  },
+  "Fieldsheer": {
+    "manufacturer_name": "Fieldsheer",
+    "brand_name": "Mobile Warming",
+    "domains": ["fieldsheer.com"]
+  },
+  "eFireX": {
+    "manufacturer_name": "eFireX",
+    "brand_name": "eFireX",
+    "domains": ["efirex.com"]
+  },
+  "American Fittings": {
+    "manufacturer_name": "American Fittings Corporation",
+    "brand_name": "AMFICO",
+    "domains": ["amftgs.com"]
+  },
+  "Maggi": {
+    "manufacturer_name": "Maggi Technology",
+    "brand_name": "Steff",
+    "domains": ["maggi-technology.com"]
+  },
+  "Owens Corning": {
+    "manufacturer_name": "Owens Corning",
+    "brand_name": "Owens Corning®",
+    "domains": ["owenscorning.com"]
+  },
+  "Henry": {
+    "manufacturer_name": "Henry Company",
+    "brand_name": "Henry®",
+    "domains": ["henry.com"]
+  },
+  "Armstrong Ceilings": {
+    "manufacturer_name": "Armstrong World Industries",
+    "brand_name": "Armstrong Ceilings",
+    "domains": ["armstrongceilings.com"]
   }
 }

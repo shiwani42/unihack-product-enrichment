@@ -14,7 +14,7 @@ import json
 import os
 from collections import defaultdict
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from app.config import DEFAULT_INPUT, OUTPUT_DIR
 from identity.brand_resolver import (
@@ -69,9 +69,39 @@ def host_has_product_template(domains: list[str], extras: dict[str, list[str]] |
     return False
 
 
-def sample_brand_rows(rows: list[dict[str, str]], scope: str = "leftover") -> list[dict]:
-    """First SKU per resolved brand, filtered by harvest scope."""
+def sample_brand_rows(
+    rows: list[dict[str, str]],
+    scope: str = "leftover",
+    mpns: list[str] | None = None,
+) -> list[dict]:
+    """First SKU per resolved brand, filtered by harvest scope or an explicit MPN list."""
     extras = _search_paths()
+
+    def _annotate(row: dict) -> dict:
+        ident = resolve_identity(
+            row.get("Mfg_Part_Num", ""),
+            row.get("Part_Desc", ""),
+            row.get("E1_Brand", ""),
+            row.get("DIB_Brand", ""),
+            row.get("Part_Manuf", ""),
+            row.get("Unilog_Brand", ""),
+        )
+        mapped = bool(ident.domains)
+        leftover = (not mapped) or (not host_has_product_template(ident.domains, extras))
+        return {**row, "_ident": ident, "_mapped": mapped, "_leftover": leftover}
+
+    if mpns:
+        wanted = {(item or "").strip().upper() for item in mpns if item}
+        picked: list[dict] = []
+        seen: set[str] = set()
+        for row in rows:
+            mpn = (row.get("Mfg_Part_Num") or "").strip().upper()
+            if not mpn or mpn not in wanted or mpn in seen:
+                continue
+            picked.append(_annotate(row))
+            seen.add(mpn)
+        return picked
+
     grouped: dict[str, dict] = {}
     for row in rows:
         ident = resolve_identity(
@@ -123,14 +153,17 @@ def _generic_guess_url(url: str, mpn: str) -> bool:
     if not raw or not token:
         return False
     parsed = urlparse(raw)
-    path = parsed.path or ""
+    path = unquote(parsed.path or "")
     origin = f"{parsed.scheme}://{parsed.netloc}"
+    token_plain = unquote(token)
     for template in OFFICIAL_PATHS + SEARCH_PATHS:
         if raw == origin + template.format(mpn=token, search_mpn=token):
             return True
-    lowered = path.lower()
-    token_l = token.lower()
-    return any(lowered.rstrip("/") == f"{prefix}{token_l}" for prefix in ("/p/", "/products/", "/product/", "/appliance/"))
+        if unquote(raw) == origin + template.format(mpn=token_plain, search_mpn=token_plain):
+            return True
+    lowered = path.lower().rstrip("/")
+    token_l = token_plain.lower()
+    return any(lowered == f"{prefix}{token_l}" for prefix in ("/p/", "/products/", "/product/", "/appliance/"))
 
 
 def _scrub_thin_record(record: dict) -> dict:
@@ -295,8 +328,9 @@ def run_harvest(
     dry_run: bool = False,
     report_path: Path | None = None,
     known_urls_path: Path | None = None,
+    mpns: list[str] | None = None,
 ) -> dict:
-    rows = sample_brand_rows(read_input_rows(input_path), scope=scope)
+    rows = sample_brand_rows(read_input_rows(input_path), scope=scope, mpns=mpns)
     if limit and limit > 0:
         rows = rows[:limit]
     report = {
@@ -318,6 +352,7 @@ def run_harvest(
         "map_proposals": [],
         "map_applied": [],
         "dropped_hosts": [],
+        "harvest_links_added": [],
     }
     if dry_run:
         return report
@@ -375,7 +410,10 @@ def run_harvest(
                 if url:
                     extra_mpn_urls[key].append(url)
         report["learned_paths"] = refresh_learned_paths(extra_mpn_urls=dict(extra_mpn_urls))
-        proposals = [item for item in (map_proposal(record) for record in records) if item]
+        from sources.harvest_links import remember_harvest_records
+
+        report["harvest_links_added"] = remember_harvest_records(report["records"])
+        proposals = [item for item in (map_proposal(record) for record in report["records"]) if item]
         report["map_proposals"] = proposals
         if apply_map:
             report["map_applied"] = apply_map_proposals(proposals)
@@ -406,6 +444,7 @@ def cmd_harvest(args: argparse.Namespace) -> None:
         apply_map=args.apply_map and not args.mine_only and not args.dry_run,
         dry_run=args.dry_run,
         report_path=Path(args.report) if args.report else None,
+        mpns=args.mpn or None,
     )
     if args.dry_run:
         print(f"would fetch {report['count']} brands (scope={report['scope']})", flush=True)
@@ -418,6 +457,7 @@ def cmd_harvest(args: argparse.Namespace) -> None:
             "count": report["count"],
             "learned_paths": report["learned_paths"],
             "map_applied": report.get("map_applied") or [],
+            "harvest_links_added": report.get("harvest_links_added") or [],
             "report_path": report.get("report_path", ""),
         },
         indent=2,
@@ -442,6 +482,7 @@ def build_harvest_parser(sub: argparse._SubParsersAction | None = None) -> argpa
         help="leftover = no mapped domain or no portable product template yet",
     )
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--mpn", action="append", default=[], help="Harvest this MPN (repeatable); ignores --scope")
     parser.add_argument("--mine-only", action="store_true", help="Rebuild learned_paths.json from existing URLs")
     parser.add_argument("--dry-run", action="store_true", help="List brands that would be fetched")
     parser.add_argument("--report", default=str(OUTPUT_DIR / "brand_harvest.json"))

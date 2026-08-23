@@ -157,11 +157,23 @@ async def fetch_urls_parallel(
     return 0, "", urls[0]
 
 
+def _status0_retry_enabled() -> bool:
+    """Vercel IPv4 works; a second IPv6 pass on a hung URL doubles the wait."""
+    if os.environ.get("VERCEL"):
+        return False
+    return os.environ.get("UNILOG_IPV6_RETRY", "1").strip().lower() not in {"0", "false", "no"}
+
+
 async def fetch_all_pages(
     urls: list[str],
     timeout: int | None = None,
+    on_page=None,
 ) -> list[tuple[int, str, str, str]]:
-    """Fetch every allowed URL. Returns (status, html, final_url, requested)."""
+    """Fetch every allowed URL. Returns (status, html, final_url, requested).
+
+    ``on_page(status, html, final_url, requested)`` may return True to cancel
+    in-flight URLs once a manufacturer PDP has already settled.
+    """
     urls = [url for url in urls if not is_blocked_url(url)]
     if not urls:
         return []
@@ -200,12 +212,44 @@ async def fetch_all_pages(
                 out[url] = item
         return out
 
-    by_url = await _batch(urls, ipv4=True)
-    misses = [url for url, page in by_url.items() if page[0] == 0 and page[1] == ""]
-    if misses:
-        recovered = await _batch(misses, ipv4=False)
-        by_url.update(recovered)
-    return [by_url[url] for url in urls]
+    if on_page is None:
+        by_url = await _batch(urls, ipv4=True)
+        misses = [url for url, page in by_url.items() if page[0] == 0 and page[1] == ""]
+        if misses and _status0_retry_enabled():
+            recovered = await _batch(misses, ipv4=False)
+            by_url.update(recovered)
+        return [by_url[url] for url in urls]
+
+    results: list[tuple[int, str, str, str]] = []
+    async with _http_client(request_timeout, ipv4=True) as client:
+        task_for = {asyncio.create_task(_one(client, url)): url for url in urls}
+        pending = set(task_for)
+        try:
+            while pending:
+                done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+                stop = False
+                for task in done:
+                    url = task_for[task]
+                    try:
+                        item = task.result()
+                    except Exception:
+                        item = (0, "", url, url)
+                    results.append(item)
+                    try:
+                        stop = bool(on_page(*item)) or stop
+                    except Exception:
+                        pass
+                if stop:
+                    for leftover in pending:
+                        leftover.cancel()
+                    for leftover in pending:
+                        with contextlib.suppress(asyncio.CancelledError, Exception):
+                            await leftover
+                    return results
+        finally:
+            for leftover in pending:
+                leftover.cancel()
+    return results
 
 
 async def fetch_all_successful(

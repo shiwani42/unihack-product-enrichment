@@ -99,11 +99,43 @@ def test_map_proposal_needs_named_host_and_rich_pdp():
     assert map_proposal(grainger) is None
 
 
+def test_lutron_in_desc_beats_distributor_part_manuf():
+    from identity.brand_resolver import resolve_identity
+
+    ident = resolve_identity(
+        "AYCL-153PH-LA",
+        "AYCL-153PH-LA Lutron Dimmer LA",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "Fenton Bros Electric Inc (FE)",
+    )
+    assert ident.brand_key == "Lutron"
+    assert "lutron.com" in ident.domains
+
+
+def test_nicholson_dib_uses_crescent_host():
+    from identity.brand_resolver import resolve_identity
+
+    ident = resolve_identity("21839NN", '21839NN File Bstd Mill 10"', "", "Nicholson", "-")
+    assert ident.brand_key == "Nicholson"
+    assert ident.domains == ["crescenttool.com"]
+
+
+def test_harvest_links_are_tried_for_that_sku():
+    from sources.finder import candidate_mfr_urls
+    from sources.known_urls import known_urls_for
+
+    urls = known_urls_for("AYCL-153PH-LA")
+    assert any("lutron.com" in url for url in urls)
+    mfr = candidate_mfr_urls("AYCL-153PH-LA", ["lutron.com", "support.lutron.com"])
+    assert mfr[0].startswith("https://support.lutron.com") or "lutron.com" in mfr[0]
+
+
 def test_generic_guess_url_detects_official_path_only():
     from sources.brand_harvest import _generic_guess_url
 
     assert _generic_guess_url("https://www.vv.com/p/D519127", "D519127")
-    assert _generic_guess_url("https://www.rees.com/appliance/25-A", "25-A")
+    assert _generic_guess_url("https://www.jg.com/appliance/MAG%3A2044-230-1", "MAG:2044-230-1")
     assert not _generic_guess_url(
         "https://www.southwire.com/wire-cable/building-wire/p/13093005", "13093005"
     )

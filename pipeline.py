@@ -97,6 +97,21 @@ class EnrichmentResult:
     verified_evidence_count: int = 0
 
 
+def _source_for_attribute(bundle: EvidenceBundle, label: str, value: str) -> str:
+    from extract.evidence import is_self_cited, values_equivalent
+    from normalize.aliases import candidates_for_label
+
+    matches = []
+    for item in candidates_for_label(bundle, label):
+        if item.value.strip() == (value or "").strip() or values_equivalent(item.value, value, item.uom):
+            matches.append(item)
+    if not matches:
+        return ""
+    live = [item for item in matches if not is_self_cited(item.source_url)]
+    pick = max(live or matches, key=lambda item: item.confidence)
+    return pick.source_url or ""
+
+
 def _field_sources_from_bundle(bundle: EvidenceBundle | None, output: dict[str, str]) -> dict[str, str]:
     sources: dict[str, str] = {}
     if not bundle:
@@ -115,7 +130,12 @@ def _field_sources_from_bundle(bundle: EvidenceBundle | None, output: dict[str, 
         label = output.get(f"ATTRIBUTE_LABEL {index}", "")
         value = output.get(f"ATTRIBUTE_VALUE {index}", "")
         if label and value:
-            sources[f"ATTRIBUTE_VALUE {index}"] = sources.get(label, sources.get("MFR URL", "input:Part_Desc"))
+            sources[f"ATTRIBUTE_VALUE {index}"] = (
+                _source_for_attribute(bundle, label, value)
+                or sources.get(label)
+                or sources.get("MFR URL")
+                or "input:Part_Desc"
+            )
     for field in ("MOBILE_DESC", "SHORT_DESC", "LONG_DESC1", "RETAIL_DESC", "INVOICE_DESC"):
         if output.get(field):
             sources[field] = sources.get("MFR URL") or "input:Part_Desc"
@@ -159,6 +179,7 @@ def _fetch_evidence(
             fetch_pdfs=True,
             manufacturer_name=identity.manufacturer_name,
             brand_name=identity.brand_name or identity.brand_key,
+            prior=bundle,
         )
     except Exception:
         return bundle
@@ -181,6 +202,7 @@ def _compose_output(
     identity: Identity,
     composer,
 ) -> None:
+    bundle = align_bundle_to_template(bundle, template)
     apply_template_attributes(output, template, bundle)
     composer(output, template, bundle, mpn)
     apply_marketing_fields(output, bundle)
@@ -223,7 +245,6 @@ def _enrich_generic(output, template, part_desc, mpn, fetch_mpn, identity):
         if llm_bundle:
             bundle = merge_bundles(bundle, llm_bundle)
     bundle = _fetch_evidence(mpn, fetch_mpn, identity, bundle, template.category_id)
-    bundle = align_bundle_to_template(bundle, template)
     composer = lambda row, tpl, bdl, mpn_arg: build_generic_descriptions(row, tpl, bdl, mpn_arg, identity)
     _compose_output(output, template, bundle, mpn, identity, composer)
     return bundle
@@ -280,7 +301,7 @@ def _enrich_row_internal(input_row: dict[str, str], headers: list[str]) -> Enric
     # Stage 6: Cleansing and normalisation
     cleanse_output_row(output, category_id)
     if bundle:
-        apply_product_ids(output, bundle.product_ids)
+        apply_product_ids(output, bundle)
     apply_crosswalk(output, mpn)
 
     # Stage 7 + 8 handled above (descriptions + assets); final validation

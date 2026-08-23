@@ -83,6 +83,23 @@ def _isolate_dead_paths(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _isolate_harvest_links(tmp_path, monkeypatch):
+    """Keep harvest link catalog writes out of the committed seed during tests."""
+    import shutil
+
+    import sources.harvest_links as harvest_links
+
+    src = Path(harvest_links.__file__).resolve().parent / "harvest_links.json"
+    dest = tmp_path / "harvest_links.json"
+    if src.exists():
+        shutil.copy2(src, dest)
+    monkeypatch.setattr(harvest_links, "HARVEST_LINKS_FILE", dest)
+    harvest_links._reset_cache()
+    yield
+    harvest_links._reset_cache()
+
+
+@pytest.fixture(autouse=True)
 def _isolate_known_urls(tmp_path, monkeypatch):
     """Keep live-search URL memory out of the committed seed file during tests."""
     import sources.known_urls as known_urls

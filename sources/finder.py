@@ -202,13 +202,28 @@ def url_on_manufacturer_domain(url: str, domains: list[str]) -> bool:
     return url_on_domains(url, domains)
 
 
+def _url_fingerprint(url: str) -> str:
+    """Collapse trailing-slash and tracking-query twins of the same product path."""
+    parsed = urlparse(url or "")
+    host = parsed.netloc.lower().removeprefix("www.")
+    path = (parsed.path or "/").rstrip("/").lower() or "/"
+    if is_search_url(url):
+        return f"{host}{path}?{parsed.query.lower()}"
+    return f"{host}{path}"
+
+
 def _dedupe_allowed(urls: list[str]) -> list[str]:
     seen: set[str] = set()
+    fingerprints: set[str] = set()
     ordered: list[str] = []
     for url in urls:
         if is_blocked_url(url) or url in seen:
             continue
         seen.add(url)
+        fingerprint = _url_fingerprint(url)
+        if fingerprint in fingerprints:
+            continue
+        fingerprints.add(fingerprint)
         ordered.append(url)
     return ordered
 
@@ -267,7 +282,13 @@ def _urls_for_domains(mpn: str, domains: list[str]) -> list[str]:
                 urls.append(template.format(**tokens))
                 if not is_search_url(template):
                     host_has_product_extra = True
-        paths = SEARCH_PATHS if host_has_product_extra else OFFICIAL_PATHS + _learned_paths() + SEARCH_PATHS
+        # Host already taught us a product CMS shape: keep one on-site search
+        # and skip learned /appliance 404s. Search-only hosts still get generic
+        # product guesses so a judge SKU is not stuck on a JS search shell.
+        if host_has_product_extra:
+            paths = SEARCH_PATHS
+        else:
+            paths = OFFICIAL_PATHS + _learned_paths() + SEARCH_PATHS
         for path in paths:
             urls.append(origin + path.format(**tokens))
     from sources.dead_paths import drop_dead_urls
