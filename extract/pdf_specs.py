@@ -122,10 +122,13 @@ def extract_from_text(text: str, url: str, bundle: EvidenceBundle) -> None:
 
 def extract_from_pdf_bytes(content: bytes, url: str) -> EvidenceBundle:
     bundle = EvidenceBundle()
-    with pdfplumber.open(io.BytesIO(content)) as pdf:
-        pages = find_spec_pages(pdf)
-        combined = "\n".join((pdf.pages[i].extract_text() or "") for i in pages)
-        extract_from_text(combined, url, bundle)
+    try:
+        with pdfplumber.open(io.BytesIO(content)) as pdf:
+            pages = find_spec_pages(pdf)
+            combined = "\n".join((pdf.pages[i].extract_text() or "") for i in pages)
+            extract_from_text(combined, url, bundle)
+    except Exception:
+        return EvidenceBundle()
     return bundle
 
 

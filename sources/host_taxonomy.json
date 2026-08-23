@@ -125,7 +125,10 @@
     "cooper-electric",
     "voomisupply",
     "itm",
-    "procabinetsupply"
+    "procabinetsupply",
+    "rs-online",
+    "rsonline",
+    "sourceatlantic"
   ],
   "manufacturer": [
     "milwaukeetool",
@@ -161,11 +164,11 @@
   ],
   "reference": [
     "energystar",
-    "icecat",
     "manualslib",
     "manuals"
   ],
   "noise": [
+    "icecat",
     "flippingbook",
     "colorhexa",
     "wikipedia",

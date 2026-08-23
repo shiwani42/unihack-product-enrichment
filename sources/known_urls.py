@@ -87,7 +87,10 @@ def url_worth_keeping(url: str) -> bool:
 def _keep_score(url: str) -> int:
     score = official_url_score(url)
     low = url.lower()
-    if any(token in low for token in ("/p/", "/product/", "/products/", "/appliance/", "/item/", "/en-us/")):
+    if any(token in low for token in ("/p/", "/product/", "/products/", "/item/", "/en-us/")):
+        if "/appliances/" not in low:
+            score = max(score, 50)
+    if "/appliance/" in low and "/appliances/" not in low:
         score = max(score, 50)
     if low.endswith(".pdf"):
         score = max(score, 45)

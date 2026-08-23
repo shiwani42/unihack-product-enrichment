@@ -9,7 +9,9 @@
   {"field": "Color", "pattern": "(?:Color|Finish)\\s*[:\\-]?\\s*(Stainless Steel|Black|White|Silver)", "uom": "", "confidence": 0.75},
   {"field": "Size", "pattern": "(\\d{1,2}-?\\d{0,2}/\\d{0,2}\\s*in\\s*H\\s*x\\s*\\d{1,2}-?\\d{0,2}/\\d{0,2}\\s*in\\s*W\\s*x\\s*\\d{1,2}-?\\d{0,2}/\\d{0,2}\\s*in\\s*D)", "uom": "", "confidence": 0.8},
   {"field": "Depth With Door Open", "pattern": "Depth With Door Open[^\\d]*(\\d{1,2}-?\\d{0,2}/\\d{0,2})", "uom": "in", "confidence": 0.8},
-  {"field": "Wattage", "pattern": "(\\d+(?:\\.\\d+)?)\\s*W(?:att)?s?\\b", "uom": "W", "confidence": 0.75},
+  {"field": "Wattage", "pattern": "(?:Wattage|Power)\\s*[:\\-]?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:[Ww]atts?\\b|W\\b)?", "uom": "W", "confidence": 0.75},
+  {"field": "Wattage", "pattern": "(\\d+(?:\\.\\d+)?)\\s*[Ww]atts?\\b", "uom": "W", "confidence": 0.72},
+  {"field": "Wattage", "pattern": "(\\d{2,}(?:\\.\\d+)?)\\s*W(?![A-Za-z/])", "uom": "W", "confidence": 0.7},
   {"field": "Blade Span", "pattern": "(\\d+(?:\\.\\d+)?)\\s*(?:\"|in)\\s*(?:blade|fan)", "uom": "in", "confidence": 0.7},
   {"field": "Diameter", "pattern": "Diameter\\s*[:\\-]?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:\\\"|in)?", "uom": "in", "confidence": 0.82},
   {"field": "Arbor Size", "pattern": "Arbor Size\\s*[:\\-]?\\s*(\\d+(?:\\s*/\\s*\\d+|\\.\\d+)?)\\s*(?:in|\\\")?", "uom": "in", "confidence": 0.82},
@@ -27,6 +29,5 @@
   {"field": "Includes", "pattern": "Includes\\s*[:\\-]\\s*([^\\n.]{3,80})", "uom": "", "confidence": 0.75},
   {"field": "Weight", "pattern": "(?:Net Weight|Item Weight|Product Weight)\\s*[:\\-]?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:lb|lbs|kg|oz)?", "uom": "", "confidence": 0.75},
   {"field": "Prop 65", "pattern": "Prop(?:osition)?\\s*65\\s*[:\\-]?\\s*(Yes|No|Warning)", "uom": "", "confidence": 0.75},
-  {"field": "Fuel Type", "pattern": "Fuel Type\\s*[:\\-]?\\s*(Electric|Gas|Dual Fuel)", "uom": "", "confidence": 0.7},
-  {"field": "Diameter", "pattern": "(\\d+(?:-\\d+/\\d+)?|\\d+(?:\\.\\d+)?)\\s*(?:\"|in)\\b", "uom": "in", "confidence": 0.7}
+  {"field": "Fuel Type", "pattern": "Fuel Type\\s*[:\\-]?\\s*(Electric|Gas|Dual Fuel)", "uom": "", "confidence": 0.7}
 ]

@@ -50,6 +50,22 @@ _SKIP_LABELS = frozenset(
         "title",
         "brand",
         "category",
+        "town_name",
+        "city",
+        "state",
+        "zip",
+        "postal",
+        "address",
+        "phone",
+        "hours",
+        "latitude",
+        "longitude",
+        "sep",
+        "viewport",
+        "site_name",
+        "state_name",
+        "country_name",
+        "og:title",
     }
 )
 _KEEP_LABELS = frozenset(
@@ -156,6 +172,16 @@ def _usable_pair(label: str, value: str) -> bool:
         return False
     if re.search(r"https?://", value, re.I):
         return False
+    if "{{" in value or "}}" in value or "attributevalue" in value.lower():
+        return False
+    if re.fullmatch(r"#[0-9a-fA-F]{3,8}", value.strip()):
+        return False
+    if key == "with" and re.search(r"with more than", value, re.I):
+        return False
+    if key == "size":
+        compact = value.replace(",", "")
+        if compact.isdigit() and (int(compact) < 8 or int(compact) > 96):
+            return False
     if value.lower() in {key, "true", "false", "null"}:
         return False
     if len(label.split()) > 8:

@@ -1,6 +1,7 @@
 from classify.category_router import CategoryTemplate
 from extract.evidence import EvidenceBundle
 from normalize.aliases import _load_aliases, pick_evidence_for_label
+from normalize.values import cleanse_attribute, uom_fits_label
 
 _MAX_ATTR_SLOTS = 50
 
@@ -54,7 +55,10 @@ def _norm_label(text: str) -> str:
 
 
 def _match_evidence(bundle: EvidenceBundle, label: str, aliases: dict[str, list[str]]):
-    return pick_evidence_for_label(bundle, label, aliases)
+    evidence = pick_evidence_for_label(bundle, label, aliases)
+    if evidence and not uom_fits_label(label, evidence.uom or "", evidence.value or ""):
+        return None
+    return evidence
 
 
 def _fill_named_column(row: dict[str, str], column: str, value: str, uom: str = "") -> None:
@@ -77,14 +81,30 @@ def apply_template_attributes(row: dict[str, str], template: CategoryTemplate, b
     """
     aliases = _load_aliases()
     used: set[str] = set()
+    mpn = (row.get("MANUFACTURER_PART_NUMBER") or row.get("Mfg_Part_Num") or "").strip()
     for index, label in enumerate(template.attribute_labels, start=1):
         row[f"ATTRIBUTE_LABEL {index}"] = label
         evidence = _match_evidence(bundle, label, aliases)
         if evidence and (evidence.value or "").strip():
-            row[f"ATTRIBUTE_VALUE {index}"] = evidence.value
-            row[f"ATTRIBUTE_UOM {index}"] = evidence.uom or ""
+            value, uom = cleanse_attribute(
+                label, evidence.value, evidence.uom or "", template.category_id, mpn=mpn
+            )
+            if value:
+                row[f"ATTRIBUTE_VALUE {index}"] = value
+                row[f"ATTRIBUTE_UOM {index}"] = uom
+                used.add(_norm_label(label))
+                used.add(_norm_label(evidence.field))
+
+    for index, label in enumerate(template.attribute_labels, start=1):
+        if _norm_label(label) not in {"product type", "accessory type"}:
+            continue
+        if (row.get(f"ATTRIBUTE_VALUE {index}") or "").strip():
+            continue
+        fallback = (template.product_name or "").strip()
+        if fallback:
+            row[f"ATTRIBUTE_VALUE {index}"] = fallback
             used.add(_norm_label(label))
-            used.add(_norm_label(evidence.field))
+        break
 
     for item in bundle.items:
         field = _norm_label(item.field)
@@ -131,12 +151,23 @@ def apply_template_attributes(row: dict[str, str], template: CategoryTemplate, b
         value = (item.value or "").strip()
         if not label or not value:
             continue
+        if not uom_fits_label(label, item.uom or "", value):
+            continue
         key = _norm_label(label)
         if key in used:
             continue
+        if key in {"town_name", "sep", "city", "state", "zip", "postal", "address", "phone", "site_name", "state_name", "categories", "category"}:
+            continue
+        if "{{" in value or "attributeValue" in value:
+            continue
+        cleaned_value, cleaned_uom = cleanse_attribute(
+            label, value, item.uom or "", template.category_id, mpn=mpn
+        )
+        if not cleaned_value:
+            continue
         row[f"ATTRIBUTE_LABEL {slot}"] = label
-        row[f"ATTRIBUTE_VALUE {slot}"] = value
-        row[f"ATTRIBUTE_UOM {slot}"] = item.uom or ""
+        row[f"ATTRIBUTE_VALUE {slot}"] = cleaned_value
+        row[f"ATTRIBUTE_UOM {slot}"] = cleaned_uom
         used.add(key)
         slot += 1
 

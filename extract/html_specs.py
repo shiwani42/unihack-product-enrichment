@@ -6,6 +6,8 @@ from pathlib import Path
 from extract.evidence import Evidence, EvidenceBundle
 from extract.labeled_specs import extract_labeled_specs
 from extract.ref_discovery import discover_feature_lines, discover_marketing_text
+from ingest.csv_io import is_readable_text, sanitize_cell
+from sources.page_ok import looks_like_pdf
 
 PATTERNS_PATH = Path(__file__).resolve().parent / "spec_patterns.json"
 
@@ -46,6 +48,8 @@ _REGEX_HTML_CAP = 400_000
 
 def extract_from_html(html: str, url: str) -> EvidenceBundle:
     bundle = EvidenceBundle(mfr_url=url)
+    if looks_like_pdf(html) or not is_readable_text((html or "")[:4000]):
+        return EvidenceBundle()
     working = html or ""
     if len(working) > _REGEX_HTML_CAP:
         working = working[:320_000] + working[-80_000:]
@@ -140,8 +144,8 @@ def extract_from_html(html: str, url: str) -> EvidenceBundle:
         _set(bundle, "Additional Information", energy_match.group(1), "", url, energy_match.group(0), 0.75)
 
     marketing_src = html[:80_000] if html and len(html) > 80_000 else html
-    bundle.marketing = discover_marketing_text(marketing_src)
-    bundle.features = discover_feature_lines(working)
+    bundle.marketing = sanitize_cell(discover_marketing_text(marketing_src))
+    bundle.features = [line for line in discover_feature_lines(working) if sanitize_cell(line)]
     for item in extract_labeled_specs(html, url).items:
         bundle.set(item)
     return bundle

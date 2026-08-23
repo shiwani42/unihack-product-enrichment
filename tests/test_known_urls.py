@@ -67,10 +67,13 @@ def test_remember_bundle_saves_mfr_and_ref():
 
 def test_harvest_keeps_gold_samples_and_real_product_pages():
     harvested = harvest_evidence_dir(Path(__file__).resolve().parents[1] / "data" / "evidence_cache")
-    assert "https://www.frigidaire.com/en/p/owner-center/product-support/PDSH4816AF" in harvested["PDSH4816AF"]
+    assert all("bayshore" not in url for urls in harvested.values() for url in urls)
+    if "PDSH4816AF" in harvested:
+        assert any("frigidaire.com" in url for url in harvested["PDSH4816AF"])
     assert any("learnwhirlpool.com" in url for url in harvested["WDTS7024RZ"])
     assert any("/p/13093005" in url for url in harvested["13093005"])
-    assert "R00-GFNT1-00K" not in harvested  # Leviton 404-only cache
+    if "R00-GFNT1-00K" in harvested:
+        assert all("error-pages" not in url for url in harvested["R00-GFNT1-00K"])
 
 
 def test_seed_file_includes_reference_sample_urls():

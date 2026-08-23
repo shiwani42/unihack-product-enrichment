@@ -119,6 +119,8 @@ def _matches_rule(part_desc: str, brand_key: str, rule: dict) -> bool:
             return True
 
     if brand_key in ABRASIVE_BRANDS and re.search(r"\d+\s?(?:\"|in)", part_desc):
+        if not re.search(r"disc|wheel|grit|sand|abrasive|cutoff|cut-off|stikit|abranet", part_desc, re.I):
+            return False
         if template in {"metal_cutoff_disc", "grinding_wheel", "sanding_abrasive"}:
             return True
 

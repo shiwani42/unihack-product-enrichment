@@ -20,12 +20,12 @@ from extract.html_specs import extract_from_html
 from extract.merge import merge_bundles
 from extract.page_state import extract_page_state
 from extract.confirm import confirm_desc_evidence
-from extract.pdf_specs import fetch_pdf_evidence
+from extract.pdf_specs import extract_from_pdf_bytes, fetch_pdf_evidence
 from extract.ref_discovery import discover_pdf_links, discover_product_links
 from extract.structured import extract_structured_data
 from sources.async_fetcher import fetch_all_pages, looks_like_js_shell
 from sources.dead_paths import drop_dead_urls, note_outcome
-from sources.page_ok import is_error_url, is_not_found, is_usable_page, looks_like_empty_search
+from sources.page_ok import is_error_url, is_not_found, is_usable_page, looks_like_empty_search, looks_like_pdf
 from sources.finder import (
     best_mfr_url,
     candidate_distributor_urls,
@@ -36,6 +36,7 @@ from sources.finder import (
     is_blocked_url,
     is_pdf_url,
     is_search_url,
+    looks_like_dealer_storefront,
     official_url_score,
 )
 from sources.raw_cache import save_raw_html
@@ -130,6 +131,21 @@ def _ingest_page(
 ) -> tuple[list[str], list[str]]:
     if not is_allowed_url(url, manufacturer_domains) or is_error_url(url):
         return [], []
+    if looks_like_pdf(html):
+        try:
+            page_bundle = extract_from_pdf_bytes(html.encode("latin-1", errors="replace"), url)
+        except Exception:
+            page_bundle = EvidenceBundle()
+        apply_source_policy(page_bundle, url, manufacturer_domains)
+        if page_bundle.items or page_bundle.approvals or page_bundle.warranty:
+            merged = merge_bundles(bundle, page_bundle)
+            _replace(bundle, merged)
+        primary = is_primary_url(url, manufacturer_domains)
+        if primary and official_url_score(url, mpn) >= official_url_score(bundle.mfr_url, mpn):
+            bundle.mfr_url = url
+        elif not is_search_url(url) and url not in bundle.ref_urls:
+            bundle.ref_urls.append(url)
+        return [], []
     products = discover_product_links(
         html,
         url,
@@ -177,12 +193,13 @@ def _ingest_page(
     confirm_desc_evidence(bundle, html, url, manufacturer_domains)
     if prior is not None and prior is not bundle:
         confirm_desc_evidence(prior, html, url, manufacturer_domains)
-    if primary and not query_search:
+    if primary and not is_search_url(url):
         if official_url_score(url, mpn) >= official_url_score(bundle.mfr_url, mpn):
             if (contributed and not unreadable) or official_url_score(url, mpn) >= 40:
                 bundle.mfr_url = url
     elif contributed and not unreadable and url not in bundle.ref_urls:
-        bundle.ref_urls.append(url)
+        if not is_blocked_url(url) and not (primary and is_search_url(url)):
+            bundle.ref_urls.append(url)
     return products, pdfs
 
 
@@ -480,12 +497,17 @@ def fetch_manufacturer_evidence(
 
     remember_bundle(mpn, bundle)
 
-    if is_error_url(bundle.mfr_url or ""):
+    if is_error_url(bundle.mfr_url or "") or is_blocked_url(bundle.mfr_url or "") or looks_like_dealer_storefront(bundle.mfr_url or "") or is_search_url(bundle.mfr_url or ""):
         bundle.mfr_url = ""
     if not bundle.mfr_url and manufacturer_domains:
         bundle.mfr_url = best_mfr_url(mpn, manufacturer_domains)
-    if is_error_url(bundle.mfr_url or ""):
+    if is_error_url(bundle.mfr_url or "") or is_blocked_url(bundle.mfr_url or "") or looks_like_dealer_storefront(bundle.mfr_url or "") or is_search_url(bundle.mfr_url or ""):
         bundle.mfr_url = ""
+    bundle.ref_urls = [
+        url
+        for url in bundle.ref_urls
+        if url.startswith("http") and not is_blocked_url(url)
+    ]
 
     if bundle.items:
         save_cached_bundle(mpn, bundle)

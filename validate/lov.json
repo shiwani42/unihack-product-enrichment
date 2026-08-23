@@ -9,7 +9,7 @@
     "Application": ["Metal Cut Off Disc", "Metal Cut-Off Disc", "Sanding Belt", "Stikit Film", "Abranet"]
   },
   "led_lighting": {
-    "Color Temperature": ["2700K", "3000K", "3500K", "4000K", "5000K", "Multi CCT"]
+    "Color Temperature": ["2700K", "3000K", "3500K", "4000K", "5000K", "6500K", "Multi CCT"]
   },
   "deck_composite": {
     "Material": ["Composite", "PVC", "Wood"],

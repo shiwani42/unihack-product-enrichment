@@ -9,6 +9,7 @@ from pathlib import Path
 from app.config import DEFAULT_OUTPUT_HEADERS
 
 _ILLEGAL_CELL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+_PDF_MAGIC = "%PDF"
 _append_lock = threading.Lock()
 
 
@@ -40,10 +41,24 @@ def _normalize_input_rows(reader: csv.DictReader, max_rows: int | None = None) -
     return rows
 
 
+def is_readable_text(value: str) -> bool:
+    """False for PDF bytes, C0 controls, or mostly non-printable scrap."""
+    text = "" if value is None else str(value)
+    if not text:
+        return True
+    if text.lstrip().startswith(_PDF_MAGIC):
+        return False
+    if _ILLEGAL_CELL.search(text):
+        return False
+    sample = text[:4000]
+    printable = sum(1 for ch in sample if ch.isprintable() or ch in "\n\t\r")
+    return printable / max(len(sample), 1) >= 0.85
+
+
 def sanitize_cell(value: str) -> str:
     """Drop cells that cannot be written to CSV/Excel (binary PDF leftovers, C0 controls)."""
     text = "" if value is None else str(value)
-    if _ILLEGAL_CELL.search(text):
+    if not is_readable_text(text):
         return ""
     return text
 

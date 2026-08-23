@@ -62,6 +62,17 @@ def looks_like_empty_search(html: str) -> bool:
     return bool(_EMPTY_SEARCH.search(visible[:8000]))
 
 
+def looks_like_pdf(html: str) -> bool:
+    """True when a fetched body is a PDF, even if the URL has no .pdf suffix."""
+    raw = html or ""
+    if raw.lstrip().startswith("%PDF"):
+        return True
+    head = raw[:64]
+    if head.count("\x00") >= 2:
+        return True
+    return False
+
+
 def is_usable_page(status: int, html: str, url: str) -> bool:
     if status < 200 or status >= 400:
         return False

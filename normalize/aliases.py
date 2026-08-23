@@ -3,6 +3,7 @@ from pathlib import Path
 
 from classify.category_router import CategoryTemplate
 from extract.evidence import Evidence, EvidenceBundle, is_self_cited
+from normalize.values import uom_fits_label
 
 ALIASES_PATH = Path(__file__).resolve().parent / "field_aliases.json"
 
@@ -57,6 +58,7 @@ def candidates_for_label(bundle: EvidenceBundle, label: str, aliases: dict[str, 
 def pick_evidence_for_label(bundle: EvidenceBundle, label: str, aliases: dict[str, list[str]] | None = None):
     """Prefer a live manufacturer spec over a Part_Desc parse of the same slot."""
     found = candidates_for_label(bundle, label, aliases)
+    found = [item for item in found if uom_fits_label(label, item.uom or "", item.value or "")]
     if not found:
         return None
     live = [item for item in found if not is_self_cited(item.source_url)]

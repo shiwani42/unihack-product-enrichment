@@ -12,6 +12,8 @@ import re
 
 from extract.evidence import EvidenceBundle
 from extract.structured import _walk
+from ingest.csv_io import is_readable_text
+from sources.page_ok import looks_like_pdf
 
 _NEXT_DATA = re.compile(
     r'<script[^>]*id=["\']__NEXT_DATA__["\'][^>]*>(.*?)</script>',
@@ -52,6 +54,8 @@ def embedded_json_blobs(html: str) -> list:
 
 def extract_page_state(html: str, url: str) -> EvidenceBundle:
     bundle = EvidenceBundle(mfr_url=url)
+    if looks_like_pdf(html) or not is_readable_text((html or "")[:4000]):
+        return bundle
     for payload in embedded_json_blobs(html):
         _walk(payload, url, bundle)
     return bundle

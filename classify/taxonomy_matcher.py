@@ -83,17 +83,24 @@ def match_taxonomy(part_desc: str, brand_key: str = "") -> TaxonomyMatch | None:
     best: TaxonomyMatch | None = None
 
     for leaf in leaves:
+        product_hit = False
         score = 0.0
         for keyword in leaf.get("keywords", []):
             kw = keyword.lower()
             if kw in text:
                 score += 2.0 + len(kw) * 0.05
+                product_hit = True
             elif kw in desc_tokens:
                 score += 1.5
+                product_hit = True
 
         for pattern in leaf.get("patterns", []):
             if re.search(pattern, part_desc, re.I):
                 score += 3.0
+                product_hit = True
+
+        if not product_hit:
+            continue
 
         for brand in leaf.get("brands", []):
             if brand_key and brand.lower() == brand_key.lower():

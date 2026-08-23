@@ -56,7 +56,9 @@ def extract_generic_from_desc(part_desc: str, mpn: str, template: CategoryTempla
         else:
             product_type = "Range"
     elif template.category_id == "power_tool_accessory":
-        if "countersink" in lower or "drill" in lower:
+        if "screw setter" in lower:
+            product_type = "Screw Setter"
+        elif "countersink" in lower or "drill" in lower:
             product_type = "Drill Bit"
         elif "blade" in lower:
             product_type = "Saw Blade"
@@ -100,11 +102,11 @@ def extract_generic_from_desc(part_desc: str, mpn: str, template: CategoryTempla
     if gang:
         _set(bundle, "Gang Count", gang.group(1), "", text)
 
-    watt = re.search(r"(\d+(?:\.\d+)?)\s?[wW](?:att)?\b", text)
+    watt = re.search(r"(\d+(?:\.\d+)?)\s*(?:Watts?\b|W(?![A-Za-z/]))", text, re.I)
     if watt:
         _set(bundle, "Wattage", watt.group(1), "W", text)
 
-    volt = re.search(r"(\d{2,3})\s?[vV]\b", text)
+    volt = re.search(r"(\d{2,3})\s?(?:VAC|VDC|Volts?\b|V\b)", text, re.I)
     if volt:
         _set(bundle, "Voltage Rating", volt.group(1), "V", text, 0.7)
 
@@ -112,9 +114,16 @@ def extract_generic_from_desc(part_desc: str, mpn: str, template: CategoryTempla
     if pressure:
         _set(bundle, "Pressure Rating", pressure.group(1), "PSI", text)
 
-    cct = re.search(r"(multi cct|\d{4}k)", text, re.I)
+    from normalize.values import normalize_color_temperature
+
+    haystack = text
+    if mpn:
+        haystack = re.sub(re.escape(mpn), " ", text, flags=re.I)
+    cct = re.search(r"(multi\s*cct|\b(?:2700|3000|3500|4000|5000|6500)\s*k\b)", haystack, re.I)
     if cct:
-        _set(bundle, "Color Temperature", cct.group(1).title().replace("Cct", "CCT"), "", text)
+        value = normalize_color_temperature(cct.group(1), mpn=mpn)
+        if value:
+            _set(bundle, "Color Temperature", value, "", text)
 
     finish = re.search(r"\b(BK|Black|White|SS|Stainless|Bronze|Mocha|Chrome|Brass|BZ|BRS)\b", text, re.I)
     if finish:
@@ -133,8 +142,11 @@ def extract_generic_from_desc(part_desc: str, mpn: str, template: CategoryTempla
         _set(bundle, "Material", material.group(1).title(), "", text)
 
     grit = re.search(r"\bP(\d{2,3})\b", text, re.I)
+    grit_plain = re.search(r"\b(\d{2,3})\s*grit\b", text, re.I)
     if grit:
         _set(bundle, "Grit", f"P{grit.group(1)}", "", text)
+    elif grit_plain:
+        _set(bundle, "Grit", grit_plain.group(1), "", text)
 
     pack = re.search(r"(\d+)\s?(?:pc|pk|pack|box|disc)\b", text, re.I)
     if pack:

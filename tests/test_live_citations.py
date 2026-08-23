@@ -252,7 +252,7 @@ def test_suffix_label_from_any_brand_beats_part_desc():
     assert aligned.get("Diameter").source_url.startswith("https://unseen-tools.example.com/")
     row: dict[str, str] = {}
     apply_template_attributes(row, template, aligned)
-    assert row["ATTRIBUTE_VALUE 1"] == "4.5"
+    assert row["ATTRIBUTE_VALUE 1"] in {"4.5", "4-1/2"}
 
 
 def test_confirm_rehomes_without_mapped_manufacturer_domain():

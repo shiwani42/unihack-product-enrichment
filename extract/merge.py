@@ -1,4 +1,6 @@
 from extract.evidence import EvidenceBundle
+from ingest.csv_io import sanitize_cell
+from ingest.csv_io import is_readable_text, sanitize_cell
 
 
 def merge_bundles(*bundles: EvidenceBundle) -> EvidenceBundle:
@@ -12,11 +14,13 @@ def merge_bundles(*bundles: EvidenceBundle) -> EvidenceBundle:
         for image in getattr(bundle, "image_urls", []):
             if image not in merged.image_urls:
                 merged.image_urls.append(image)
-        if bundle.marketing and not merged.marketing:
-            merged.marketing = bundle.marketing
+        marketing = sanitize_cell(bundle.marketing or "")
+        if marketing and not merged.marketing:
+            merged.marketing = marketing
         for feature in getattr(bundle, "features", []) or []:
-            if feature not in merged.features:
-                merged.features.append(feature)
+            cleaned = sanitize_cell(feature)
+            if cleaned and cleaned not in merged.features:
+                merged.features.append(cleaned)
         if bundle.approvals and not merged.approvals:
             merged.approvals = bundle.approvals
         if bundle.warranty and not merged.warranty:

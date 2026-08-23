@@ -34,15 +34,20 @@ def extract_from_part_desc(part_desc: str, mpn: str, brand_key: str = "", domain
         add("Thickness", thickness.group(1), 0.65)
 
     grit = re.search(r"\bP(\d{2,3})\b", text, re.I)
+    grit_plain = re.search(r"\b(\d{2,3})\s*grit\b", text, re.I)
     if grit:
+        add("Grit", f"P{grit.group(1)}", 0.7)
         add("Additional Information", f"P{grit.group(1)} Grit", 0.7)
+    elif grit_plain:
+        add("Grit", grit_plain.group(1), 0.7)
+        add("Additional Information", f"{grit_plain.group(1)} Grit", 0.65)
 
     dims = re.search(r"(\d+(?:\.\d+)?)\s?[xX]\s?(\d+(?:\.\d+)?)", text)
     if dims and not diameter:
         add("Diameter", f"{dims.group(1)}x{dims.group(2)}", 0.6)
 
     app_match = re.search(
-        r"(Metal Cut Off Disc|Metal Cut-Off Disc|Sanding Belt|Stikit Film|Abranet|Sanding Disc|HIOLIT)",
+        r"(Metal Cut Off Disc|Metal Cut-Off Disc|Sanding Belt|Sanding Sponge|Stikit Film|Abranet|Sanding Disc|HIOLIT|Screw Setter)",
         text,
         re.I,
     )
@@ -51,6 +56,15 @@ def extract_from_part_desc(part_desc: str, mpn: str, brand_key: str = "", domain
         if app_val.upper() == "HIOLIT":
             app_val = "Sanding Disc"
         add("Application", app_val, 0.65)
+        add("Product Type", app_val, 0.6)
+
+    type_match = re.search(
+        r"(Sanding Sponge|Sanding Belt|Sanding Disc|Screw Setter|Cut[- ]?Off Disc|Grinding Wheel)",
+        text,
+        re.I,
+    )
+    if type_match and not bundle.get("Product Type"):
+        add("Product Type", type_match.group(1).title(), 0.6)
 
     pack = re.search(r"(\d+)\s?(?:pc|pk|disc|box)\b", text, re.I)
     if pack:

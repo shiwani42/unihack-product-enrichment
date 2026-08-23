@@ -4,6 +4,7 @@ from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
+from ingest.csv_io import is_readable_text
 from sources.finder import is_blocked_url, url_on_domains
 
 _PDF_URL_RE = re.compile(r"https?://[^\s\"'<>]+?\.pdf", re.I)
@@ -182,11 +183,11 @@ def discover_marketing_text(html: str) -> str:
     for tag in soup.find_all("meta"):
         if tag.get("name", "").lower() == "description":
             content = (tag.get("content") or "").strip()
-            if len(content) > 40:
+            if content and len(content) > 40 and is_readable_text(content):
                 return content
     paragraphs: list[str] = []
     for tag in soup.find_all("p"):
         text = " ".join(tag.get_text(" ", strip=True).split())
-        if len(text) > 60:
+        if len(text) > 60 and is_readable_text(text):
             paragraphs.append(text)
     return paragraphs[0] if paragraphs else ""

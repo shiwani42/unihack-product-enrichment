@@ -15,6 +15,7 @@ from pathlib import Path
 from app.config import EVIDENCE_CACHE_DIR, EVIDENCE_CACHE_TTL_DAYS
 from extract.evidence import Evidence, EvidenceBundle
 from io_utils import atomic_write_text, safe_filename
+from ingest.csv_io import sanitize_cell
 
 CACHE_DIR = EVIDENCE_CACHE_DIR
 
@@ -72,8 +73,8 @@ def _bundle_from_payload(payload: dict) -> EvidenceBundle:
             bundle.set(Evidence(**item))
         except TypeError:
             continue
-    bundle.marketing = payload.get("marketing", "")
-    bundle.features = payload.get("features", [])
+    bundle.marketing = sanitize_cell(payload.get("marketing", ""))
+    bundle.features = [sanitize_cell(item) for item in payload.get("features", []) if sanitize_cell(str(item))]
     bundle.approvals = payload.get("approvals", "")
     bundle.warranty = payload.get("warranty", "")
     bundle.product_ids = payload.get("product_ids", {})
@@ -97,6 +98,12 @@ def load_cached_bundle(mpn: str) -> EvidenceBundle | None:
         return None
     if _age_days(payload, path) > EVIDENCE_CACHE_TTL_DAYS:
         return None
+    mfr_url = (payload.get("mfr_url") or "").strip()
+    if mfr_url:
+        from sources.finder import is_blocked_url, is_distributor_url, is_search_url
+
+        if is_blocked_url(mfr_url) or is_distributor_url(mfr_url) or is_search_url(mfr_url):
+            return None
     return _bundle_from_payload(payload)
 
 

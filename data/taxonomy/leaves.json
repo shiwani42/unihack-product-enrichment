@@ -238,10 +238,15 @@
       "power",
       "power tool accessories",
       "power tool accessory",
+      "screw setter",
       "tool",
       "tools"
     ],
-    "patterns": []
+    "patterns": [
+      "screw setter",
+      "drill bit",
+      "countersink"
+    ]
   },
   {
     "leaf_id": "sanding_abrasive",

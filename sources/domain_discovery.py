@@ -9,9 +9,9 @@ or that are a product URL with the MPN in the path (parent-company sites).
 from __future__ import annotations
 
 import re
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
-from sources.finder import is_blocked_url, is_distributor_url, url_contains_mpn, url_on_domains
+from sources.finder import is_blocked_url, is_distributor_url, looks_like_dealer_storefront, url_contains_mpn, url_on_domains
 
 LEGAL_SUFFIXES = frozenset(
     {
@@ -84,7 +84,7 @@ OFFICIAL_PATH_HINTS = (
     "/datasheet",
     "/manual",
     "/spec",
-    "/appliance",
+    "/appliance/",
     "/search",
 )
 
@@ -97,7 +97,7 @@ PRODUCT_PATH_HINTS = (
     "/spec",
     "/manual",
     "/owner",
-    "/appliance",
+    "/appliance/",
     "/datasheet",
 )
 
@@ -162,6 +162,30 @@ def host_matches_names(host: str, names: list[str]) -> bool:
     return False
 
 
+def _hint_in_path(path: str, url: str, hint: str) -> bool:
+    """True when a product-path hint matches. `/appliance/` is singular only."""
+    if hint == "/appliance/":
+        return bool(re.search(r"(?:^|/)appliance(?:/|$)", path)) and "/appliances/" not in path
+    return hint in path or hint in (url or "").lower()
+
+
+def looks_like_retail_catalog(url: str, names: list[str], mpn: str) -> bool:
+    """Dealer merchandising: brand + MPN on a host that is not the brand."""
+    if not names or not mpn or looks_like_dealer_storefront(url):
+        return bool(url) and looks_like_dealer_storefront(url)
+    host = _hostname(url)
+    if host_matches_names(host, names):
+        return False
+    if not url_contains_mpn(url, mpn):
+        return False
+    segments = {unquote(part).lower() for part in urlparse(url or "").path.split("/") if part}
+    for name in names:
+        for token in name_tokens(name):
+            if len(token) >= 4 and token in segments:
+                return True
+    return False
+
+
 def discover_domains_from_urls(
     urls: list[str],
     mpn: str = "",
@@ -170,10 +194,13 @@ def discover_domains_from_urls(
 ) -> list[str]:
     """Pick likely manufacturer hosts from search-result URLs."""
     names = [name for name in (names or []) if name]
-    ranked: list[tuple[int, str]] = []
+    named: list[tuple[int, str]] = []
+    unnamed: list[tuple[int, str]] = []
     seen: set[str] = set()
     for url in urls:
-        if is_blocked_url(url) or is_distributor_url(url):
+        if is_blocked_url(url) or is_distributor_url(url) or looks_like_dealer_storefront(url):
+            continue
+        if names and looks_like_retail_catalog(url, names, mpn):
             continue
         host = _hostname(url)
         if not host:
@@ -184,7 +211,7 @@ def discover_domains_from_urls(
         path = urlparse(url).path.lower()
         name_hit = bool(names) and host_matches_names(host, names)
         mpn_in_path = bool(mpn) and url_contains_mpn(url, mpn)
-        productish = any(hint in path or hint in url.lower() for hint in PRODUCT_PATH_HINTS)
+        productish = any(_hint_in_path(path, url, hint) for hint in PRODUCT_PATH_HINTS)
         score = 0
         if name_hit:
             score += 10
@@ -192,11 +219,10 @@ def discover_domains_from_urls(
             score += 8
         if productish and mpn_in_path:
             score += 6
-        if mpn and mpn.lower() in url.lower() and any(hint in path or hint in url.lower() for hint in OFFICIAL_PATH_HINTS):
+        if mpn and mpn.lower() in url.lower() and any(_hint_in_path(path, url, hint) for hint in OFFICIAL_PATH_HINTS):
             score += 4
-        # Name match is enough to adopt hunterfan.com from a search page.
-        # Parent-company PDPs (abb.com/products/{mpn}) have no brand label in the
-        # host; keep those only when the MPN is a path segment on a product URL.
+        # Brand-matched hosts win. Parent-company PDPs (abb.com/products/{mpn})
+        # are used only when search never returned a host that matches the name.
         if names and not name_hit and not (mpn_in_path and productish):
             continue
         if not names and score < 8:
@@ -204,7 +230,9 @@ def discover_domains_from_urls(
         if host in seen:
             continue
         seen.add(host)
-        ranked.append((score, host))
+        bucket = named if name_hit else unnamed
+        bucket.append((score, host))
+    ranked = named if named else unnamed
     ranked.sort(key=lambda item: (-item[0], item[1]))
     return [host for _score, host in ranked[:limit]]
 
@@ -228,7 +256,9 @@ def select_search_hits(
         combined.append(domain)
     kept: list[str] = []
     for url in urls:
-        if is_blocked_url(url) or is_distributor_url(url):
+        if is_blocked_url(url) or is_distributor_url(url) or looks_like_dealer_storefront(url):
+            continue
+        if names and looks_like_retail_catalog(url, names, mpn):
             continue
         if combined and not url_on_domains(url, combined):
             continue

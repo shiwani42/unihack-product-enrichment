@@ -4,6 +4,8 @@ import extruct
 from w3lib.html import get_base_url
 
 from extract.evidence import Evidence, EvidenceBundle
+from ingest.csv_io import is_readable_text, sanitize_cell
+from sources.page_ok import looks_like_pdf
 
 PROPERTY_MAP = {
     "voltage": "Voltage Rating",
@@ -120,8 +122,44 @@ _SKIP_SPEC_KEYS = frozenset(
         "ogtitle",
         "ogurl",
         "ogtype",
+        "ogimage",
+        "ogimagewidth",
+        "ogimageheight",
+        "imagewidth",
+        "imageheight",
+        "townname",
+        "sitename",
+        "statename",
+        "countryname",
+        "addresslocality",
+        "addressregion",
+        "postalcode",
+        "streetaddress",
+        "telephone",
+        "latitude",
+        "longitude",
+        "geo",
+        "sep",
+        "hours",
+        "openinghours",
+        "categories",
+        "category",
+        "breadcrumb",
+        "breadcrumbs",
     }
 )
+_SKIP_SCHEMA_TYPES = frozenset(
+    {
+        "localbusiness",
+        "store",
+        "place",
+        "postaladdress",
+        "geocoordinates",
+        "geo",
+        "imageobject",
+    }
+)
+_HEX_COLOR = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$")
 
 
 def _normalize_key(key: str) -> str:
@@ -146,10 +184,30 @@ def _field_from_spec_name(label: str) -> str | None:
     return cleaned
 
 
+def _product_size_value(text: str) -> bool:
+    """Reject CSS/Open Graph pixel widths (1440) parked in Size."""
+    raw = (text or "").strip()
+    if not raw:
+        return False
+    if re.search(r'in|inch|"|\bx\b', raw, re.I):
+        return True
+    match = re.fullmatch(r"(\d+(?:\.\d+)?)", raw.replace(",", ""))
+    if not match:
+        return True
+    number = float(match.group(1))
+    return 8 <= number <= 96
+
+
 def _set_spec(bundle: EvidenceBundle, field: str, text: str, url: str, quote: str, confidence: float) -> None:
     if not field or not text:
         return
     if text.lower() in {"true", "false", "null", "none"}:
+        return
+    if field and text.lower() == field.lower():
+        return
+    if field == "Color" and _HEX_COLOR.fullmatch(text.strip()):
+        return
+    if field == "Size" and not _product_size_value(text):
         return
     if len(text) > 80:
         return
@@ -168,6 +226,8 @@ def _set_spec(bundle: EvidenceBundle, field: str, text: str, url: str, quote: st
 def _walk(obj, url: str, bundle: EvidenceBundle) -> None:
     if isinstance(obj, dict):
         obj_type = str(obj.get("@type", "")).lower()
+        if any(token in obj_type for token in _SKIP_SCHEMA_TYPES):
+            return
         lowered = {str(key).lower(): key for key in obj}
         name_key = next((lowered[key] for key in ("name", "label", "specname", "attributename") if key in lowered), None)
         value_key = next((lowered[key] for key in ("value", "specvalue", "attributevalue") if key in lowered), None)
@@ -200,6 +260,10 @@ def _walk(obj, url: str, bundle: EvidenceBundle) -> None:
                 field = PROPERTY_MAP[norm]
                 text = str(value).strip()
                 if not text:
+                    continue
+                if field == "Color" and _HEX_COLOR.fullmatch(text):
+                    continue
+                if field == "Size" and norm in {"width", "height"} and not _product_size_value(text):
                     continue
                 bundle.set(
                     Evidence(
@@ -234,6 +298,8 @@ def _walk(obj, url: str, bundle: EvidenceBundle) -> None:
 
 def extract_structured_data(html: str, url: str) -> EvidenceBundle:
     bundle = EvidenceBundle(mfr_url=url)
+    if looks_like_pdf(html) or not is_readable_text((html or "")[:4000]):
+        return bundle
     try:
         base = get_base_url(html, url)
         syntaxes = ["json-ld", "opengraph"]
@@ -254,8 +320,10 @@ def extract_structured_data(html: str, url: str) -> EvidenceBundle:
         first = og_items[0] if og_items else {}
         if isinstance(first, dict):
             desc = first.get("og:description") or first.get("description")
-            if desc and len(desc) > 40:
-                bundle.marketing = str(desc).strip()[:1200]
+            if desc and len(str(desc)) > 40:
+                cleaned = sanitize_cell(str(desc).strip())
+                if cleaned:
+                    bundle.marketing = cleaned[:1200]
             image = first.get("og:image") or first.get("og:image:url") or first.get("og:image:secure_url")
             if image and str(image).startswith("http"):
                 bundle.image_urls.append(str(image).strip())

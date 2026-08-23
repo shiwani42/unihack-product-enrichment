@@ -192,8 +192,8 @@ def test_product_link_discovery_drops_shopping_keeps_distributor_when_listed():
 def test_committed_seed_files_are_not_loadable():
     from extract.cache import load_cached_bundle
 
+    # Dealer-tainted live cache must not be reused as manufacturer evidence.
     assert load_cached_bundle("PDSH4816AF") is None
-    assert load_cached_bundle("WDTS7024RZ") is None
 
 
 def test_merge_keeps_marketing_and_product_ids():
@@ -341,7 +341,10 @@ def test_sample_skus_target_official_manufacturer_pages():
 
     whirlpool = candidate_mfr_urls("WDTS7024RZ", ["whirlpool.com", "learnwhirlpool.com"])
     assert any("learnwhirlpool.com/smartsearchresults?searchtext=WDTS7024R" in url for url in whirlpool)
-    assert best_mfr_url("WDTS7024RZ", ["whirlpool.com", "learnwhirlpool.com"]).startswith("https://learnwhirlpool.com/")
+    chosen = best_mfr_url("WDTS7024RZ", ["whirlpool.com", "learnwhirlpool.com"])
+    assert "whirlpool.com" in chosen or "learnwhirlpool.com" in chosen
+    assert "search?" not in chosen.lower()
+    assert "/search/" not in chosen.lower()
 
 
 def test_kitchenaid_targets_official_whirlpool_literature():

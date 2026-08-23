@@ -1,0 +1,505 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "claude-code",
+  "elements": [
+    {
+      "id": "title",
+      "type": "text",
+      "x": 40,
+      "y": 24,
+      "width": 399,
+      "height": 34,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100001,
+      "updated": 1,
+      "text": "How one SKU is enriched",
+      "fontSize": 28,
+      "fontFamily": 2,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "boundElements": null
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "x": 40,
+      "y": 64,
+      "width": 920,
+      "height": 22,
+      "angle": 0,
+      "strokeColor": "#64748b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100002,
+      "updated": 1,
+      "text": "Six distributor columns become a sourced Unilog record. Blank beats invented.",
+      "fontSize": 16,
+      "fontFamily": 2,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "boundElements": null
+    },
+    {
+      "id": "in",
+      "type": "ellipse",
+      "x": 40,
+      "y": 150,
+      "width": 180,
+      "height": 68,
+      "angle": 0,
+      "strokeColor": "#c2410c",
+      "backgroundColor": "#fed7aa",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100003,
+      "updated": 1,
+      "boundElements": [
+        {
+          "id": "in-t",
+          "type": "text"
+        },
+        {
+          "id": "a1",
+          "type": "arrow"
+        }
+      ]
+    },
+    {
+      "id": "in-t",
+      "type": "text",
+      "x": 40,
+      "y": 173.0,
+      "width": 180,
+      "height": 22,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100004,
+      "updated": 1,
+      "text": "6-col CSV",
+      "fontSize": 18,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "in",
+      "boundElements": null
+    },
+    {
+      "id": "ident",
+      "type": "rectangle",
+      "x": 330,
+      "y": 140,
+      "width": 210,
+      "height": 88,
+      "angle": 0,
+      "strokeColor": "#1e40af",
+      "backgroundColor": "#dbeafe",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100005,
+      "updated": 1,
+      "boundElements": [
+        {
+          "id": "ident-t",
+          "type": "text"
+        },
+        {
+          "id": "a1",
+          "type": "arrow"
+        },
+        {
+          "id": "a2",
+          "type": "arrow"
+        }
+      ]
+    },
+    {
+      "id": "ident-t",
+      "type": "text",
+      "x": 330,
+      "y": 164.0,
+      "width": 210,
+      "height": 40,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100006,
+      "updated": 1,
+      "text": "Resolve SKU\nbrand + category",
+      "fontSize": 16,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "ident",
+      "boundElements": null
+    },
+    {
+      "id": "fetch",
+      "type": "rectangle",
+      "x": 650,
+      "y": 140,
+      "width": 230,
+      "height": 88,
+      "angle": 0,
+      "strokeColor": "#6b21a8",
+      "backgroundColor": "#f3e8ff",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100007,
+      "updated": 1,
+      "boundElements": [
+        {
+          "id": "fetch-t",
+          "type": "text"
+        },
+        {
+          "id": "a2",
+          "type": "arrow"
+        },
+        {
+          "id": "a3",
+          "type": "arrow"
+        }
+      ]
+    },
+    {
+      "id": "fetch-t",
+      "type": "text",
+      "x": 650,
+      "y": 164.0,
+      "width": 230,
+      "height": 40,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100008,
+      "updated": 1,
+      "text": "Fetch evidence\nmanufacturer first",
+      "fontSize": 16,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "fetch",
+      "boundElements": null
+    },
+    {
+      "id": "write",
+      "type": "rectangle",
+      "x": 990,
+      "y": 140,
+      "width": 220,
+      "height": 88,
+      "angle": 0,
+      "strokeColor": "#0369a1",
+      "backgroundColor": "#e0f2fe",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100009,
+      "updated": 1,
+      "boundElements": [
+        {
+          "id": "write-t",
+          "type": "text"
+        },
+        {
+          "id": "a3",
+          "type": "arrow"
+        },
+        {
+          "id": "a4",
+          "type": "arrow"
+        }
+      ]
+    },
+    {
+      "id": "write-t",
+      "type": "text",
+      "x": 990,
+      "y": 164.0,
+      "width": 220,
+      "height": 40,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100010,
+      "updated": 1,
+      "text": "Write record\n252 cols + checks",
+      "fontSize": 16,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "write",
+      "boundElements": null
+    },
+    {
+      "id": "out",
+      "type": "ellipse",
+      "x": 1320,
+      "y": 150,
+      "width": 210,
+      "height": 68,
+      "angle": 0,
+      "strokeColor": "#166534",
+      "backgroundColor": "#dcfce7",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100011,
+      "updated": 1,
+      "boundElements": [
+        {
+          "id": "out-t",
+          "type": "text"
+        },
+        {
+          "id": "a4",
+          "type": "arrow"
+        }
+      ]
+    },
+    {
+      "id": "out-t",
+      "type": "text",
+      "x": 1320,
+      "y": 173.0,
+      "width": 210,
+      "height": 22,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100012,
+      "updated": 1,
+      "text": "252-col record",
+      "fontSize": 18,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "out",
+      "boundElements": null
+    },
+    {
+      "id": "a1",
+      "type": "arrow",
+      "x": 220,
+      "y": 184,
+      "width": 110,
+      "height": 0,
+      "angle": 0,
+      "strokeColor": "#475569",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100013,
+      "updated": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          110,
+          0
+        ]
+      ],
+      "startBinding": {
+        "elementId": "in",
+        "gap": 4,
+        "focus": 0
+      },
+      "endBinding": {
+        "elementId": "ident",
+        "gap": 4,
+        "focus": 0
+      },
+      "boundElements": null
+    },
+    {
+      "id": "a2",
+      "type": "arrow",
+      "x": 540,
+      "y": 184,
+      "width": 110,
+      "height": 0,
+      "angle": 0,
+      "strokeColor": "#475569",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100014,
+      "updated": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          110,
+          0
+        ]
+      ],
+      "startBinding": {
+        "elementId": "ident",
+        "gap": 4,
+        "focus": 0
+      },
+      "endBinding": {
+        "elementId": "fetch",
+        "gap": 4,
+        "focus": 0
+      },
+      "boundElements": null
+    },
+    {
+      "id": "a3",
+      "type": "arrow",
+      "x": 880,
+      "y": 184,
+      "width": 110,
+      "height": 0,
+      "angle": 0,
+      "strokeColor": "#475569",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100015,
+      "updated": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          110,
+          0
+        ]
+      ],
+      "startBinding": {
+        "elementId": "fetch",
+        "gap": 4,
+        "focus": 0
+      },
+      "endBinding": {
+        "elementId": "write",
+        "gap": 4,
+        "focus": 0
+      },
+      "boundElements": null
+    },
+    {
+      "id": "a4",
+      "type": "arrow",
+      "x": 1210,
+      "y": 184,
+      "width": 110,
+      "height": 0,
+      "angle": 0,
+      "strokeColor": "#475569",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100016,
+      "updated": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          110,
+          0
+        ]
+      ],
+      "startBinding": {
+        "elementId": "write",
+        "gap": 4,
+        "focus": 0
+      },
+      "endBinding": {
+        "elementId": "out",
+        "gap": 4,
+        "focus": 0
+      },
+      "boundElements": null
+    },
+    {
+      "id": "note",
+      "type": "text",
+      "x": 40,
+      "y": 268,
+      "width": 720,
+      "height": 40,
+      "angle": 0,
+      "strokeColor": "#64748b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 100017,
+      "updated": 1,
+      "text": "Every filled cell cites a manufacturer URL.\nIf the page never loaded, the cite is input:Part_Desc.",
+      "fontSize": 14,
+      "fontFamily": 2,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "boundElements": null
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff"
+  }
+}

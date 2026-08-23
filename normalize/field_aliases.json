@@ -16,6 +16,5 @@
   "Pack Quantity": ["Pack Qty", "Package Quantity", "Pieces Per Pack", "Qty Per Pack"],
   "Series": ["Product Type"],
   "Material": ["Finish"],
-  "Voltage Rating": ["Wattage"],
   "Size": ["Length", "Width", "Diameter"]
 }

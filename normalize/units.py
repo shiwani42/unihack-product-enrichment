@@ -81,17 +81,17 @@ def split_value_uom(raw: str, expected_uom: str = "") -> tuple[str, str]:
     if attached:
         return attached.group(1), "ft"
 
-    volt = re.match(r"^(\d{2,3})\s*(V|VAC|Volts?)$", text, re.I)
+    volt = re.match(r"^(\d{2,3})\s*(V|VAC|VDC|Volts?)$", text, re.I)
     if volt:
-        return volt.group(1), expected_uom or "V"
+        return volt.group(1), "V"
 
     amp = re.match(r"^(\d+(?:\.\d+)?)\s*(A|Amps?)$", text, re.I)
     if amp:
-        return amp.group(1), expected_uom or "A"
+        return amp.group(1), "A"
 
     watt = re.match(r"^(\d+(?:\.\d+)?)\s*(W|Watts?)$", text, re.I)
     if watt:
-        return watt.group(1), expected_uom or "W"
+        return watt.group(1), "W"
 
     inch = re.match(r'^(\d+(?:-\d+/\d+)?(?:\.\d+)?)\s*(?:"|in|inch|inches)$', text, re.I)
     if inch:
@@ -111,6 +111,22 @@ def split_value_uom(raw: str, expected_uom: str = "") -> tuple[str, str]:
         return dba.group(1), expected_uom or "dBA"
 
     if expected_uom:
+        if re.search(r"(?i)\d+(?:\.\d+)?\s*(?:Watts?\b|W(?![A-Za-z/]))", text) and expected_uom.upper() not in {
+            "W",
+            "WATT",
+            "WATTS",
+        }:
+            watt = re.search(r"(?i)^(\d+(?:\.\d+)?)\s*(?:Watts?\b|W(?![A-Za-z/]))", text)
+            return (watt.group(1), "W") if watt else (text, "W")
+        if re.search(r"(?i)\d+(?:\.\d+)?\s*(?:VAC|VDC|Volts?\b|V\b)", text) and expected_uom.upper() not in {
+            "V",
+            "VAC",
+            "VDC",
+            "VOLT",
+            "VOLTS",
+        }:
+            volt = re.search(r"(?i)^(\d{2,3})\s*(?:VAC|VDC|Volts?\b|V\b)", text)
+            return (volt.group(1), "V") if volt else (text, "V")
         return text, expected_uom
     return text, ""
 

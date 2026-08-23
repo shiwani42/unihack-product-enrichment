@@ -102,12 +102,34 @@ def noise_host_labels() -> frozenset[str]:
     return _taxonomy_labels("noise")
 
 
+def looks_like_dealer_storefront(url: str) -> bool:
+    """Local appliance dealers, not the manufacturer.
+
+    Magento storefronts put the MPN on /appliances/.../{mpn}. Search used to
+    treat `/appliance/` (the GE CMS path) as a prefix of `/appliances/` and
+    adopt the dealer host. Plural `/appliances/` is merchandising; singular
+    `/appliance/{mpn}` is only guessed for hosts that already taught us that CMS.
+    """
+    host = _hostname(url)
+    if not host:
+        return False
+    path = urlparse(url or "").path.lower()
+    if "/appliances/" in path or path.rstrip("/").endswith("/appliances"):
+        return True
+    labels = _host_labels(host)
+    if labels & {"appliance", "appliances"}:
+        return True
+    return False
+
+
 def is_blocked_url(url: str) -> bool:
     """True for shopping/e-commerce and search-noise hosts. Distributors are not blocked."""
     if not url:
         return False
     lowered = url.lower()
     if any(marker in lowered for marker in ECOMMERCE_PATH_MARKERS):
+        return True
+    if looks_like_dealer_storefront(url):
         return True
     host = _hostname(url)
     if not host:
@@ -230,7 +252,12 @@ def _dedupe_allowed(urls: list[str]) -> list[str]:
 
 def is_search_url(url: str) -> bool:
     low = (url or "").lower()
-    return any(token in low for token in ("search?", "search.html", "/search/", "smartsearchresults"))
+    if any(token in low for token in ("search?", "search.html", "/search/", "smartsearchresults")):
+        return True
+    host = _hostname(url)
+    if "icecat." in host and ("?q=" in low or "keyword=" in low):
+        return True
+    return False
 
 
 def is_pdf_url(url: str) -> bool:
@@ -239,8 +266,17 @@ def is_pdf_url(url: str) -> bool:
 
 
 def host_uses_appliance_path(host: str) -> bool:
-    """True only for GE/Cafe-style hosts. Tool brands must not inherit /appliance/{mpn}."""
-    return "appliance" in (host or "").lower()
+    """True when this host already taught us `/appliance/{mpn}` as its PDP shape."""
+    h = (host or "").lower().removeprefix("www.")
+    if not h:
+        return False
+    for key, templates in _domain_paths().items():
+        key_h = str(key or "").lower().removeprefix("www.")
+        if not key_h or not (h == key_h or h.endswith(f".{key_h}") or key_h in h):
+            continue
+        if any(is_appliance_path_template(template) for template in templates or []):
+            return True
+    return False
 
 
 def is_appliance_path_template(template: str) -> bool:
@@ -384,9 +420,11 @@ def url_contains_mpn(url: str, mpn: str) -> bool:
 
 def official_url_score(url: str, mpn: str = "") -> int:
     """Prefer manufacturer product-support / literature pages over generic search."""
-    if not url or is_blocked_url(url):
+    if not url or is_blocked_url(url) or looks_like_dealer_storefront(url):
         return -1
     low = url.lower()
+    if "/appliances/" in low:
+        return -1
     if low.endswith(".pdf"):
         return 0
     if any(token in low for token in ("/login", "/logout", "/signin", "/cart", "/account", "/api/auth")):
@@ -412,25 +450,21 @@ def official_url_score(url: str, mpn: str = "") -> int:
 def best_mfr_url(mpn: str, domains: list[str]) -> str:
     from sources.known_urls import _keep_score, known_urls_for
 
-    def _not_query_search(url: str) -> bool:
-        low = (url or "").lower()
-        return "search?" not in low and not low.endswith("search.html")
-
     known = [
         url
         for url in known_urls_for(mpn)
         if not is_blocked_url(url)
         and not is_distributor_url(url)
+        and not is_search_url(url)
         and not url.lower().endswith(".pdf")
         and (not domains or url_on_domains(url, domains))
-        and _not_query_search(url)
     ]
     if known:
         return max(known, key=_keep_score)
     candidates = [
         url
         for url in candidate_mfr_urls(mpn, domains)
-        if not url.lower().endswith(".pdf") and _not_query_search(url)
+        if not url.lower().endswith(".pdf") and not is_search_url(url)
     ]
     if not candidates:
         return ""

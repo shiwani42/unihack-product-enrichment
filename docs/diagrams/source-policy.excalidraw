@@ -1,0 +1,569 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "claude-code",
+  "elements": [
+    {
+      "id": "title",
+      "type": "text",
+      "x": 40,
+      "y": 24,
+      "width": 434,
+      "height": 34,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200001,
+      "updated": 1,
+      "text": "Where evidence comes from",
+      "fontSize": 28,
+      "fontFamily": 2,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "boundElements": null
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "x": 40,
+      "y": 64,
+      "width": 820,
+      "height": 22,
+      "angle": 0,
+      "strokeColor": "#64748b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200002,
+      "updated": 1,
+      "text": "Manufacturer first. Shopping never. Fallback pages may fill attributes, not marketing.",
+      "fontSize": 16,
+      "fontFamily": 2,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "boundElements": null
+    },
+    {
+      "id": "mfr",
+      "type": "rectangle",
+      "x": 80,
+      "y": 130,
+      "width": 340,
+      "height": 80,
+      "angle": 0,
+      "strokeColor": "#166534",
+      "backgroundColor": "#dcfce7",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200003,
+      "updated": 1,
+      "boundElements": [
+        {
+          "id": "mfr-t",
+          "type": "text"
+        },
+        {
+          "id": "s1",
+          "type": "arrow"
+        }
+      ]
+    },
+    {
+      "id": "mfr-t",
+      "type": "text",
+      "x": 80,
+      "y": 150.0,
+      "width": 340,
+      "height": 40,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200004,
+      "updated": 1,
+      "text": "1  Manufacturer site\nspecs \u00b7 marketing \u00b7 MFR URL",
+      "fontSize": 16,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "mfr",
+      "boundElements": null
+    },
+    {
+      "id": "fam",
+      "type": "rectangle",
+      "x": 80,
+      "y": 330,
+      "width": 340,
+      "height": 80,
+      "angle": 0,
+      "strokeColor": "#0369a1",
+      "backgroundColor": "#e0f2fe",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200005,
+      "updated": 1,
+      "boundElements": [
+        {
+          "id": "fam-t",
+          "type": "text"
+        },
+        {
+          "id": "s1",
+          "type": "arrow"
+        },
+        {
+          "id": "s2",
+          "type": "arrow"
+        }
+      ]
+    },
+    {
+      "id": "fam-t",
+      "type": "text",
+      "x": 80,
+      "y": 350.0,
+      "width": 340,
+      "height": 40,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200006,
+      "updated": 1,
+      "text": "2  Family literature\nsame-parent manuals and PDPs",
+      "fontSize": 16,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "fam",
+      "boundElements": null
+    },
+    {
+      "id": "tp",
+      "type": "rectangle",
+      "x": 80,
+      "y": 530,
+      "width": 340,
+      "height": 80,
+      "angle": 0,
+      "strokeColor": "#854d0e",
+      "backgroundColor": "#fef9c3",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200007,
+      "updated": 1,
+      "boundElements": [
+        {
+          "id": "tp-t",
+          "type": "text"
+        },
+        {
+          "id": "s2",
+          "type": "arrow"
+        },
+        {
+          "id": "s3",
+          "type": "arrow"
+        }
+      ]
+    },
+    {
+      "id": "tp-t",
+      "type": "text",
+      "x": 80,
+      "y": 550.0,
+      "width": 340,
+      "height": 40,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200008,
+      "updated": 1,
+      "text": "3  Third-party catalogs\nattributes only",
+      "fontSize": 16,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "tp",
+      "boundElements": null
+    },
+    {
+      "id": "dist",
+      "type": "rectangle",
+      "x": 80,
+      "y": 730,
+      "width": 340,
+      "height": 80,
+      "angle": 0,
+      "strokeColor": "#854d0e",
+      "backgroundColor": "#fef9c3",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200009,
+      "updated": 1,
+      "boundElements": [
+        {
+          "id": "dist-t",
+          "type": "text"
+        },
+        {
+          "id": "s3",
+          "type": "arrow"
+        }
+      ]
+    },
+    {
+      "id": "dist-t",
+      "type": "text",
+      "x": 80,
+      "y": 750.0,
+      "width": 340,
+      "height": 40,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200010,
+      "updated": 1,
+      "text": "4  Distributors last\nattributes only \u00b7 never MFR URL",
+      "fontSize": 16,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "dist",
+      "boundElements": null
+    },
+    {
+      "id": "shop",
+      "type": "rectangle",
+      "x": 500,
+      "y": 130,
+      "width": 300,
+      "height": 80,
+      "angle": 0,
+      "strokeColor": "#991b1b",
+      "backgroundColor": "#fee2e2",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200011,
+      "updated": 1,
+      "boundElements": [
+        {
+          "id": "shop-t",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "id": "shop-t",
+      "type": "text",
+      "x": 500,
+      "y": 150.0,
+      "width": 300,
+      "height": 40,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200012,
+      "updated": 1,
+      "text": "Never: shopping\nAmazon \u00b7 Home Depot \u00b7 eBay",
+      "fontSize": 16,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "shop",
+      "boundElements": null
+    },
+    {
+      "id": "s1",
+      "type": "arrow",
+      "x": 250.0,
+      "y": 210,
+      "width": 0,
+      "height": 120,
+      "angle": 0,
+      "strokeColor": "#475569",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200013,
+      "updated": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          120
+        ]
+      ],
+      "startBinding": {
+        "elementId": "mfr",
+        "gap": 4,
+        "focus": 0
+      },
+      "endBinding": {
+        "elementId": "fam",
+        "gap": 4,
+        "focus": 0
+      },
+      "boundElements": [
+        {
+          "id": "s1-lbl",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "id": "s1-lbl",
+      "type": "text",
+      "x": 250.0,
+      "y": 210,
+      "width": 63,
+      "height": 18,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200014,
+      "updated": 1,
+      "text": "if thin",
+      "fontSize": 14,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "s1",
+      "boundElements": null
+    },
+    {
+      "id": "s2",
+      "type": "arrow",
+      "x": 250.0,
+      "y": 410,
+      "width": 0,
+      "height": 120,
+      "angle": 0,
+      "strokeColor": "#475569",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200015,
+      "updated": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          120
+        ]
+      ],
+      "startBinding": {
+        "elementId": "fam",
+        "gap": 4,
+        "focus": 0
+      },
+      "endBinding": {
+        "elementId": "tp",
+        "gap": 4,
+        "focus": 0
+      },
+      "boundElements": [
+        {
+          "id": "s2-lbl",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "id": "s2-lbl",
+      "type": "text",
+      "x": 250.0,
+      "y": 410,
+      "width": 63,
+      "height": 18,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200016,
+      "updated": 1,
+      "text": "if thin",
+      "fontSize": 14,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "s2",
+      "boundElements": null
+    },
+    {
+      "id": "s3",
+      "type": "arrow",
+      "x": 250.0,
+      "y": 610,
+      "width": 0,
+      "height": 120,
+      "angle": 0,
+      "strokeColor": "#475569",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 2,
+      "strokeStyle": "solid",
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200017,
+      "updated": 1,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          120
+        ]
+      ],
+      "startBinding": {
+        "elementId": "tp",
+        "gap": 4,
+        "focus": 0
+      },
+      "endBinding": {
+        "elementId": "dist",
+        "gap": 4,
+        "focus": 0
+      },
+      "boundElements": [
+        {
+          "id": "s3-lbl",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "id": "s3-lbl",
+      "type": "text",
+      "x": 250.0,
+      "y": 610,
+      "width": 63,
+      "height": 18,
+      "angle": 0,
+      "strokeColor": "#1e293b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200018,
+      "updated": 1,
+      "text": "if thin",
+      "fontSize": 14,
+      "fontFamily": 2,
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "containerId": "s3",
+      "boundElements": null
+    },
+    {
+      "id": "shop-note",
+      "type": "text",
+      "x": 500,
+      "y": 226,
+      "width": 280,
+      "height": 40,
+      "angle": 0,
+      "strokeColor": "#64748b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200019,
+      "updated": 1,
+      "text": "Blocked even if search\nreturns the URL.",
+      "fontSize": 14,
+      "fontFamily": 2,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "boundElements": null
+    },
+    {
+      "id": "cap-note",
+      "type": "text",
+      "x": 80,
+      "y": 838,
+      "width": 720,
+      "height": 20,
+      "angle": 0,
+      "strokeColor": "#64748b",
+      "backgroundColor": "transparent",
+      "fillStyle": "solid",
+      "strokeWidth": 1,
+      "roughness": 0,
+      "opacity": 100,
+      "seed": 200020,
+      "updated": 1,
+      "text": "Distributor confidence is capped. Marketing, images, and PDFs stay manufacturer-only.",
+      "fontSize": 14,
+      "fontFamily": 2,
+      "textAlign": "left",
+      "verticalAlign": "top",
+      "containerId": null,
+      "boundElements": null
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff"
+  }
+}
