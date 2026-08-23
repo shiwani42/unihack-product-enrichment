@@ -164,14 +164,142 @@ def test_sq_elect_dryer_still_speed_queen():
     assert "speedqueen.com" in ident.domains
 
 
-def test_commodity_lumber_and_rees_house_mortar_stay_unmapped():
-    westwood = resolve_identity(
+def test_desc_named_oems_resolve_without_dealer_part_manuf():
+    washer = resolve_identity(
+        "MVWP586GW",
+        "MVWP586GW Washer Wh - Display",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "Appliance Dealers Cooperative (APPDE)",
+    )
+    assert washer.brand_key == "Maytag"
+    assert "maytag.com" in washer.domains
+
+    finyl = resolve_identity(
+        "73019603",
+        "Finyline Wh 6' Fl Rail Kit Sq",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "-",
+    )
+    rdi = resolve_identity(
+        "73012503",
+        "4x4 Wh Heritage Post Trim RDI",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "-",
+    )
+    latch = resolve_identity(
+        "73002252",
+        "Black Gate Gravity Latch RDI",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "-",
+    )
+    assert finyl.brand_key == rdi.brand_key == latch.brand_key == "RDI"
+    assert finyl.domains == rdi.domains == ["rdirail.com"]
+
+    patriot = resolve_identity(
+        "SPB-44BPL",
+        'Patriot 4"x4"x37"/43" Adjustable Self Leveling Support Post',
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "-",
+    )
+    assert patriot.brand_key == "Color Guard"
+    assert patriot.domains == ["colorguardrailing.com"]
+
+    ice = resolve_identity(
+        "7547",
+        "Ice Guard OC Weathr Lk Mat 2sq",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "-",
+    )
+    henry = resolve_identity(
+        "2733",
+        "3'x65' Henry Eaveguard - Ice Guard",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "Palmer Donavin Mfg Company (PALDO)",
+    )
+    assert ice.brand_key == "Owens Corning"
+    assert ice.domains == ["owenscorning.com"]
+    assert henry.brand_key == "Henry"
+
+    fisch = resolve_identity(
+        "37300952",
+        '095842 Fisch Plug Cutter 3/8"',
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "-",
+    )
+    mafell = resolve_identity(
+        "924422",
+        "924422 Mafell Carpentry - Planing Machine ZH 320 Ec 120V",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "-",
+    )
+    jig = resolve_identity(
+        "TP-1935",
+        "TP-1935 Hole Drilling System",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "-",
+    )
+    assert fisch.brand_key == "Fisch" and fisch.domains == ["fisch-tools.com"]
+    assert mafell.brand_key == "Mafell" and "produkte.mafell.de" in mafell.domains
+    assert jig.brand_key == "True Position" and jig.domains == ["truepositiontools.com"]
+
+
+def test_locknlube_westwood_and_southwire_cord_from_remaining_rows():
+    gauge = resolve_identity(
+        "LNL65301",
+        "LNL65301 Digital Tire Pressure - Inflator Gauge",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "-",
+    )
+    assert gauge.brand_key == "LockNLube"
+    assert gauge.domains == ["locknlube.com"]
+
+    lumber = resolve_identity(
         "1513577",
         "1x8-12' Doug Fir STK Smooth 1S2E",
         "COMMODITY - UNBRANDED",
         "-- No DIB Brand --",
         "Westwood Lumber Sales (WESLU)",
     )
+    assert lumber.brand_key == "Westwood"
+    assert lumber.domains == ["westwoodlumbersales.com"]
+
+    so_cord = resolve_identity(
+        "12-4 SO",
+        "12-4 SO Cord (Linear Foot)",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "-",
+    )
+    coleman = resolve_identity(
+        "23346-0408",
+        "23346-0408 Wire 16/3 SJEWA 250 (Linear Foot)",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "-",
+    )
+    labeled = resolve_identity(
+        "10-4 SO",
+        "10-4 SO Cord (Linear Foot)",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "Southwire/g Turner (6603)",
+    )
+    assert so_cord.brand_key == coleman.brand_key == labeled.brand_key == "Southwire"
+    assert "southwire.com" in so_cord.domains
+
+
+def test_rees_house_mortar_is_rees_not_solomon():
     rees = resolve_identity(
         "25-A",
         "Charcoal Black 25-A Mortar - Type N",
@@ -179,6 +307,13 @@ def test_commodity_lumber_and_rees_house_mortar_stay_unmapped():
         "-- No DIB Brand --",
         "Rees Cast Stone Company (REECA)",
     )
-    assert westwood.domains == []
-    assert rees.domains == []
-    assert "part_manuf_unmapped" in rees.method
+    buff = resolve_identity(
+        "59-J",
+        "Light Buff 59-J Mortar - Type N",
+        "-- Unbranded --",
+        "-- No DIB Brand --",
+        "Rees Cast Stone Company (REECA)",
+    )
+    assert rees.brand_key == buff.brand_key == "Rees Cast Stone"
+    assert rees.domains == ["classicstatuary.com"]
+    assert rees.manufacturer_name == "Rees Cast Stone Company, Inc."

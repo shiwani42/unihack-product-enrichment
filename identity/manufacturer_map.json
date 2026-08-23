@@ -458,5 +458,50 @@
     "manufacturer_name": "Armstrong World Industries",
     "brand_name": "Armstrong Ceilings",
     "domains": ["armstrongceilings.com"]
+  },
+  "Maytag": {
+    "manufacturer_name": "Whirlpool Corporation",
+    "brand_name": "Maytag®",
+    "domains": ["maytag.com", "learnwhirlpool.com"]
+  },
+  "RDI": {
+    "manufacturer_name": "Railing Dynamics, Inc.",
+    "brand_name": "RDI",
+    "domains": ["rdirail.com"]
+  },
+  "Color Guard": {
+    "manufacturer_name": "Color Guard Railing",
+    "brand_name": "Color Guard",
+    "domains": ["colorguardrailing.com"]
+  },
+  "Fisch": {
+    "manufacturer_name": "Fisch Tools",
+    "brand_name": "Fisch",
+    "domains": ["fisch-tools.com"]
+  },
+  "Mafell": {
+    "manufacturer_name": "MAFELL AG",
+    "brand_name": "Mafell",
+    "domains": ["produkte.mafell.de", "mafell.com"]
+  },
+  "True Position": {
+    "manufacturer_name": "True Position Tools",
+    "brand_name": "True Position",
+    "domains": ["truepositiontools.com"]
+  },
+  "LockNLube": {
+    "manufacturer_name": "LockNLube",
+    "brand_name": "LockNLube",
+    "domains": ["locknlube.com"]
+  },
+  "Westwood": {
+    "manufacturer_name": "Westwood Lumber Sales, Inc.",
+    "brand_name": "Westwood Lumber",
+    "domains": ["westwoodlumbersales.com"]
+  },
+  "Rees Cast Stone": {
+    "manufacturer_name": "Rees Cast Stone Company, Inc.",
+    "brand_name": "Rees Cast Stone",
+    "domains": ["classicstatuary.com"]
   }
 }
