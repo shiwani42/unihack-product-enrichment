@@ -440,6 +440,7 @@ def test_unknown_brand_keeps_search_in_first_fetch_window():
     assert "https://www.newbrandtools.com/search?q=ZZ-JUDGE-NEW" in urls
     assert "https://www.newbrandtools.com/p/ZZ-JUDGE-NEW" in urls
     assert "https://www.newbrandtools.com/products/ZZ-JUDGE-NEW" in urls
+    assert "https://www.newbrandtools.com/appliance/ZZ-JUDGE-NEW" in urls
     assert "owner-center" not in joined
     assert "gea-specs" not in joined
     assert "learnwhirlpool" not in joined
@@ -489,7 +490,11 @@ def test_unknown_manufacturer_guesses_domain_from_name():
 
     assert "bosch.com" in guess_domains_from_name("Bosch Thermotechnology")
     assert "rheem.com" in guess_domains_from_name("Rheem Manufacturing")
+    assert "hunterfan.com" in guess_domains_from_name("Hunter Fan Company")
+    assert "ustape.com" in guess_domains_from_name("U S Tape Company")
+    assert "primewirecable.com" in guess_domains_from_name("Prime Wire & Cable")
     assert guess_domains_from_name("") == []
+    assert guess_domains_from_name("COMMODITY - UNBRANDED") == []
 
 
 def test_search_queries_include_part_and_manufacturer_name():
@@ -663,6 +668,25 @@ def test_unknown_manufacturer_search_keeps_name_matched_host():
     assert all("random-blog.example" not in url for url in hits)
 
 
+def test_unmapped_search_keeps_parent_company_product_url():
+    from sources.domain_discovery import select_search_hits
+
+    parsed = [
+        "https://www.abb.com/products/A410RCAR",
+        "https://www.amazon.com/dp/A410RCAR",
+        "https://www.chemblink.com/en/products/A410RCAR.htm",
+        "https://random-blog.example/A410RCAR",
+        "https://www.grainger.com/product/A410RCAR",
+    ]
+    hits, domains = select_search_hits(parsed, [], "A410RCAR", ["Carlon"], limit=10)
+    assert "https://www.abb.com/products/A410RCAR" in hits
+    assert "abb.com" in domains
+    assert all("amazon." not in url for url in hits)
+    assert all("chemblink" not in url for url in hits)
+    assert all("random-blog" not in url for url in hits)
+    assert all("grainger" not in url for url in hits)
+
+
 def _stub_fetch_pages(monkeypatch, html_for):
     requested: list[str] = []
 
@@ -779,6 +803,108 @@ def test_live_enrich_fetches_remembered_product_url_first(tmp_path, monkeypatch)
     assert product in known_urls_for("X1")
 
 
+def test_remembered_rich_pdp_skips_extra_manufacturer_and_family_guesses(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
+    from sources.known_urls import remember_urls
+
+    product = "https://www.frigidaire.com/en/p/owner-center/product-support/X1"
+    remember_urls("X1", [product])
+    rich = (
+        "<html><body>Voltage Rating 120 Amperage Rating 15 A "
+        "Material Stainless Steel Color Stainless Steel</body></html>"
+    )
+    requested = _stub_fetch_pages(monkeypatch, lambda url: rich if "frigidaire." in url else "")
+    from sources.live_enrich import fetch_manufacturer_evidence
+
+    bundle = fetch_manufacturer_evidence("X1", ["frigidaire.com"], fetch_pdfs=False)
+    joined = " ".join(requested).lower()
+    assert requested == [product]
+    assert "search?q=" not in joined
+    assert "electrolux.com" not in joined
+    assert "grainger.com" not in joined
+    assert "energystar.gov" not in joined
+    assert len(bundle.items) >= 2
+    assert bundle.mfr_url == product
+
+
+def test_thin_known_url_still_hunts_manufacturer_then_third_party(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
+    from sources.known_urls import remember_urls
+
+    stale = "https://www.frigidaire.com/en/p/owner-center/product-support/X1"
+    remember_urls("X1", [stale])
+    dist_html = (
+        "<html><body>Voltage Rating 120 Color Stainless Steel "
+        "Material Stainless Steel Buy it today</body></html>"
+    )
+
+    def html_for(url: str) -> str:
+        return dist_html if "grainger.com" in url else ""
+
+    requested = _stub_fetch_pages(monkeypatch, html_for)
+    from sources.live_enrich import fetch_manufacturer_evidence
+
+    fetch_manufacturer_evidence("X1", ["frigidaire.com"], fetch_pdfs=False)
+    joined = " ".join(requested).lower()
+    assert requested[0] == stale
+    assert "search?q=" in joined
+    assert "energystar.gov" in joined
+    assert "grainger.com" in joined
+    assert joined.find("energystar.gov") < joined.find("grainger.com")
+
+
+def test_playwright_runs_once_per_batch_and_skips_search_urls(monkeypatch):
+    import asyncio
+
+    calls: list[str] = []
+
+    async def fake_html(url, timeout=None, client=None):
+        return 403, "<html>denied</html>", url
+
+    def fake_browser(url, timeout=None):
+        calls.append(url)
+        return 200, "<html>ok</html>", url
+
+    monkeypatch.delenv("VERCEL", raising=False)
+    monkeypatch.setenv("UNILOG_PLAYWRIGHT", "1")
+    monkeypatch.setattr("sources.async_fetcher.fetch_html_async", fake_html)
+    monkeypatch.setattr("sources.async_fetcher.fetch_html_with_browser", fake_browser)
+    from sources.async_fetcher import fetch_all_pages
+
+    pages = asyncio.run(
+        fetch_all_pages(
+            [
+                "https://www.frigidaire.com/p/X1",
+                "https://www.frigidaire.com/p/X2",
+                "https://www.frigidaire.com/search?q=X1",
+            ]
+        )
+    )
+    assert len(calls) == 1
+    assert "search?" not in calls[0]
+    assert len(pages) == 3
+
+
+def test_large_html_skips_microdata_parse(monkeypatch):
+    seen: list[list[str]] = []
+
+    def fake_extract(html, base_url=None, syntaxes=None):
+        seen.append(list(syntaxes or []))
+        return {}
+
+    monkeypatch.setattr("extract.structured.extruct.extract", fake_extract)
+    from extract.structured import extract_structured_data
+
+    extract_structured_data("x" * 400_000, "https://www.frigidaire.com/p/X1")
+    extract_structured_data("<html></html>", "https://www.frigidaire.com/p/X1")
+    assert "json-ld" in seen[0]
+    assert "opengraph" in seen[0]
+    assert "microdata" not in seen[0]
+    assert "microdata" in seen[1]
+
+
 def test_unmapped_part_manuf_is_used_as_search_name():
     from identity.brand_resolver import resolve_identity
 
@@ -852,6 +978,41 @@ def test_host_matches_compound_brand_label():
 
     assert host_matches_names("hunterfan.com", ["Hunter Fan Company"])
     assert host_matches_names("milwaukeetool.com", ["Milwaukee"])
+    assert host_matches_names("wizconnected.com", ["Wiz"])
+
+
+def test_unmapped_brand_searches_before_name_dot_com_guesses(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_WEB_SEARCH", "1")
+    order: list[str] = []
+
+    async def fake_search(mpn, manufacturer_domains, **kwargs):
+        order.append("search")
+        assert manufacturer_domains == []
+        return ["https://www.parentco.example/products/ZZ-NEW-1"]
+
+    requested = _stub_fetch_pages(
+        monkeypatch,
+        lambda url: (
+            "<html><body>Voltage Rating 120 Color White Material Steel</body></html>"
+            if "parentco.example" in url
+            else ""
+        ),
+    )
+    monkeypatch.setattr("sources.live_enrich.collect_search_result_urls", fake_search)
+    from sources.live_enrich import fetch_manufacturer_evidence
+
+    bundle = fetch_manufacturer_evidence(
+        "ZZ-NEW-1",
+        [],
+        fetch_pdfs=False,
+        manufacturer_name="Newbrand Tools",
+        brand_name="Newbrand Tools",
+    )
+    assert order == ["search"]
+    assert requested[0] == "https://www.parentco.example/products/ZZ-NEW-1"
+    assert len(bundle.items) >= 2
+    assert "parentco.example" in (bundle.mfr_url or "")
 
 
 def test_shopify_meta_follows_variant_sku_handle():
@@ -876,9 +1037,16 @@ def test_shopify_meta_follows_variant_sku_handle():
         "https://www.hunterfan.com/products/ceiling-fans-dempsey-low-profile-with-light-44-inch-fam773"
     ]
     found = discover_product_links(
-        html, "https://www.hunterfan.com/search?q=59243", "59243", ["hunterfan.com"]
+        html
+        + '<a href="https://www.amazon.com/dp/59243">buy</a>'
+        + '<a href="/products/other-fan">other</a>',
+        "https://www.hunterfan.com/search?q=59243",
+        "59243",
+        ["hunterfan.com"],
     )
-    assert found[0].endswith("/products/ceiling-fans-dempsey-low-profile-with-light-44-inch-fam773")
+    assert found == [
+        "https://www.hunterfan.com/products/ceiling-fans-dempsey-low-profile-with-light-44-inch-fam773"
+    ]
 
 
 def test_shopify_search_page_is_followed_to_pdp(tmp_path, monkeypatch):
@@ -913,3 +1081,109 @@ def test_shopify_search_page_is_followed_to_pdp(tmp_path, monkeypatch):
     assert bundle.mfr_url == pdp_url
     assert "chemblink" not in (bundle.mfr_url or "")
     assert len(bundle.items) >= 2
+
+
+def test_pipeline_fetches_3m_stock_number_not_distributor_prefix(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_LIVE_FETCH", "1")
+    seen: list[str] = []
+
+    def fake_fetch(mpn, domains, max_urls=None, fetch_pdfs=True, **kwargs):
+        seen.append(mpn)
+        return EvidenceBundle()
+
+    monkeypatch.setattr(pipeline_module, "fetch_manufacturer_evidence", fake_fetch)
+    headers = load_output_headers()
+    enrich_input_row(_row_by_mpn("3MABR-7100075678"), headers)
+    assert seen
+    assert seen[0] == "7100075678"
+
+
+def test_query_search_url_is_not_used_as_mfr_url(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
+    html = (
+        "<html><body>Voltage Rating 120 Color White "
+        "Material Steel Amperage Rating 15</body></html>"
+    )
+    _stub_fetch_pages(monkeypatch, lambda url: html if "3m.com" in url else "")
+    from sources.live_enrich import fetch_manufacturer_evidence
+
+    bundle = fetch_manufacturer_evidence("7100075678", ["3m.com"], fetch_pdfs=False)
+    assert "search?" not in (bundle.mfr_url or "").lower()
+
+
+def test_next_data_json_yields_finish_from_js_shell():
+    from extract.page_state import extract_page_state
+
+    html = """
+    <html><body><div id="app"></div>
+    <script id="__NEXT_DATA__" type="application/json">
+    {"props":{"pageProps":{"product":{"sku":"42396",
+      "specs":[{"name":"Finish","value":"Black"},{"name":"Blade Span","value":"52"}]}}}}
+    </script></body></html>
+    """
+    bundle = extract_page_state(html, "https://www.kichler.com/products/42396")
+    assert bundle.get("Finish").value == "Black"
+    assert bundle.get("Blade Span").value == "52"
+
+
+def test_desc_fields_are_cited_to_mfr_url_when_page_repeats_them():
+    from extract.confirm import confirm_desc_evidence
+    from extract.evidence import Evidence
+
+    bundle = EvidenceBundle()
+    bundle.set(
+        Evidence(
+            field="Blade Span",
+            value="44",
+            uom="in",
+            source_url="input:Part_Desc",
+            extractor="generic_desc_parser",
+            confidence=0.65,
+        )
+    )
+    bundle.set(
+        Evidence(
+            field="Finish",
+            value="White",
+            source_url="input:Part_Desc",
+            extractor="generic_desc_parser",
+            confidence=0.65,
+        )
+    )
+    html = "<html><body>Dempsey 44 inch blade span. Finish: White.</body></html>"
+    confirm_desc_evidence(
+        bundle,
+        html,
+        "https://www.hunterfan.com/products/dempsey",
+        ["hunterfan.com"],
+    )
+    assert bundle.get("Blade Span").source_url.startswith("https://www.hunterfan.com/")
+    assert bundle.get("Finish").source_url.startswith("https://www.hunterfan.com/")
+
+
+def test_short_number_is_not_rehomed_from_unrelated_page_text():
+    from extract.confirm import confirm_desc_evidence
+    from extract.evidence import Evidence
+
+    bundle = EvidenceBundle()
+    bundle.set(
+        Evidence(
+            field="Blade Span",
+            value="44",
+            uom="in",
+            source_url="input:Part_Desc",
+            extractor="generic_desc_parser",
+            confidence=0.65,
+        )
+    )
+    html = "<html><body>44 products in this collection. Free shipping.</body></html>"
+    confirm_desc_evidence(
+        bundle,
+        html,
+        "https://www.hunterfan.com/products/other",
+        ["hunterfan.com"],
+    )
+    assert bundle.get("Blade Span").source_url == "input:Part_Desc"
+

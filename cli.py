@@ -255,6 +255,10 @@ def build_parser() -> argparse.ArgumentParser:
     batch.add_argument("--checkpoint", action="store_true", help="Append each finished row to --output immediately")
     batch.set_defaults(func=cmd_batch)
 
+    from sources.brand_harvest import build_harvest_parser
+
+    build_harvest_parser(sub)
+
     return parser
 
 

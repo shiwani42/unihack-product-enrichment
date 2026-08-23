@@ -1,4 +1,4 @@
-from ingest.input_analyzer import analyze_input_row, expand_abbreviations, normalize_mpn
+from ingest.input_analyzer import analyze_input_row, catalog_id, catalog_search_mpn, expand_abbreviations, normalize_mpn
 from normalize.units import split_value_uom
 from normalize.values import normalize_mounting
 from pipeline import enrich_input_row
@@ -8,6 +8,14 @@ from app.config import DEFAULT_INPUT
 
 def test_normalize_mpn_strips_suffix():
     assert normalize_mpn("54151-JR-UPC") == "54151-JR"
+
+
+def test_distributor_prefix_becomes_manufacturer_catalog_id():
+    assert catalog_id("3MABR-7100075678", "3M") == "7100075678"
+    assert catalog_id("49-94-0013", "Milwaukee") == "49-94-0013"
+    assert catalog_search_mpn("3MABR-7100075678", "3M") == "7100075678"
+    assert catalog_search_mpn("WDTS7024RZ", "Whirlpool") == "WDTS7024R"
+    assert catalog_search_mpn("DCB518ASTS06G", "Diablo") == "DCB518ASTS06G"
 
 
 def test_expand_cryptic_description():

@@ -110,6 +110,8 @@ def discover_product_links(html: str, base_url: str, mpn: str, domains: list[str
             found.append(url)
         if len(found) >= limit:
             return found
+    if found:
+        return found
     soup = BeautifulSoup(html, "lxml")
     needle = mpn.lower()
     for anchor in soup.find_all("a", href=True):

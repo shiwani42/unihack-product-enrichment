@@ -184,9 +184,199 @@
     "brand_name": "ProVia®",
     "domains": ["provia.com"]
   },
-  "LP SmartSide": {
+    "LP SmartSide": {
     "manufacturer_name": "Louisiana-Pacific Corporation",
     "brand_name": "LP® SmartSide®",
     "domains": ["lpcorp.com"]
+  },
+  "SawStop": {
+    "manufacturer_name": "SawStop",
+    "brand_name": "SawStop",
+    "domains": ["sawstop.com"]
+  },
+  "Velux": {
+    "manufacturer_name": "VELUX America",
+    "brand_name": "VELUX",
+    "domains": ["veluxusa.com"]
+  },
+  "Woodpeckers": {
+    "manufacturer_name": "Woodpeckers",
+    "brand_name": "Woodpeckers",
+    "domains": ["woodpeck.com"]
+  },
+  "CMT": {
+    "manufacturer_name": "CMT Orange Tools",
+    "brand_name": "CMT",
+    "domains": ["cmtorangetools.com"]
+  },
+  "JPW": {
+    "manufacturer_name": "JPW Industries",
+    "brand_name": "JET",
+    "domains": ["jettools.com"]
+  },
+  "Wera": {
+    "manufacturer_name": "Wera Tools",
+    "brand_name": "Wera",
+    "domains": ["weratools.com"]
+  },
+  "CertainTeed": {
+    "manufacturer_name": "CertainTeed",
+    "brand_name": "CertainTeed",
+    "domains": ["certainteed.com"]
+  },
+  "Cooper Lighting": {
+    "manufacturer_name": "Cooper Lighting",
+    "brand_name": "Cooper Lighting",
+    "domains": ["cooperlighting.com"]
+  },
+  "Wiz": {
+    "manufacturer_name": "WiZ Connected",
+    "brand_name": "WiZ",
+    "domains": ["wizconnected.com"]
+  },
+  "Senco": {
+    "manufacturer_name": "Senco",
+    "brand_name": "Senco",
+    "domains": ["senco.com"]
+  },
+  "National Nail": {
+    "manufacturer_name": "National Nail",
+    "brand_name": "National Nail",
+    "domains": ["nationalnail.com"]
+  },
+  "Marshalltown": {
+    "manufacturer_name": "Marshalltown",
+    "brand_name": "Marshalltown",
+    "domains": ["marshalltown.com"]
+  },
+  "Bosch Tools": {
+    "manufacturer_name": "Robert Bosch Tool Corporation",
+    "brand_name": "Bosch Tools",
+    "domains": ["boschtools.com"]
+  },
+  "Malco": {
+    "manufacturer_name": "Malco Products",
+    "brand_name": "Malco",
+    "domains": ["malcotools.com"]
+  },
+  "King Canada": {
+    "manufacturer_name": "King Canada",
+    "brand_name": "King Canada",
+    "domains": ["kingcanada.com"]
+  },
+  "Woodstock": {
+    "manufacturer_name": "Woodstock International",
+    "brand_name": "Shop Fox",
+    "domains": ["woodstockint.com"]
+  },
+  "Emseal": {
+    "manufacturer_name": "EMSEAL Joint Systems",
+    "brand_name": "EMSEAL",
+    "domains": ["emseal.com"]
+  },
+  "Huber": {
+    "manufacturer_name": "Huber Engineered Woods",
+    "brand_name": "Huber",
+    "domains": ["huberwood.com"]
+  },
+  "Schumacher": {
+    "manufacturer_name": "Schumacher Electric",
+    "brand_name": "Schumacher",
+    "domains": ["batterychargers.com"]
+  },
+  "StealthMounts": {
+    "manufacturer_name": "StealthMounts",
+    "brand_name": "StealthMounts",
+    "domains": ["stealthmounts.com"]
+  },
+  "Carlon": {
+    "manufacturer_name": "Carlon",
+    "brand_name": "Carlon",
+    "domains": ["carlon.com"]
+  },
+  "Lithonia": {
+    "manufacturer_name": "Lithonia Lighting",
+    "brand_name": "Lithonia Lighting",
+    "domains": ["lithonia.acuitybrands.com", "acuitybrands.com"]
+  },
+  "Streamlight": {
+    "manufacturer_name": "Streamlight",
+    "brand_name": "Streamlight",
+    "domains": ["streamlight.com"]
+  },
+  "First Alert": {
+    "manufacturer_name": "First Alert",
+    "brand_name": "First Alert",
+    "domains": ["firstalert.com"]
+  },
+  "BRK": {
+    "manufacturer_name": "BRK Brands",
+    "brand_name": "BRK",
+    "domains": ["firstalert.com"]
+  },
+  "Irwin": {
+    "manufacturer_name": "IRWIN Tools",
+    "brand_name": "IRWIN",
+    "domains": ["irwin.com"]
+  },
+  "Prime": {
+    "manufacturer_name": "Prime Wire & Cable",
+    "brand_name": "Prime",
+    "domains": ["primewirecable.com"]
+  },
+  "Edge Eyewear": {
+    "manufacturer_name": "Edge Eyewear",
+    "brand_name": "Edge Eyewear",
+    "domains": ["edgeeyewear.com"]
+  },
+  "Vessel": {
+    "manufacturer_name": "Vessel Tools",
+    "brand_name": "Vessel",
+    "domains": ["vesseltools.com"]
+  },
+  "Oliver": {
+    "manufacturer_name": "Oliver Machinery",
+    "brand_name": "Oliver",
+    "domains": ["olivermachinery.net"]
+  },
+  "Bow": {
+    "manufacturer_name": "Bow Products",
+    "brand_name": "Bow Products",
+    "domains": ["bow-products.com"]
+  },
+  "Whiteside": {
+    "manufacturer_name": "Whiteside Machine",
+    "brand_name": "Whiteside",
+    "domains": ["whitesiderouterbits.com"]
+  },
+  "Prebena": {
+    "manufacturer_name": "PREBENA",
+    "brand_name": "PREBENA",
+    "domains": ["prebena.com"]
+  },
+  "Maxsa": {
+    "manufacturer_name": "MAXSA Innovations",
+    "brand_name": "MAXSA",
+    "domains": ["maxsainnovations.com"]
+  },
+  "Sabre": {
+    "manufacturer_name": "SABRE",
+    "brand_name": "SABRE",
+    "domains": ["sabrered.com"]
+  },
+  "US Tape": {
+    "manufacturer_name": "U S Tape Company",
+    "brand_name": "US Tape",
+    "domains": ["ustape.com"]
+  },
+  "United Window & Door": {
+    "manufacturer_name": "United Window & Door",
+    "brand_name": "United Window & Door",
+    "domains": ["unitedwindowdoor.com"]
+  },
+  "MillerTech": {
+    "manufacturer_name": "MillerTech Energy Solutions",
+    "brand_name": "MillerTech",
+    "domains": ["millertech.com"]
   }
 }

@@ -27,6 +27,7 @@ _CATALOG_SEGMENTS = frozenset(
         "en",
         "en-us",
         "en-ca",
+        "en_us",
         "us",
         "ca",
         "uk",
@@ -47,6 +48,8 @@ _CATALOG_SEGMENTS = frozenset(
         "documents",
         "spec",
         "specs",
+        "specsheet",
+        "specsheets",
         "gea-specs",
         "smartsearchresults",
         "html",
@@ -54,6 +57,12 @@ _CATALOG_SEGMENTS = frozenset(
         "dam",
         "global",
         "details",
+        "catalog",
+        "pdp",
+        "sku",
+        "part",
+        "literature",
+        "resources",
     }
 )
 _LOCK = threading.Lock()

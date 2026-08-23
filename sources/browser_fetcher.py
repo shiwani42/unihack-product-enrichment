@@ -1,6 +1,6 @@
 import httpx
 
-from app.config import REQUEST_TIMEOUT
+from app.config import FETCH_CONNECT_TIMEOUT, REQUEST_TIMEOUT
 from sources.finder import is_blocked_url
 from sources.retry import call_with_retry
 from sources.web_search import BROWSER_HEADERS
@@ -8,11 +8,20 @@ from sources.web_search import BROWSER_HEADERS
 HEADERS = BROWSER_HEADERS
 
 
+def _client_timeout(request_timeout: int) -> httpx.Timeout:
+    return httpx.Timeout(
+        connect=FETCH_CONNECT_TIMEOUT,
+        read=float(request_timeout),
+        write=5.0,
+        pool=2.0,
+    )
+
+
 def _get_once(url: str, request_timeout: int) -> tuple[int, str, str]:
     if is_blocked_url(url):
         return 0, "", url
     try:
-        with httpx.Client(timeout=request_timeout, follow_redirects=True, headers=HEADERS) as client:
+        with httpx.Client(timeout=_client_timeout(request_timeout), follow_redirects=True, headers=HEADERS) as client:
             response = client.get(url)
             final_url = str(response.url)
             if is_blocked_url(final_url):

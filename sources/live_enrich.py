@@ -18,6 +18,8 @@ from extract.cache import save_cached_bundle
 from extract.evidence import EvidenceBundle
 from extract.html_specs import extract_from_html
 from extract.merge import merge_bundles
+from extract.page_state import extract_page_state
+from extract.confirm import confirm_desc_evidence
 from extract.pdf_specs import fetch_pdf_evidence
 from extract.ref_discovery import discover_pdf_links, discover_product_links
 from extract.structured import extract_structured_data
@@ -46,6 +48,7 @@ from sources.source_policy import (
 )
 from sources.web_search import collect_search_result_urls, filter_fallback_results
 from sources.domain_discovery import guess_domains_from_name, select_search_hits
+from sources.wikidata import official_website_hosts
 from sources.known_urls import known_urls_for, remember_bundle
 
 
@@ -92,6 +95,21 @@ def _needs_fallback(bundle: EvidenceBundle) -> bool:
     return len(bundle.items) < 2
 
 
+def _manufacturer_settled(bundle: EvidenceBundle, mpn: str = "", mapped: bool = True) -> bool:
+    """True when we already have manufacturer attributes on a real product page.
+
+    Mapped brands can stop after that page. A guessed {name}.com homepage with
+    two leftover spec strings must not skip web search for an unmapped brand.
+    """
+    if _needs_fallback(bundle) or not bundle.mfr_url:
+        return False
+    if is_search_url(bundle.mfr_url):
+        return False
+    if mapped:
+        return True
+    return official_url_score(bundle.mfr_url, mpn) >= 40
+
+
 def _follow_hosts(url: str, manufacturer_domains: list[str]) -> list[str]:
     from sources.source_policy import allowed_domains
 
@@ -127,7 +145,11 @@ def _ingest_page(
     # extract here (Whirlpool smartsearchresults is the product literature page).
     if is_search_url(url) and is_primary_url(url, manufacturer_domains) and products:
         return products, pdfs
-    page_bundle = merge_bundles(extract_from_html(html, url), extract_structured_data(html, url))
+    page_bundle = merge_bundles(
+        extract_from_html(html, url),
+        extract_structured_data(html, url),
+        extract_page_state(html, url),
+    )
     apply_source_policy(page_bundle, url, manufacturer_domains)
     contributed = (
         page_bundle.items
@@ -140,11 +162,14 @@ def _ingest_page(
     if contributed:
         merged = merge_bundles(bundle, page_bundle)
         _replace(bundle, merged)
-        if is_primary_url(url, manufacturer_domains):
-            if official_url_score(url, mpn) >= official_url_score(bundle.mfr_url, mpn):
+    confirm_desc_evidence(bundle, html, url, manufacturer_domains)
+    query_search = "search?" in url.lower() or url.lower().endswith("search.html")
+    if is_primary_url(url, manufacturer_domains) and not query_search:
+        if official_url_score(url, mpn) >= official_url_score(bundle.mfr_url, mpn):
+            if contributed or official_url_score(url, mpn) >= 40:
                 bundle.mfr_url = url
-        elif url not in bundle.ref_urls:
-            bundle.ref_urls.append(url)
+    elif contributed and url not in bundle.ref_urls:
+        bundle.ref_urls.append(url)
     return products, pdfs
 
 
@@ -258,15 +283,23 @@ def fetch_manufacturer_evidence(
 ) -> EvidenceBundle:
     bundle = EvidenceBundle()
     names = [name for name in (manufacturer_name, brand_name) if name]
-    manufacturer_domains = list(domains or [])
+    mapped_domains = list(domains or [])
+    manufacturer_domains = list(mapped_domains)
     if not manufacturer_domains:
+        wiki_hosts = official_website_hosts(names)
         guessed: list[str] = []
         for name in names:
             guessed.extend(guess_domains_from_name(name))
-        manufacturer_domains = list(dict.fromkeys(guessed))
+        manufacturer_domains = list(dict.fromkeys(wiki_hosts + guessed))
+        if wiki_hosts:
+            mapped_domains = list(wiki_hosts)
     url_limit = max_urls or FETCH_URL_LIMIT
     seen: set[str] = set()
     pdf_links: list[str] = []
+
+    def settled() -> bool:
+        return _manufacturer_settled(bundle, mpn, mapped=bool(mapped_domains))
+
     known_primary, known_fallback = _split_known_urls(mpn, manufacturer_domains)
     if known_primary:
         manufacturer_domains = list(dict.fromkeys(manufacturer_domains + _hosts_from_urls(known_primary)))
@@ -274,16 +307,20 @@ def fetch_manufacturer_evidence(
             _fetch_tier(bundle, known_primary[:url_limit], mpn, manufacturer_domains, seen)
         )
 
-    if manufacturer_domains:
+    # Mapped brands: manufacturer templates, then family literature.
+    # Unmapped brands: web search first so we do not spend the window on
+    # {name}.com/p/{mpn} 404s before looking up the real host.
+    if mapped_domains and not settled():
         pdf_links.extend(
             _fetch_tier(
                 bundle,
-                first_fetch_window(candidate_mfr_urls(mpn, manufacturer_domains), url_limit),
+                first_fetch_window(candidate_mfr_urls(mpn, mapped_domains), url_limit),
                 mpn,
                 manufacturer_domains,
                 seen,
             )
         )
+    if mapped_domains and not settled():
         pdf_links.extend(
             _fetch_tier(
                 bundle,
@@ -293,11 +330,13 @@ def fetch_manufacturer_evidence(
                 seen,
             )
         )
-    need_search = (not manufacturer_domains) or _needs_fallback(bundle) or not bundle.mfr_url
+    need_search = (not mapped_domains) or _needs_fallback(bundle) or not bundle.mfr_url
+    if settled():
+        need_search = False
     if need_search:
         search_hits, extra_domains, found = _discover_search_urls(
             mpn,
-            manufacturer_domains,
+            mapped_domains,
             seen,
             manufacturer_name=manufacturer_name,
             brand_name=brand_name,
@@ -308,6 +347,27 @@ def fetch_manufacturer_evidence(
             pdf_links.extend(_fetch_tier(bundle, search_hits, mpn, manufacturer_domains, seen))
     else:
         found = []
+
+    if not mapped_domains and manufacturer_domains and not settled():
+        pdf_links.extend(
+            _fetch_tier(
+                bundle,
+                first_fetch_window(candidate_mfr_urls(mpn, manufacturer_domains), url_limit),
+                mpn,
+                manufacturer_domains,
+                seen,
+            )
+        )
+        if not settled():
+            pdf_links.extend(
+                _fetch_tier(
+                    bundle,
+                    candidate_family_urls(mpn, manufacturer_domains)[:SECONDARY_URL_LIMIT],
+                    mpn,
+                    manufacturer_domains,
+                    seen,
+                )
+            )
 
     # Transcript order: third-party, then distributors, only where necessary.
     if _needs_fallback(bundle):

@@ -6,6 +6,9 @@
     "https://learnwhirlpool.com/smartsearchresults?searchtext={search_mpn}",
     "https://www.amana.com/search.html?searchTerm={mpn}"
   ],
+  "andersenwindows.com": [
+    "https://www.andersenwindows.com/search?q={mpn}"
+  ],
   "bekocorp.com": [
     "https://www.bekocorp.com/search?q={mpn}"
   ],
@@ -15,7 +18,8 @@
   ],
   "dewalt.com": [
     "https://www.dewalt.com/en-us/product/{mpn}",
-    "https://www.dewalt.com/search?term={mpn}"
+    "https://www.dewalt.com/search?term={mpn}",
+    "https://www.dewalt.com/en-us/search?q={mpn}"
   ],
   "diablotools.com": [
     "https://diablotools.com/products/{mpn}",
@@ -46,15 +50,23 @@
     "https://learnwhirlpool.com/smartsearchresults?searchtext={search_mpn}",
     "https://www.kitchenaid.com/search.html?searchTerm={mpn}"
   ],
+  "learn.kregtool.com": [
+    "https://learn.kregtool.com/support?id={mpn}"
+  ],
   "learnwhirlpool.com": [
     "https://learnwhirlpool.com/smartsearchresults?searchtext={search_mpn}",
     "https://learnwhirlpool.com/smartsearchresults?searchtext={mpn}"
   ],
   "leviton.com": [
+    "https://www.leviton.com/products/{mpn}",
+    "https://leviton.com/products/{mpn}",
     "https://www.leviton.com/en/search?q={mpn}"
   ],
   "lg.com": [
     "https://www.lg.com/us/search?search={mpn}"
+  ],
+  "lpcorp.com": [
+    "https://www.lpcorp.com/search?q={mpn}"
   ],
   "makitatools.com": [
     "https://www.makitatools.com/search?q={mpn}"
@@ -74,6 +86,11 @@
   "samsung.com": [
     "https://www.samsung.com/us/search/searchMain/?searchTerm={mpn}"
   ],
+  "satco.com": [
+    "https://www.satco.com/products/{mpn}",
+    "https://www.satco.com/product/{mpn}",
+    "https://www.satco.com/search?q={mpn}"
+  ],
   "sharpusa.com": [
     "https://www.sharpusa.com/search?q={mpn}"
   ],
@@ -83,6 +100,10 @@
   ],
   "speedqueen.com": [
     "https://speedqueen.com/search/{mpn}"
+  ],
+  "trex.com": [
+    "https://www.trex.com/search/?q={mpn}",
+    "https://www.trex.com/search?q={mpn}"
   ],
   "u-line.com": [
     "https://www.u-line.com/search?q={mpn}"

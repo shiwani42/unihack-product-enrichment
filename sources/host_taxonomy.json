@@ -183,7 +183,10 @@
     "nationalstocknumber",
     "postal",
     "elcodigopostal",
-    "avspare"
+    "avspare",
+    "chemblink",
+    "chemicalbook",
+    "lookchem"
   ],
   "noise_hosts": [
     "device.report",

@@ -19,7 +19,7 @@ from extract.smart_infer import infer_smart_attributes
 from identity.brand_resolver import Identity, resolve_identity
 from ingest.crosswalk import apply_crosswalk, apply_product_ids
 from ingest.industrial_parser import parse_industrial_desc
-from ingest.input_analyzer import analyze_input_row
+from ingest.input_analyzer import analyze_input_row, catalog_search_mpn
 from normalize.aliases import align_bundle_to_template
 from normalize.values import cleanse_output_row
 from sources.live_enrich import fetch_manufacturer_evidence
@@ -267,7 +267,7 @@ def _enrich_row_internal(input_row: dict[str, str], headers: list[str]) -> Enric
     category_id = template.category_id
     apply_taxonomy(output, template)
 
-    fetch_mpn = analyzed.search_mpn or mpn
+    fetch_mpn = catalog_search_mpn(mpn, identity.brand_key)
 
     # Stage 4 + 5: Attribute extraction + manufacturer enrichment (uniform fetch policy)
     if category_id == DISHWASHER:

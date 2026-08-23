@@ -38,9 +38,15 @@ def _set(bundle: EvidenceBundle, field: str, value: str, uom: str, url: str, quo
     )
 
 
+_REGEX_HTML_CAP = 400_000
+
+
 def extract_from_html(html: str, url: str) -> EvidenceBundle:
     bundle = EvidenceBundle(mfr_url=url)
-    text = _clean_text(html)
+    working = html or ""
+    if len(working) > _REGEX_HTML_CAP:
+        working = working[:320_000] + working[-80_000:]
+    text = _clean_text(working)
 
     extra_patterns: list[tuple[str, str, str, float]] = [
         (
@@ -120,8 +126,9 @@ def extract_from_html(html: str, url: str) -> EvidenceBundle:
     if energy_match:
         _set(bundle, "Additional Information", energy_match.group(1), "", url, energy_match.group(0), 0.75)
 
-    bundle.marketing = discover_marketing_text(html)
-    bundle.features = discover_feature_lines(html)
+    marketing_src = html[:80_000] if html and len(html) > 80_000 else html
+    bundle.marketing = discover_marketing_text(marketing_src)
+    bundle.features = discover_feature_lines(working)
     return bundle
 
 

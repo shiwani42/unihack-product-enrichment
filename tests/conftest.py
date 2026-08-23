@@ -30,6 +30,7 @@ def _offline_by_default(request, monkeypatch):
     if not _has_network_marker(request):
         monkeypatch.setenv("UNILOG_LIVE_FETCH", "0")
         monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
+        monkeypatch.setenv("UNILOG_WIKIDATA", "0")
     yield
 
 
@@ -47,6 +48,25 @@ def _isolate_search_paths(tmp_path, monkeypatch):
         shutil.copy2(src, dest)
     monkeypatch.setattr(finder, "SEARCH_PATHS_FILE", dest)
     monkeypatch.setattr(url_patterns, "SEARCH_PATHS_FILE", dest)
+    finder.reset_search_path_cache()
+    yield
+    finder.reset_search_path_cache()
+
+
+@pytest.fixture(autouse=True)
+def _isolate_learned_paths(tmp_path, monkeypatch):
+    """Keep harvest of generic CMS paths out of the committed learned_paths.json."""
+    import shutil
+
+    import sources.finder as finder
+    import sources.learned_paths as learned_paths
+
+    src = Path(finder.__file__).resolve().parent / "learned_paths.json"
+    dest = tmp_path / "learned_paths.json"
+    if src.exists():
+        shutil.copy2(src, dest)
+    monkeypatch.setattr(finder, "LEARNED_PATHS_FILE", dest)
+    monkeypatch.setattr(learned_paths, "LEARNED_PATHS_FILE", dest)
     finder.reset_search_path_cache()
     yield
     finder.reset_search_path_cache()

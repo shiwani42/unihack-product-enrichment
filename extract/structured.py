@@ -12,10 +12,16 @@ PROPERTY_MAP = {
     "noiselevel": "Sound Level",
     "color": "Color",
     "colour": "Color",
+    "finish": "Finish",
     "material": "Material",
     "depth": "Depth With Door Open",
     "height": "Size",
     "width": "Size",
+    "bladesspan": "Blade Span",
+    "bladespan": "Blade Span",
+    "diameter": "Diameter",
+    "wattage": "Wattage",
+    "watts": "Wattage",
     "weight": "Additional Information",
 }
 
@@ -40,6 +46,25 @@ def _normalize_key(key: str) -> str:
 def _walk(obj, url: str, bundle: EvidenceBundle) -> None:
     if isinstance(obj, dict):
         obj_type = str(obj.get("@type", "")).lower()
+        lowered = {str(key).lower(): key for key in obj}
+        name_key = next((lowered[key] for key in ("name", "label", "specname", "attributename") if key in lowered), None)
+        value_key = next((lowered[key] for key in ("value", "specvalue", "attributevalue") if key in lowered), None)
+        if name_key and value_key:
+            field = PROPERTY_MAP.get(_normalize_key(str(obj.get(name_key) or "")))
+            raw_value = obj.get(value_key)
+            if field and isinstance(raw_value, (str, int, float)):
+                text = str(raw_value).strip()
+                if text:
+                    bundle.set(
+                        Evidence(
+                            field=field,
+                            value=text,
+                            source_url=url,
+                            quote=f"{obj.get(name_key)}={text}"[:180],
+                            extractor="extruct",
+                            confidence=0.82,
+                        )
+                    )
         for key, value in obj.items():
             norm = _normalize_key(str(key))
             if norm in ID_KEYS and isinstance(value, (str, int, float)):
@@ -86,7 +111,12 @@ def extract_structured_data(html: str, url: str) -> EvidenceBundle:
     bundle = EvidenceBundle(mfr_url=url)
     try:
         base = get_base_url(html, url)
-        data = extruct.extract(html, base_url=base, syntaxes=["json-ld", "microdata", "opengraph"])
+        syntaxes = ["json-ld", "opengraph"]
+        # Microdata walks the whole DOM. On 1MB+ Shopify pages json-ld already
+        # has the product; the extra parse is seconds of CPU for nothing.
+        if len(html or "") < 350_000:
+            syntaxes.append("microdata")
+        data = extruct.extract(html, base_url=base, syntaxes=syntaxes)
     except Exception:
         return bundle
 

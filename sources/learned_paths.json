@@ -1,0 +1,6 @@
+{
+  "paths": [
+    "/appliance/{mpn}",
+    "/en-us/product/{mpn}"
+  ]
+}

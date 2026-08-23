@@ -9,7 +9,7 @@ from ingest.placeholders import clean_brand
 
 ABBREV_PATH = Path(__file__).resolve().parent / "abbreviations.json"
 MPN_SUFFIX_RE = re.compile(r"(?i)(-UPC|-JR|-PKG|-BX|-BOX|-EA|-PK|-PACK|-BULK)$")
-VENDOR_PREFIX_RE = re.compile(r"^[A-Z0-9]{2,6}-(?=[A-Z0-9])")
+VENDOR_PREFIX_RE = re.compile(r"^([A-Z0-9]{2,6})-(.+)$")
 
 
 @dataclass
@@ -47,11 +47,38 @@ def search_mpn(mpn: str) -> str:
 
 
 def strip_vendor_prefix(mpn: str) -> str:
+    """Drop a letter distributor prefix. Never strip Milwaukee-style ``49-94-0013``."""
+    return catalog_id(mpn)
+
+
+def catalog_id(mpn: str, brand_key: str = "") -> str:
+    """Manufacturer catalog ID when the input MPN is a distributor wrapper.
+
+    ``3MABR-7100075678`` is Jam's prefix plus 3M's 10-digit stock number.
+    ``49-94-0013`` is Milwaukee's own ID and must stay intact.
+    """
     normalized = normalize_mpn(mpn)
     match = VENDOR_PREFIX_RE.match(normalized)
-    if match and len(normalized) > len(match.group(0)) + 3:
-        return normalized[len(match.group(0)) :]
+    if not match:
+        return normalized
+    prefix, rest = match.group(1), match.group(2)
+    if not re.search(r"[A-Z]", prefix):
+        return normalized
+    if rest.isdigit() and len(rest) >= 8:
+        return rest
+    compact = re.sub(r"[^A-Z0-9]", "", (brand_key or "").upper())
+    if compact and prefix.startswith(compact) and len(rest) >= 6:
+        return rest
     return normalized
+
+
+def catalog_search_mpn(mpn: str, brand_key: str = "") -> str:
+    """Token to type into manufacturer search and web search."""
+    raw = normalize_mpn(mpn)
+    cat = catalog_id(raw, brand_key)
+    if cat != raw:
+        return cat
+    return search_mpn(raw)
 
 
 def _clean_desc_text(desc: str) -> str:

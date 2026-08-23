@@ -85,6 +85,18 @@ def test_sample_brands_resolve_from_observed_fields():
     dewalt = resolve_identity("DCB518", "DEWALT disc", "", "DEWALT", "Black & Decker/dewlt (2585)")
     assert dewalt.brand_key == "DEWALT"
 
+    hardie = resolve_identity("8912220", "fiber cement", "JAMESHARDIE", "", "Boise Cascade Building Materials (BOICA)")
+    assert hardie.brand_key == "James Hardie"
+    assert "jameshardie.com" in hardie.domains
+
+    wiz = resolve_identity("603571", "smart bulb", "", "Wiz", "Phillips Lighting (5831)")
+    assert wiz.brand_key == "Wiz"
+    assert "wizconnected.com" in wiz.domains
+
+    saw = resolve_identity("TGP2-FA", "riving knife", "", "", "Saw Stop LLC (SAWST)")
+    assert saw.brand_key == "SawStop"
+    assert "sawstop.com" in saw.domains
+
 
 def test_mined_lov_still_warns_on_unknown_mounting(tmp_path, monkeypatch):
     ref = {"values_by_label": {"Mounting Type": ["Leg", "Built-in"]}}

@@ -6,6 +6,7 @@ from urllib.parse import quote, urlparse
 from app.config import DISTRIBUTOR_HOST_LABELS, ECOMMERCE_HOST_LABELS, ECOMMERCE_PATH_MARKERS
 
 SEARCH_PATHS_FILE = Path(__file__).resolve().parent / "search_paths.json"
+LEARNED_PATHS_FILE = Path(__file__).resolve().parent / "learned_paths.json"
 TAXONOMY_FILE = Path(__file__).resolve().parent / "host_taxonomy.json"
 
 # Applied to every manufacturer host, including a brand the judge invented.
@@ -158,8 +159,31 @@ def _domain_paths() -> dict:
     return payload if isinstance(payload, dict) else {}
 
 
+@lru_cache(maxsize=1)
+def _learned_paths() -> tuple[str, ...]:
+    """Generic product path shapes that worked on more than one manufacturer CMS."""
+    if not LEARNED_PATHS_FILE.exists():
+        return ()
+    try:
+        payload = json.loads(LEARNED_PATHS_FILE.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return ()
+    raw = payload.get("paths") if isinstance(payload, dict) else payload
+    if not isinstance(raw, list):
+        return ()
+    skip = set(OFFICIAL_PATHS + SEARCH_PATHS)
+    cleaned: list[str] = []
+    for item in raw:
+        path = str(item or "").strip()
+        if not path.startswith("/") or path in skip or path in cleaned:
+            continue
+        cleaned.append(path)
+    return tuple(cleaned)
+
+
 def reset_search_path_cache() -> None:
     _domain_paths.cache_clear()
+    _learned_paths.cache_clear()
 
 
 def url_on_domains(url: str, domains: list[str]) -> bool:
@@ -243,7 +267,7 @@ def _urls_for_domains(mpn: str, domains: list[str]) -> list[str]:
                 urls.append(template.format(**tokens))
                 if not is_search_url(template):
                     host_has_product_extra = True
-        paths = SEARCH_PATHS if host_has_product_extra else OFFICIAL_PATHS + SEARCH_PATHS
+        paths = SEARCH_PATHS if host_has_product_extra else OFFICIAL_PATHS + _learned_paths() + SEARCH_PATHS
         for path in paths:
             urls.append(origin + path.format(**tokens))
     from sources.dead_paths import drop_dead_urls
@@ -341,6 +365,10 @@ def official_url_score(url: str, mpn: str = "") -> int:
 def best_mfr_url(mpn: str, domains: list[str]) -> str:
     from sources.known_urls import _keep_score, known_urls_for
 
+    def _not_query_search(url: str) -> bool:
+        low = (url or "").lower()
+        return "search?" not in low and not low.endswith("search.html")
+
     known = [
         url
         for url in known_urls_for(mpn)
@@ -348,10 +376,15 @@ def best_mfr_url(mpn: str, domains: list[str]) -> str:
         and not is_distributor_url(url)
         and not url.lower().endswith(".pdf")
         and (not domains or url_on_domains(url, domains))
+        and _not_query_search(url)
     ]
     if known:
         return max(known, key=_keep_score)
-    candidates = [url for url in candidate_mfr_urls(mpn, domains) if not url.lower().endswith(".pdf")]
+    candidates = [
+        url
+        for url in candidate_mfr_urls(mpn, domains)
+        if not url.lower().endswith(".pdf") and _not_query_search(url)
+    ]
     if not candidates:
         return ""
     return max(candidates, key=lambda url: official_url_score(url, mpn))

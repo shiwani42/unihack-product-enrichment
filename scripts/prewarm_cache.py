@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT))
 from app.config import DEFAULT_INPUT
 from identity.brand_resolver import resolve_identity
 from ingest.csv_io import read_input_rows
-from ingest.input_analyzer import analyze_input_row
+from ingest.input_analyzer import analyze_input_row, catalog_search_mpn
 from sources.live_enrich import fetch_manufacturer_evidence
 
 
@@ -30,7 +30,12 @@ def _warm_row(row: dict[str, str]) -> tuple[str, int, str]:
     )
     if not identity.domains:
         return row["Mfg_Part_Num"], 0, "no_domains"
-    bundle = fetch_manufacturer_evidence(analyzed.search_mpn or analyzed.normalized_mpn, identity.domains)
+    bundle = fetch_manufacturer_evidence(
+        catalog_search_mpn(analyzed.normalized_mpn, identity.brand_key),
+        identity.domains,
+        manufacturer_name=identity.manufacturer_name,
+        brand_name=identity.brand_name or identity.brand_key,
+    )
     return row["Mfg_Part_Num"], len(bundle.items), bundle.mfr_url or "no_url"
 
 
