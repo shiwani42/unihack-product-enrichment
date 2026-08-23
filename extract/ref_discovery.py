@@ -1,3 +1,4 @@
+import json
 import re
 from urllib.parse import urljoin, urlparse
 
@@ -6,6 +7,10 @@ from bs4 import BeautifulSoup
 from sources.finder import is_blocked_url, url_on_domains
 
 _PDF_URL_RE = re.compile(r"https?://[^\s\"'<>]+?\.pdf", re.I)
+_SHOPIFY_META = re.compile(
+    r"var\s+meta\s*=\s*(\{.*?\})\s*;\s*for\s*\(\s*var\s+attr",
+    re.S,
+)
 _DOC_TEXT = (
     "owner", "manual", "install", "specification", "spec sheet",
     "dimension", "warranty", "energy guide", "quick start", "cycle guide",
@@ -45,11 +50,55 @@ def discover_pdf_links(html: str, base_url: str) -> list[str]:
     return list(dict.fromkeys(links))
 
 
+def shopify_product_urls(html: str, base_url: str, mpn: str) -> list[str]:
+    """Shopify search/PDP pages hide handles in ShopifyAnalytics.meta, not in <a href>.
+
+    Variant SKU 59243 lives on /products/{handle}, not /products/59243 (that 404s).
+    """
+    raw = (html or "")
+    needle = (mpn or "").strip().lower()
+    if not raw or not needle:
+        return []
+    match = _SHOPIFY_META.search(raw)
+    if not match:
+        return []
+    try:
+        payload = json.loads(match.group(1))
+    except json.JSONDecodeError:
+        return []
+    products = payload.get("products") if isinstance(payload, dict) else None
+    if not isinstance(products, list):
+        return []
+    origin = f"{urlparse(base_url).scheme}://{urlparse(base_url).netloc}" if "://" in (base_url or "") else base_url
+    found: list[str] = []
+    for product in products:
+        if not isinstance(product, dict):
+            continue
+        handle = str(product.get("handle") or "").strip().strip("/")
+        if not handle:
+            continue
+        variants = product.get("variants") if isinstance(product.get("variants"), list) else []
+        skus = [str(item.get("sku") or "").strip().lower() for item in variants if isinstance(item, dict)]
+        if needle not in skus:
+            continue
+        url = _absolute(f"/products/{handle}", origin or base_url)
+        if url not in found:
+            found.append(url)
+    return found
+
+
 def discover_product_links(html: str, base_url: str, mpn: str, domains: list[str], limit: int = 6) -> list[str]:
     """Follow official product/support hits that stay on allowed hosts."""
+    found: list[str] = []
+    for url in shopify_product_urls(html, base_url, mpn):
+        if is_blocked_url(url) or not url_on_domains(url, domains):
+            continue
+        if url not in found:
+            found.append(url)
+        if len(found) >= limit:
+            return found
     soup = BeautifulSoup(html, "lxml")
     needle = mpn.lower()
-    found: list[str] = []
     for anchor in soup.find_all("a", href=True):
         href = anchor["href"].strip()
         if not href or href.startswith("#") or href.lower().startswith("javascript:"):

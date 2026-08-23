@@ -12,7 +12,8 @@ from __future__ import annotations
 
 import asyncio
 import base64
-from urllib.parse import parse_qs, quote_plus, unquote, urlparse
+import re
+from urllib.parse import parse_qs, parse_qsl, quote_plus, unquote, urlparse
 
 import httpx
 from bs4 import BeautifulSoup
@@ -185,8 +186,25 @@ def _mpn_needles(mpn: str) -> list[str]:
 
 
 def _mentions_mpn(url: str, mpn: str) -> bool:
-    lowered = (url or "").lower()
-    return any(needle in lowered for needle in _mpn_needles(mpn))
+    """True when the MPN is a query value or a path segment, not a CAS/SKU substring.
+
+    ``59243`` must not match chemblink ``.../59243-40-2.htm`` or Makita ``B-59243``.
+    """
+    needles = _mpn_needles(mpn)
+    if not needles:
+        return False
+    parsed = urlparse(url or "")
+    query_values = {unquote(value).lower() for _key, value in parse_qsl(parsed.query, keep_blank_values=True)}
+    segments = [unquote(part).lower().rsplit(".", 1)[0] for part in (parsed.path or "").split("/") if part]
+    numeric = all(needle.isdigit() for needle in needles)
+    for needle in needles:
+        if needle in query_values:
+            return True
+        if needle in segments:
+            return True
+        if not numeric and re.search(rf"(?<![a-z0-9]){re.escape(needle)}(?![a-z0-9])", (url or "").lower()):
+            return True
+    return False
 
 
 def last_search_engine() -> str | None:

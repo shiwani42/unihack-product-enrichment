@@ -786,3 +786,96 @@ def test_unmapped_part_manuf_is_used_as_search_name():
     assert identity.manufacturer_name == "Bosch Thermotechnology"
     assert identity.domains == []
     assert identity.method == "part_manuf_unmapped"
+
+
+def test_request_hook_is_awaitable_for_httpx_028():
+    import inspect
+    from sources.async_fetcher import _reject_shopping
+
+    assert inspect.iscoroutinefunction(_reject_shopping)
+
+
+def test_numeric_mpn_does_not_adopt_chemical_or_embedded_sku_hosts():
+    from sources.domain_discovery import select_search_hits
+    from sources.web_search import _mentions_mpn
+
+    assert _mentions_mpn("https://www.hunterfan.com/search?q=59243", "59243")
+    assert not _mentions_mpn("https://www.chemblink.com/en/products/59243-40-2.htm", "59243")
+    assert not _mentions_mpn("https://makitatools.com/products/details/B-59243", "59243")
+    parsed = [
+        "https://www.chemblink.com/en/products/59243-40-2.htm",
+        "https://www.hunterfan.com/search?q=59243",
+        "https://makitatools.com/products/details/B-59243",
+    ]
+    hits, domains = select_search_hits(parsed, ["hunterfan.com"], "59243", ["Hunter Fan Company"], limit=10)
+    assert hits == ["https://www.hunterfan.com/search?q=59243"]
+    assert "chemblink.com" not in domains
+    assert "makitatools.com" not in domains
+
+
+def test_host_matches_compound_brand_label():
+    from sources.domain_discovery import host_matches_names
+
+    assert host_matches_names("hunterfan.com", ["Hunter Fan Company"])
+    assert host_matches_names("milwaukeetool.com", ["Milwaukee"])
+
+
+def test_shopify_meta_follows_variant_sku_handle():
+    from extract.ref_discovery import discover_product_links, shopify_product_urls
+
+    html = """
+    <html><head><title>Search: 2 results found for "59243"</title></head>
+    <body>
+    <script>
+    var meta = {"products":[
+      {"handle":"ceiling-fans-dempsey-low-profile-with-light-44-inch-fam773",
+       "variants":[{"sku":"52390"},{"sku":"59243"}]},
+      {"handle":"ceiling-fan-parts-finial-6435002834",
+       "variants":[{"sku":"6435002834"}]}
+    ]};
+    for (var attr in meta) {}
+    </script>
+    </body></html>
+    """
+    urls = shopify_product_urls(html, "https://www.hunterfan.com/search?q=59243", "59243")
+    assert urls == [
+        "https://www.hunterfan.com/products/ceiling-fans-dempsey-low-profile-with-light-44-inch-fam773"
+    ]
+    found = discover_product_links(
+        html, "https://www.hunterfan.com/search?q=59243", "59243", ["hunterfan.com"]
+    )
+    assert found[0].endswith("/products/ceiling-fans-dempsey-low-profile-with-light-44-inch-fam773")
+
+
+def test_shopify_search_page_is_followed_to_pdp(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
+    search = """
+    <html><title>Search: 2 results found for "59243"</title>
+    <script>
+    var meta = {"products":[{"handle":"ceiling-fans-dempsey-low-profile-with-light-44-inch-fam773",
+      "variants":[{"sku":"59243"}]}]};
+    for (var attr in meta) {}
+    </script></html>
+    """
+    pdp = (
+        "<html><body>Voltage Rating 120 Color White "
+        "Material Steel Diameter 44</body></html>"
+    )
+    pdp_url = "https://www.hunterfan.com/products/ceiling-fans-dempsey-low-profile-with-light-44-inch-fam773"
+
+    def html_for(url: str) -> str:
+        if "search?" in url:
+            return search
+        if url == pdp_url:
+            return pdp
+        return ""
+
+    requested = _stub_fetch_pages(monkeypatch, html_for)
+    from sources.live_enrich import fetch_manufacturer_evidence
+
+    bundle = fetch_manufacturer_evidence("59243", ["hunterfan.com"], fetch_pdfs=False)
+    assert pdp_url in requested
+    assert bundle.mfr_url == pdp_url
+    assert "chemblink" not in (bundle.mfr_url or "")
+    assert len(bundle.items) >= 2

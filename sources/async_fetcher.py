@@ -17,7 +17,9 @@ MAX_CONCURRENT_FETCHES = 8
 _semaphores: dict[int, asyncio.Semaphore] = {}
 
 
-def _reject_shopping(request: httpx.Request) -> None:
+async def _reject_shopping(request: httpx.Request) -> None:
+    # httpx 0.28 awaits request hooks. A sync hook raises TypeError and every
+    # manufacturer fetch is swallowed by fetch_all_pages(return_exceptions=True).
     if is_blocked_url(str(request.url)):
         raise httpx.RequestError("blocked shopping host", request=request)
 

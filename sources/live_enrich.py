@@ -32,6 +32,7 @@ from sources.finder import (
     candidate_third_party_urls,
     first_fetch_window,
     is_blocked_url,
+    is_search_url,
     official_url_score,
 )
 from sources.raw_cache import save_raw_html
@@ -45,7 +46,7 @@ from sources.source_policy import (
 )
 from sources.web_search import collect_search_result_urls, filter_fallback_results
 from sources.domain_discovery import guess_domains_from_name, select_search_hits
-from sources.known_urls import known_urls_for, remember_bundle, remember_urls
+from sources.known_urls import known_urls_for, remember_bundle
 
 
 def _run_coroutine_blocking(coroutine):
@@ -110,6 +111,22 @@ def _ingest_page(
     if not is_allowed_url(url, manufacturer_domains) or is_error_url(url):
         return [], []
     save_raw_html(mpn, html, url)
+    products = discover_product_links(
+        html,
+        url,
+        mpn,
+        _follow_hosts(url, manufacturer_domains),
+        limit=FOLLOW_URL_LIMIT,
+    )
+    pdfs = [
+        link
+        for link in discover_pdf_links(html, url)
+        if is_primary_url(link, manufacturer_domains)
+    ]
+    # Manufacturer on-site search is for discovering the PDP, not for specs.
+    # Fallback search pages (distributor) may still carry attributes.
+    if is_search_url(url) and is_primary_url(url, manufacturer_domains):
+        return products, pdfs
     page_bundle = merge_bundles(extract_from_html(html, url), extract_structured_data(html, url))
     apply_source_policy(page_bundle, url, manufacturer_domains)
     contributed = (
@@ -128,18 +145,6 @@ def _ingest_page(
                 bundle.mfr_url = url
         elif url not in bundle.ref_urls:
             bundle.ref_urls.append(url)
-    pdfs = [
-        link
-        for link in discover_pdf_links(html, url)
-        if is_primary_url(link, manufacturer_domains)
-    ]
-    products = discover_product_links(
-        html,
-        url,
-        mpn,
-        _follow_hosts(url, manufacturer_domains),
-        limit=FOLLOW_URL_LIMIT,
-    )
     return products, pdfs
 
 
@@ -300,7 +305,6 @@ def fetch_manufacturer_evidence(
         if extra_domains:
             manufacturer_domains = list(dict.fromkeys(manufacturer_domains + extra_domains))
         if search_hits:
-            remember_urls(mpn, search_hits)
             pdf_links.extend(_fetch_tier(bundle, search_hits, mpn, manufacturer_domains, seen))
     else:
         found = []

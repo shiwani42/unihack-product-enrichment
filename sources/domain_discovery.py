@@ -73,14 +73,12 @@ NOISE_LABELS = frozenset(
 )
 
 OFFICIAL_PATH_HINTS = (
-    "/product",
-    "/support",
+    "/product-support",
+    "/owner-center",
+    "/datasheet",
     "/manual",
     "/spec",
-    "/datasheet",
-    "/p/",
     "/appliance",
-    "/owner",
     "/search",
 )
 
@@ -120,6 +118,9 @@ def host_matches_names(host: str, names: list[str]) -> bool:
             for label in labels:
                 if label == token or label.startswith(f"{token}-") or token.startswith(f"{label}-"):
                     return True
+                # hunterfan.com vs Hunter, milwaukeetool.com vs Milwaukee
+                if len(token) >= 4 and (token in label or label.startswith(token)):
+                    return True
     return False
 
 
@@ -145,13 +146,16 @@ def discover_domains_from_urls(
             continue
         path = urlparse(url).path.lower()
         score = 0
-        if names and host_matches_names(host, names):
+        name_hit = bool(names) and host_matches_names(host, names)
+        if name_hit:
             score += 10
         if needle and needle in url.lower():
             score += 4
             if any(hint in path or hint in url.lower() for hint in OFFICIAL_PATH_HINTS):
                 score += 6
-        if names and score < 10:
+        # A numeric MPN inside /products/59243-40-2 (CAS, another brand's SKU)
+        # is not enough to adopt chemblink.com as Hunter's manufacturer host.
+        if names and not name_hit:
             continue
         if not names and score < 8:
             continue
