@@ -167,7 +167,7 @@ function renderDashboard() {
   const summary = lastData.summary || {};
   const breakdown = summary.confidence_breakdown || {};
   el("stat-rows").textContent = summary.rows || 0;
-  el("stat-filled").textContent = summary.avg_filled_fields ? `${summary.avg_filled_fields}` : "\u2014";
+  el("stat-filled").textContent = summary.avg_filled_fields ? `${summary.avg_filled_fields}` : "-";
   el("stat-high").textContent = breakdown.high || 0;
   el("stat-issues").textContent = summary.rows_with_issues || 0;
 }
@@ -487,9 +487,9 @@ function renderResults() {
       <tr data-mpn="${escapeHtml(row.mpn)}" class="${rowClass}">
         <td>
           <div class="cell-mpn">${escapeHtml(row.mpn)}</div>
-          <div class="cell-brand">${escapeHtml(row.identity.BRAND_NAME || row.identity.Part_Manuf || "\u2014")}</div>
+          <div class="cell-brand">${escapeHtml(row.identity.BRAND_NAME || row.identity.Part_Manuf || "-")}</div>
         </td>
-        <td>${escapeHtml(row.identity.MANUFACTURER_NAME || row.identity.Part_Manuf || "\u2014")}</td>
+        <td>${escapeHtml(row.identity.MANUFACTURER_NAME || row.identity.Part_Manuf || "-")}</td>
         <td class="cell-dim">${escapeHtml(cat)}</td>
         <td class="fields-cell">
           <div class="fields-line"><span>${row.filled_fields} / ${TOTAL_COLUMNS}</span><span class="pct">${row.completeness_pct}%</span></div>
@@ -793,7 +793,7 @@ function kvTable(rows) {
             ([k, v]) => `
           <tr>
             <th>${escapeHtml(k)}</th>
-            <td>${escapeHtml(v || "—")}</td>
+            <td>${escapeHtml(v || "-")}</td>
           </tr>`
           )
           .join("")}
@@ -809,8 +809,8 @@ function renderRecordTab(p) {
 
   const inputRows = Object.entries(p.input || {});
   const enrichedRows = [
-    ["Brand / manufacturer", `${brand} / ${p.identity.MANUFACTURER_NAME || "—"}`],
-    ["Category", p.taxonomy.Classpath || "—"],
+    ["Brand / manufacturer", `${brand} / ${p.identity.MANUFACTURER_NAME || "-"}`],
+    ["Category", p.taxonomy.Classpath || "-"],
     ["Fields filled", `${p.filled_fields} / ${TOTAL_COLUMNS}`],
     ["Sources", String(p.evidence_count)],
     ["Confidence", p.confidence_band],
@@ -870,7 +870,7 @@ function renderRecordTab(p) {
             <tr class="spec-row">
               <th>${escapeHtml(s.label)}</th>
               <td>${escapeHtml(s.display)}</td>
-              <td>${s.source ? escapeHtml(s.source) : "—"}</td>
+              <td>${s.source ? escapeHtml(s.source) : "-"}</td>
               <td class="spec-flag">
                 <button class="copy-btn flag-open" type="button" data-label="${escapeHtml(s.label)}" data-value="${escapeHtml(s.value)}" data-source="${escapeHtml(s.source || "")}">Flag</button>
               </td>
@@ -1263,7 +1263,7 @@ async function runWindowedBatch({ totalHint, label, requestWindow }) {
     renderResults();
     appendLog("SUCCESS", `${delivery.length} rows ready. Use Catalog \u2192 Export (CSV is built in the browser).`);
     setProgressMessage(
-      `Complete \u2014 ${previews.length} SKUs in the catalog. Timed-out SKUs stay as review rows.`
+      `Complete. ${previews.length} SKUs in the catalog. Timed-out SKUs stay as review rows.`
     );
   } catch (err) {
     setProgressMessage(`Error: ${escapeHtml(err.message)}`);
@@ -1280,7 +1280,7 @@ async function runLiveEnrichment() {
   const filter = el("sampleFilter").value;
   await runWindowedBatch({
     totalHint: limit,
-    label: `Starting batch \u2014 ${limit} rows${filter ? `, segment: ${filter}` : ""}`,
+    label: `Starting batch: ${limit} rows${filter ? `, segment: ${filter}` : ""}`,
     requestWindow: (offset, windowSize, onEvent) => {
       return readSseWithRetry("/api/enrich/stream", onEvent, 3, {
         method: "POST",
@@ -1381,7 +1381,7 @@ async function runUpload() {
   const rows = parsed.rows;
   await runWindowedBatch({
     totalHint: rows.length,
-    label: `Uploaded file \u2014 ${parsed.total} rows`,
+    label: `Uploaded file: ${parsed.total} rows`,
     requestWindow: (offset, windowSize, onEvent) => {
       const slice = rows.slice(offset, offset + windowSize);
       return readSseWithRetry(

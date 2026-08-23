@@ -1,5 +1,5 @@
 /* ============================================================
-   Unilog — first-principles design
+   Unilog first-principles design
    The product is a transformation: six columns in, 252 out.
    The interface is a typeset spec sheet: white paper, hairline
    rules, one type scale, color only where it means something.
@@ -255,7 +255,7 @@ body {
   display: inline-block;
 }
 
-.brand-hints[open] summary::before { content: "–"; }
+.brand-hints[open] summary::before { content: "-"; }
 
 .brand-hints summary:hover { color: var(--ink); }
 
