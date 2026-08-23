@@ -1,9 +1,10 @@
 # unilog enrichment engine
 
-**Evidence-first product intelligence for industrial commerce.** Six cryptic distributor
-columns in — a validated, source-traced record in Unilog's 252-column delivery format out.
+**Live app:** https://unilog-tau.vercel.app
 
-- **Live prototype:** https://unilog-tau.vercel.app
+**Evidence-first product intelligence for industrial commerce.** Six cryptic distributor
+columns in, a validated, source-traced record in Unilog's 252-column delivery format out.
+
 - **Demo film (3 min):** https://vimeo.com/1220615209 · reproducible build in `demo_build/`
 - **Submission deck:** `submission/UniHack_thExplorers_Prototype.pptx`
 - **Delivery artifacts:** `output/batch_enriched.csv` · `output/batch_enriched.xlsx` · `output/field_provenance.json`
@@ -63,30 +64,15 @@ PYTHONPATH=. python3 cli.py batch --filter all --xlsx --workers 4 \
 uvicorn app.main:app --port 8000            # web UI at http://localhost:8000
 ```
 
-## Local testing (not Vercel)
+## What you can test on Vercel, and what needs a local clone
 
-Two different kinds of files:
+The hosted prototype is https://unilog-tau.vercel.app. You can open that URL without installing anything, pick a sample or drop your own six-column distributor CSV (`Mfg_Part_Num`, `Part_Desc`, `E1_Brand`, `Unilog_Brand`, `DIB_Brand`, `Part_Manuf`), run enrichment, watch rows land in Catalog, open a record for evidence and provenance, and download CSV, Excel, and the provenance file. That path is enough to see manufacturer-first fetch, classification, governed descriptions, and the 252-column delivery format. The sample catalog already in the repo is `guidelines/Unihack_ Sample Dataset - Input.csv`; on Vercel you use the Enrich page, and locally you can also pass `--input` to `cli.py batch` or drop the same CSV on the UI after `uvicorn`.
 
-**1. Catalog to enrich (6 columns)**  
-`Mfg_Part_Num`, `Part_Desc`, `E1_Brand`, `Unilog_Brand`, `DIB_Brand`, `Part_Manuf`.
+The hosted upload is only that product CSV. It cannot take the official Solution Guide workbooks from the hackathon Resources page (the large LOV, manufacturer and brand list, UOM abbreviations, inch fractions, taxonomy, and the 200-row gold file), because those files are far bigger than a serverless request is allowed to be, and even a smaller workbook that did get through would live on one function instance and disappear on the next. Fractions, UOM, and the 200-row file are small enough that an upload might reach a single function; the brand list and taxonomy are large enough that they would often time out; the 161k-row LOV is large enough that it usually never arrives at all. We did not put a second dropzone on the Vercel page for those tables, because it would look like it works and then fail for the files that actually matter. Without those workbooks the live app still runs, using the standards we mined from the gold sample and the 1,000-row input, then the small built-in JSON files. That is a real subset of LOV values, brand casing, UOM, and fractions, not a fake 14k taxonomy or a fake 161k LOV, and it is enough to judge the pipeline. It is not a substitute for Unilog’s official tables.
 
-| How | Where |
-|-----|--------|
-| Sample already in the repo | `guidelines/Unihack_ Sample Dataset - Input.csv` (CLI default) |
-| Your own CSV | `PYTHONPATH=. python3 cli.py batch --input /path/to/file.csv` or drop it on Enrich in the local UI (`uvicorn` above) |
+If you have downloaded the dashboard `.xlsx` files and you want official LOV checks, legal brand ®/™ casing, the full UOM list, the fraction table, extra taxonomy leaves, or the 200-row scorer, you need to clone this repo and run it on your machine (or put the workbooks in a deployment you control). Save them in `guidelines/references/` under the original names or close variants such as `Unicat_Lov_updated_….xlsx`, `FAUCETS_LOV.xlsx`, or `Fittings_LOV.xlsx`; `guidelines/` and `UNILOG_REFERENCES_DIR` are also scanned. Enrichment imports them automatically and overlays the mined JSON, so you do not have to classify each workbook or run the importer first. Do not put the six-column product CSV in `guidelines/references/`; that folder is only for Unilog standards. `UNILOG_INTERNAL_CONTENT_GUIDELINES.docx` is still not parsed, so description formulas stay the ones learned from the gold sample. More detail is in `guidelines/references/README.md`.
 
-**2. Official Solution Guide workbooks (optional)**  
-LOV, brand list, UOM, fractions, taxonomy, 200-row gold. Download from the hackathon dashboard Resources page. Drop the `.xlsx` files here — original names or close variants; headers are also sniffed:
-
-```
-guidelines/references/
-```
-
-Also accepted: `guidelines/`, or `UNILOG_REFERENCES_DIR=/path/to/folder`. Enrichment imports them automatically. They are not required; without them the pipeline uses mined sample standards.
-
-Do not put the 6-column product CSV in `guidelines/references/` — that folder is for Unilog standards workbooks only. Details: `guidelines/references/README.md`.
-
-Deployed on Vercel (`vercel.json`, `api/index.py`): the hosted UI still only accepts the 6-column CSV. Official workbooks must be in the deploy tree (or `UNILOG_REFERENCES_DIR`) for the function to see them.
+A full 1,000-row CLI batch with workers, resume, and checkpoint, plus `pytest`, is also local. The Vercel function enriches a small window per request (typically one SKU) so it does not time out, which is why the hosted demo is a live walkthrough rather than a dump of the whole sample in one click.
 
 ## Repository map
 
