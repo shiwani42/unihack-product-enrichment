@@ -123,9 +123,9 @@ def _ingest_page(
         for link in discover_pdf_links(html, url)
         if is_primary_url(link, manufacturer_domains)
     ]
-    # Manufacturer on-site search is for discovering the PDP, not for specs.
-    # Fallback search pages (distributor) may still carry attributes.
-    if is_search_url(url) and is_primary_url(url, manufacturer_domains):
+    # Manufacturer listing/search pages: follow PDPs when we found them, otherwise
+    # extract here (Whirlpool smartsearchresults is the product literature page).
+    if is_search_url(url) and is_primary_url(url, manufacturer_domains) and products:
         return products, pdfs
     page_bundle = merge_bundles(extract_from_html(html, url), extract_structured_data(html, url))
     apply_source_policy(page_bundle, url, manufacturer_domains)
@@ -141,7 +141,7 @@ def _ingest_page(
         merged = merge_bundles(bundle, page_bundle)
         _replace(bundle, merged)
         if is_primary_url(url, manufacturer_domains):
-            if official_url_score(url) >= official_url_score(bundle.mfr_url):
+            if official_url_score(url, mpn) >= official_url_score(bundle.mfr_url, mpn):
                 bundle.mfr_url = url
         elif url not in bundle.ref_urls:
             bundle.ref_urls.append(url)

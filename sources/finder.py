@@ -35,7 +35,7 @@ _OFFICIAL_HINTS = (
     ("smartsearchresults", 85),
     ("owner-center", 80),
     ("/appliance/", 65),
-    ("/manuals", 55),
+    ("/manuals/", 55),
     ("product-support", 45),
     ("support.", 40),
 )
@@ -235,12 +235,16 @@ def _urls_for_domains(mpn: str, domains: list[str]) -> list[str]:
     for domain in domains:
         origin = _origin(domain)
         host = urlparse(origin).netloc.lower()
+        host_has_product_extra = False
         for key, templates in extras.items():
             if key not in host:
                 continue
             for template in templates:
                 urls.append(template.format(**tokens))
-        for path in OFFICIAL_PATHS + SEARCH_PATHS:
+                if not is_search_url(template):
+                    host_has_product_extra = True
+        paths = SEARCH_PATHS if host_has_product_extra else OFFICIAL_PATHS + SEARCH_PATHS
+        for path in paths:
             urls.append(origin + path.format(**tokens))
     from sources.dead_paths import drop_dead_urls
 
@@ -292,17 +296,43 @@ def candidate_distributor_urls(mpn: str) -> list[str]:
     return _urls_from_templates(mpn, distributor_templates())
 
 
-def official_url_score(url: str) -> int:
+def url_contains_mpn(url: str, mpn: str) -> bool:
+    """True when the part number is a path segment or query value, not a substring."""
+    needle = (mpn or "").strip().lower()
+    if len(needle) < 3:
+        return False
+    parsed = urlparse(url or "")
+    from urllib.parse import parse_qsl, unquote
+
+    values = {unquote(value).lower() for _key, value in parse_qsl(parsed.query, keep_blank_values=True)}
+    if needle in values:
+        return True
+    segments = [unquote(part).lower().rsplit(".", 1)[0] for part in (parsed.path or "").split("/") if part]
+    return needle in segments
+
+
+def official_url_score(url: str, mpn: str = "") -> int:
     """Prefer manufacturer product-support / literature pages over generic search."""
     if not url or is_blocked_url(url):
         return -1
     low = url.lower()
     if low.endswith(".pdf"):
         return 0
+    if any(token in low for token in ("/login", "/logout", "/signin", "/cart", "/account", "/api/auth")):
+        return -1
     score = 10
     for hint, points in _OFFICIAL_HINTS:
         if hint in low:
             score = max(score, points)
+    if mpn and url_contains_mpn(url, mpn):
+        needle = mpn.strip().lower()
+        path = (urlparse(url).path or "").lower()
+        if needle in [part.rsplit(".", 1)[0] for part in path.split("/") if part]:
+            score = max(score, 80)
+        else:
+            score = max(score, 40)
+    if "manuals-and-downloads" in low and not url_contains_mpn(url, mpn):
+        score = min(score, 18)
     if "search?" in low or "search.html" in low:
         score = min(score, 15)
     return score
@@ -324,4 +354,4 @@ def best_mfr_url(mpn: str, domains: list[str]) -> str:
     candidates = [url for url in candidate_mfr_urls(mpn, domains) if not url.lower().endswith(".pdf")]
     if not candidates:
         return ""
-    return max(candidates, key=official_url_score)
+    return max(candidates, key=lambda url: official_url_score(url, mpn))

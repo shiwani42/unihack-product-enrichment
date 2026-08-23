@@ -33,31 +33,46 @@ def _semaphore() -> asyncio.Semaphore:
     return semaphore
 
 
+def _http_client(timeout: int, ipv4: bool) -> httpx.AsyncClient:
+    kwargs: dict = {
+        "timeout": timeout,
+        "follow_redirects": True,
+        "headers": HEADERS,
+        "event_hooks": {"request": [_reject_shopping]},
+    }
+    if ipv4:
+        try:
+            kwargs["transport"] = httpx.AsyncHTTPTransport(local_address="0.0.0.0")
+        except OSError:
+            pass
+    return httpx.AsyncClient(**kwargs)
+
+
 async def fetch_html_async(url: str, timeout: int | None = None) -> tuple[int, str, str]:
     if is_blocked_url(url):
         return 0, "", url
 
     request_timeout = timeout or FETCH_TIMEOUT
     async with _semaphore():
-        for attempt in range(3):
-            try:
-                async with httpx.AsyncClient(
-                    timeout=request_timeout,
-                    follow_redirects=True,
-                    headers=HEADERS,
-                    event_hooks={"request": [_reject_shopping]},
-                ) as client:
-                    response = await client.get(url)
-            except httpx.HTTPError:
-                return 0, "", url
-            final_url = str(response.url)
-            if is_blocked_url(final_url):
-                return 0, "", url
-            if response.status_code < 400 or response.status_code not in RETRYABLE_STATUS:
-                return response.status_code, response.text, final_url
-            if attempt < 1:
-                await asyncio.sleep(0.5 * (2**attempt))
-        return response.status_code, response.text, str(response.url)
+        last_status, last_html, last_final = 0, "", url
+        for ipv4 in (True, False):
+            for attempt in range(3):
+                try:
+                    async with _http_client(request_timeout, ipv4) as client:
+                        response = await client.get(url)
+                except httpx.HTTPError:
+                    break
+                final_url = str(response.url)
+                if is_blocked_url(final_url):
+                    return 0, "", url
+                last_status, last_html, last_final = response.status_code, response.text, final_url
+                if response.status_code < 400 or response.status_code not in RETRYABLE_STATUS:
+                    return last_status, last_html, last_final
+                if attempt < 1:
+                    await asyncio.sleep(0.5 * (2**attempt))
+            if last_status:
+                return last_status, last_html, last_final
+        return last_status, last_html, last_final
 
 
 async def fetch_urls_parallel(

@@ -788,7 +788,41 @@ def test_unmapped_part_manuf_is_used_as_search_name():
     assert identity.method == "part_manuf_unmapped"
 
 
-def test_request_hook_is_awaitable_for_httpx_028():
+def test_product_page_with_mpn_beats_manuals_index():
+    from sources.finder import official_url_score
+
+    pdp = "https://www.milwaukeetool.com/products/details/metal-cut-off/49-94-0013"
+    manuals = "https://www.milwaukeetool.com/Support/Manuals-and-Downloads?search=49-94-0013"
+    assert official_url_score(pdp, "49-94-0013") > official_url_score(manuals, "49-94-0013")
+
+
+def test_known_brand_with_pdp_template_does_not_fill_window_with_generic_404s():
+    from sources.finder import candidate_mfr_urls, first_fetch_window
+
+    urls = first_fetch_window(candidate_mfr_urls("DCB518ASTS06G", ["diablotools.com"]), 8)
+    joined = " ".join(urls)
+    assert "https://diablotools.com/products/DCB518ASTS06G" in urls
+    assert any("search?q=DCB518ASTS06G" in url for url in urls)
+    assert "/product-support/DCB518ASTS06G" not in joined
+    assert urls.count("https://www.diablotools.com/p/DCB518ASTS06G") == 0
+
+
+def test_manufacturer_search_is_extracted_when_no_product_follow(tmp_path, monkeypatch):
+    monkeypatch.setattr("extract.cache.CACHE_DIR", tmp_path)
+    monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
+    html = (
+        "<html><title>Search</title><body>Voltage Rating 120 "
+        "Amperage Rating 15 Color White Material Steel</body></html>"
+    )
+    requested = _stub_fetch_pages(
+        monkeypatch,
+        lambda url: html if "smartsearchresults" in url or "search" in url.lower() else "",
+    )
+    from sources.live_enrich import fetch_manufacturer_evidence
+
+    bundle = fetch_manufacturer_evidence("KDFM404KPS", ["kitchenaid.com", "learnwhirlpool.com"], fetch_pdfs=False)
+    assert len(bundle.items) >= 2
+    assert requested
     import inspect
     from sources.async_fetcher import _reject_shopping
 

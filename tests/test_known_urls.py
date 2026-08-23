@@ -172,14 +172,14 @@ def test_one_404_does_not_disable_path_for_other_skus():
     from sources.finder import candidate_mfr_urls
 
     note_outcome(
-        "https://www.leviton.com/p/A1",
+        "https://www.leviton.com/products/A1",
         "A1",
         404,
         "",
         "https://leviton.com/error-pages/404",
     )
     urls = candidate_mfr_urls("C3", ["leviton.com"])
-    assert "https://www.leviton.com/p/C3" in urls
+    assert "https://www.leviton.com/products/C3" in urls
 
 
 def test_repeated_404s_skip_that_host_path():
@@ -188,12 +188,12 @@ def test_repeated_404s_skip_that_host_path():
 
     for mpn in ("A1", "B2"):
         note_outcome(
-            f"https://www.leviton.com/p/{mpn}",
+            f"https://www.leviton.com/products/{mpn}",
             mpn,
             404,
             "",
             "https://leviton.com/error-pages/404",
         )
     urls = candidate_mfr_urls("C3", ["leviton.com"])
-    assert "https://www.leviton.com/p/C3" not in urls
+    assert "https://www.leviton.com/products/C3" not in urls
     assert "https://www.leviton.com/search?q=C3" in urls

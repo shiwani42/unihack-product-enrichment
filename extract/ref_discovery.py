@@ -87,6 +87,19 @@ def shopify_product_urls(html: str, base_url: str, mpn: str) -> list[str]:
     return found
 
 
+_SKIP_FOLLOW = (
+    "login",
+    "logout",
+    "signin",
+    "sign-in",
+    "/cart",
+    "/account",
+    "wishlist",
+    "/api/auth",
+    "lwfilters",
+)
+
+
 def discover_product_links(html: str, base_url: str, mpn: str, domains: list[str], limit: int = 6) -> list[str]:
     """Follow official product/support hits that stay on allowed hosts."""
     found: list[str] = []
@@ -104,15 +117,18 @@ def discover_product_links(html: str, base_url: str, mpn: str, domains: list[str
         if not href or href.startswith("#") or href.lower().startswith("javascript:"):
             continue
         url = _absolute(href, base_url)
-        if is_blocked_url(url) or url.lower().endswith(".pdf"):
+        low = url.lower()
+        if is_blocked_url(url) or low.endswith(".pdf"):
+            continue
+        if any(token in low for token in _SKIP_FOLLOW):
             continue
         if not url_on_domains(url, domains):
             continue
         path = urlparse(url).path.lower()
         text = " ".join(anchor.get_text(" ", strip=True).split()).lower()
         compact = needle.replace("-", "")
-        official = any(token in url.lower() for token in ("owner-center", "product-support", "gea-specs", "smartsearch", "/appliance/"))
-        if needle not in url.lower() and needle not in text and compact not in path.replace("-", "") and not official:
+        official = any(token in low for token in ("owner-center", "product-support", "gea-specs", "/appliance/"))
+        if needle not in low and needle not in text and compact not in path.replace("-", "") and not official:
             continue
         if url not in found:
             found.append(url)
