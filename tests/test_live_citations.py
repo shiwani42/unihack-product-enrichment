@@ -311,6 +311,58 @@ def test_attribute_citation_follows_live_alias_not_part_desc():
     assert row["ATTRIBUTE_VALUE 1"] == "6"
     assert sources["ATTRIBUTE_VALUE 1"].startswith("https://oem.example.com/")
     assert not sources["ATTRIBUTE_VALUE 1"].startswith("input:")
+    assert sources["Diameter"].startswith("https://oem.example.com/")
+
+
+def test_preview_source_column_uses_manufacturer_url_not_part_desc():
+    from app.ui_sections import row_preview
+
+    preview = row_preview(
+        {
+            "Mfg_Part_Num": "49-94-0013",
+            "MFR URL": "https://www.milwaukeetool.com/products/details/49-94-0013",
+            "ATTRIBUTE_LABEL 1": "Diameter",
+            "ATTRIBUTE_VALUE 1": "5",
+            "ATTRIBUTE_UOM 1": "in",
+            "ATTRIBUTE_LABEL 4": "Application",
+            "ATTRIBUTE_VALUE 4": "Metal Cut Off Disc",
+        },
+        {
+            "mpn": "49-94-0013",
+            "field_sources": {
+                "Diameter": "input:Part_Desc",
+                "ATTRIBUTE_VALUE 1": "https://www.milwaukeetool.com/products/details/49-94-0013",
+                "Application": "input:Part_Desc",
+                "ATTRIBUTE_VALUE 4": "input:Part_Desc",
+                "MFR URL": "https://www.milwaukeetool.com/products/details/49-94-0013",
+            },
+        },
+    )
+    sources = {spec["label"]: spec["source"] for spec in preview["specs"]}
+    assert sources["Diameter"].startswith("https://www.milwaukeetool.com/")
+    assert sources["Application"].startswith("https://www.milwaukeetool.com/")
+    assert "input:Part_Desc" not in sources.values()
+
+
+def test_preview_keeps_part_desc_when_mfr_url_is_only_a_search_page():
+    from app.ui_sections import row_preview
+
+    preview = row_preview(
+        {
+            "Mfg_Part_Num": "X1",
+            "MFR URL": "https://www.brand.com/search?q=X1",
+            "ATTRIBUTE_LABEL 1": "Color",
+            "ATTRIBUTE_VALUE 1": "White",
+        },
+        {
+            "field_sources": {
+                "Color": "input:Part_Desc",
+                "ATTRIBUTE_VALUE 1": "input:Part_Desc",
+                "MFR URL": "https://www.brand.com/search?q=X1",
+            },
+        },
+    )
+    assert preview["specs"][0]["source"] == "input:Part_Desc"
 
 
 def test_pipeline_merge_cites_manufacturer_not_part_desc(tmp_path, monkeypatch):

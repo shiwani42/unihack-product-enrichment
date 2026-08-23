@@ -112,12 +112,25 @@ def _source_for_attribute(bundle: EvidenceBundle, label: str, value: str) -> str
     return pick.source_url or ""
 
 
+def _prefer_live_source(current: str, candidate: str) -> str:
+    from extract.evidence import is_self_cited
+
+    if not candidate:
+        return current
+    if not current or (is_self_cited(current) and not is_self_cited(candidate)):
+        return candidate
+    return current
+
+
 def _field_sources_from_bundle(bundle: EvidenceBundle | None, output: dict[str, str]) -> dict[str, str]:
     sources: dict[str, str] = {}
     if not bundle:
         return sources
     for item in bundle.items:
-        sources[item.field] = item.source_url or "input:Part_Desc"
+        sources[item.field] = _prefer_live_source(
+            sources.get(item.field, ""),
+            item.source_url or "input:Part_Desc",
+        )
     if bundle.mfr_url:
         sources["MFR URL"] = bundle.mfr_url
     elif output.get("MFR URL"):

@@ -52,6 +52,30 @@ INPUT_FIELDS = (
 TOTAL_OUTPUT_COLUMNS = 252
 
 
+def _display_spec_source(
+    field_sources: dict,
+    label: str,
+    index: int,
+    mfr_url: str = "",
+) -> str:
+    """Show the manufacturer page as the reference when we have one.
+
+    Provenance may still record input:Part_Desc for a leftover desc parse.
+    The Source column is the product page judges should open, not the
+    distributor line, whenever that page actually loaded.
+    """
+    from extract.evidence import is_self_cited
+    from sources.finder import is_search_url
+
+    slot = (field_sources.get(f"ATTRIBUTE_VALUE {index}") or "").strip()
+    named = (field_sources.get(label) or "").strip()
+    mfr = (mfr_url or field_sources.get("MFR URL") or "").strip()
+    for url in (slot, named, mfr):
+        if url.startswith("http") and not is_search_url(url) and not is_self_cited(url):
+            return url
+    return slot or named or mfr
+
+
 def row_preview(row: dict[str, str], report: dict, input_row: dict[str, str] | None = None) -> dict:
     field_sources = report.get("field_sources", {}) if isinstance(report, dict) else {}
 
@@ -65,7 +89,7 @@ def row_preview(row: dict[str, str], report: dict, input_row: dict[str, str] | N
         if label and val:
             display_val = f"{val} {uom}".strip() if uom else val
             attributes_dict[label] = display_val
-            source = field_sources.get(label) or field_sources.get(f"ATTRIBUTE_VALUE {i}") or field_sources.get("MFR URL", "input:Part_Desc")
+            source = _display_spec_source(field_sources, label, i, row.get("MFR URL", ""))
             structured_specs.append({
                 "slot": i,
                 "label": label,
