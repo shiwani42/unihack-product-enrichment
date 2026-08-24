@@ -18,11 +18,14 @@ def pytest_configure(config):
 
 @pytest.fixture(autouse=True)
 def _reset_search_engine():
+    from sources.firecrawl_search import reset_firecrawl_circuit
     from sources.web_search import set_last_search_engine
 
     set_last_search_engine(None)
+    reset_firecrawl_circuit()
     yield
     set_last_search_engine(None)
+    reset_firecrawl_circuit()
 
 
 @pytest.fixture(autouse=True)

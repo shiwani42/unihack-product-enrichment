@@ -20,7 +20,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 from sources.finder import is_blocked_url
-from sources.firecrawl_search import firecrawl_enabled, firecrawl_search_urls
+from sources.firecrawl_search import firecrawl_enabled, firecrawl_has_api_key, firecrawl_search_urls
 from sources.source_policy import is_primary_url
 
 BROWSER_HEADERS = {
@@ -34,7 +34,10 @@ BROWSER_HEADERS = {
 SEARCH_TIMEOUT = httpx.Timeout(connect=3.0, read=4.0, write=4.0, pool=3.0)
 SEARCH_ATTEMPT_SEC = 4.0
 SEARCH_BUDGET_SEC = 12.0
-SEARCH_ENGINES = ("firecrawl", "brave", "ddg_html", "ddg_lite", "bing")
+# Prefer Firecrawl only when keyed; keyless cloud IPs often fail and burned the budget.
+SEARCH_ENGINES_KEYED = ("firecrawl", "brave", "ddg_html", "ddg_lite", "bing")
+SEARCH_ENGINES_HTML = ("brave", "ddg_html", "ddg_lite", "bing", "firecrawl")
+SEARCH_ENGINES = SEARCH_ENGINES_KEYED
 SEARCH_429_BACKOFF_SEC = 0.8
 SEARCH_429_BACKOFF_CAP_SEC = 8.0
 _last_engine: str | None = None
@@ -215,15 +218,15 @@ def last_search_engine() -> str | None:
 
 def set_last_search_engine(name: str | None) -> None:
     global _last_engine
-    _last_engine = name if name in SEARCH_ENGINES else None
+    allowed = SEARCH_ENGINES_KEYED
+    _last_engine = name if name in allowed else None
 
 
 def engine_order() -> tuple[str, ...]:
-    """Last winner first so a judge network that only has Brave (or only DDG) stays fast."""
+    """Last winner first. Keyed Firecrawl leads; keyless trails HTML engines."""
+    base = SEARCH_ENGINES_KEYED if firecrawl_has_api_key() else SEARCH_ENGINES_HTML
     available = tuple(
-        engine
-        for engine in SEARCH_ENGINES
-        if engine != "firecrawl" or firecrawl_enabled()
+        engine for engine in base if engine != "firecrawl" or firecrawl_enabled()
     )
     if _last_engine in available:
         return (_last_engine,) + tuple(engine for engine in available if engine != _last_engine)
@@ -369,12 +372,15 @@ async def collect_search_result_urls(
                 if time.monotonic() >= deadline:
                     break
                 if engine == "firecrawl":
+                    if time.monotonic() >= deadline - 0.5:
+                        continue
                     urls = [
                         url
                         for url in await firecrawl_search_urls(query, limit=max(limit, 8))
                         if _mentions_mpn(url, mpn) and not is_blocked_url(url)
                     ]
                     if not urls:
+                        # Circuit may have opened; skip Firecrawl for later queries.
                         continue
                     for url in urls:
                         if url not in found:

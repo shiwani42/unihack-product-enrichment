@@ -1,11 +1,9 @@
 """Firecrawl keyless web search — discover manufacturer pages without scraping SERPs.
 
-Uses POST https://api.firecrawl.dev/v2/search with no Authorization header by
-default (1,000 free keyless credits/month). Optional FIRECRAWL_API_KEY raises
-rate limits when keyless is blocked (suspicious IP, agent sandboxes, etc.).
-
-Search returns titles/URLs only — we never scrape via Firecrawl here; our own
-fetcher ingests manufacturer pages. Shopping hosts are filtered by the caller.
+Uses POST https://api.firecrawl.dev/v2/search. Optional FIRECRAWL_API_KEY raises
+rate limits. Keyless often fails from cloud/datacenter IPs (Vercel included),
+so on Vercel we require a key. A process-wide circuit breaker skips Firecrawl
+after the first hard failure so enrichment does not burn the search budget.
 """
 
 from __future__ import annotations
@@ -16,11 +14,27 @@ from typing import Any
 import httpx
 
 FIRECRAWL_SEARCH_URL = "https://api.firecrawl.dev/v2/search"
-FIRECRAWL_TIMEOUT = httpx.Timeout(connect=4.0, read=8.0, write=4.0, pool=4.0)
+# Keep tight: a hung keyless call used to eat the whole SEARCH_BUDGET.
+FIRECRAWL_TIMEOUT = httpx.Timeout(connect=2.0, read=3.0, write=2.0, pool=2.0)
+
+_circuit_open = False
+_circuit_reason = ""
 
 
-def firecrawl_enabled() -> bool:
-    return os.environ.get("UNILOG_FIRECRAWL", "1").strip().lower() not in {"0", "false", "no"}
+def reset_firecrawl_circuit() -> None:
+    global _circuit_open, _circuit_reason
+    _circuit_open = False
+    _circuit_reason = ""
+
+
+def firecrawl_circuit_open() -> bool:
+    return _circuit_open
+
+
+def _trip_circuit(reason: str) -> None:
+    global _circuit_open, _circuit_reason
+    _circuit_open = True
+    _circuit_reason = reason
 
 
 def _api_key() -> str:
@@ -28,6 +42,21 @@ def _api_key() -> str:
         os.environ.get("FIRECRAWL_API_KEY", "").strip()
         or os.environ.get("FIRECRAWL_APIKEY", "").strip()
     )
+
+
+def firecrawl_has_api_key() -> bool:
+    return bool(_api_key())
+
+
+def firecrawl_enabled() -> bool:
+    if os.environ.get("UNILOG_FIRECRAWL", "1").strip().lower() in {"0", "false", "no"}:
+        return False
+    if _circuit_open:
+        return False
+    # Keyless is rejected from many cloud IPs; waiting on it only slows Vercel.
+    if os.environ.get("VERCEL") and not _api_key():
+        return False
+    return True
 
 
 def _headers() -> dict[str, str]:
@@ -74,27 +103,32 @@ def parse_firecrawl_urls(payload: Any) -> list[str]:
 
 
 async def firecrawl_search_urls(query: str, limit: int = 8) -> list[str]:
-    """Keyless Firecrawl search. Returns [] on disable, error, or empty results."""
+    """Firecrawl search. Returns [] on disable, error, or empty results."""
     if not firecrawl_enabled() or not (query or "").strip():
         return []
     body = {
         "query": query.strip()[:500],
-        "limit": max(1, min(int(limit or 8), 20)),
+        "limit": max(1, min(int(limit or 8), 10)),
         "sources": [{"type": "web"}],
     }
     try:
         async with httpx.AsyncClient(timeout=FIRECRAWL_TIMEOUT, follow_redirects=True) as client:
             response = await client.post(FIRECRAWL_SEARCH_URL, headers=_headers(), json=body)
     except (httpx.HTTPError, OSError):
+        _trip_circuit("network")
         return []
     if response.status_code in (401, 402, 403, 429):
+        _trip_circuit(f"http_{response.status_code}")
         return []
     if response.status_code >= 400:
+        _trip_circuit(f"http_{response.status_code}")
         return []
     try:
         payload = response.json()
     except ValueError:
+        _trip_circuit("bad_json")
         return []
     if isinstance(payload, dict) and payload.get("success") is False:
+        _trip_circuit("api_rejected")
         return []
-    return parse_firecrawl_urls(payload)[: max(1, min(int(limit or 8), 20))]
+    return parse_firecrawl_urls(payload)[: max(1, min(int(limit or 8), 10))]
