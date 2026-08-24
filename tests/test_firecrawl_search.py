@@ -39,19 +39,19 @@ def test_parse_firecrawl_empty_or_error():
     assert parse_firecrawl_urls(None) == []
 
 
-def test_vercel_without_api_key_disables_firecrawl(monkeypatch):
+def test_without_api_key_disables_firecrawl(monkeypatch):
     reset_firecrawl_circuit()
     monkeypatch.setenv("UNILOG_FIRECRAWL", "1")
-    monkeypatch.setenv("VERCEL", "1")
+    monkeypatch.delenv("VERCEL", raising=False)
     monkeypatch.delenv("FIRECRAWL_API_KEY", raising=False)
     monkeypatch.delenv("FIRECRAWL_APIKEY", raising=False)
     assert firecrawl_enabled() is False
 
 
-def test_vercel_with_api_key_enables_firecrawl(monkeypatch):
+def test_with_api_key_enables_firecrawl(monkeypatch):
     reset_firecrawl_circuit()
     monkeypatch.setenv("UNILOG_FIRECRAWL", "1")
-    monkeypatch.setenv("VERCEL", "1")
+    monkeypatch.delenv("VERCEL", raising=False)
     monkeypatch.setenv("FIRECRAWL_API_KEY", "fc-test")
     assert firecrawl_enabled() is True
 
@@ -112,7 +112,7 @@ def test_firecrawl_circuit_trips_on_api_reject(monkeypatch):
     reset_firecrawl_circuit()
     monkeypatch.setenv("UNILOG_FIRECRAWL", "1")
     monkeypatch.delenv("VERCEL", raising=False)
-    monkeypatch.delenv("FIRECRAWL_API_KEY", raising=False)
+    monkeypatch.setenv("FIRECRAWL_API_KEY", "fc-test")
 
     class _Resp:
         status_code = 200

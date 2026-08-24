@@ -1,7 +1,7 @@
 """Discover product pages via public web search.
 
-Engines are network-dependent: Firecrawl keyless API first (stable JSON), then
-Brave / DuckDuckGo / Bing HTML when Firecrawl is rate-limited or IP-blocked.
+Engines are network-dependent: Brave / DuckDuckGo / Bing HTML by default;
+Firecrawl (stable JSON) only when FIRECRAWL_API_KEY is set, tried first.
 Try them until one returns links that mention the MPN. Challenge/captcha/
 403/429 pages are misses, not evidence. The engine that succeeded is tried
 first on the next SKU in this process (and in url_memory across Vercel
@@ -348,10 +348,10 @@ async def collect_search_result_urls(
     brand_name: str = "",
     limit: int = 12,
 ) -> list[str]:
-    """Try Firecrawl keyless, then Brave / DuckDuckGo / Bing; keep MPN-matching links.
+    """Try keyed Firecrawl then Brave / DuckDuckGo / Bing; keep MPN-matching links.
 
-    Firecrawl returns structured JSON (no SERP scraping). When keyless is
-    blocked or empty, HTML engines run next. IPv4 first for HTML scrapers;
+    Firecrawl returns structured JSON (no SERP scraping) when an API key is
+    set; otherwise only HTML engines run. IPv4 first for HTML scrapers;
     429 is a miss after backoff, not evidence.
     """
     import time

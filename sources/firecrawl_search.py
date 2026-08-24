@@ -1,9 +1,9 @@
-"""Firecrawl keyless web search — discover manufacturer pages without scraping SERPs.
+"""Firecrawl web search — discover manufacturer pages without scraping SERPs.
 
-Uses POST https://api.firecrawl.dev/v2/search. Optional FIRECRAWL_API_KEY raises
-rate limits. Keyless often fails from cloud/datacenter IPs (Vercel included),
-so on Vercel we require a key. A process-wide circuit breaker skips Firecrawl
-after the first hard failure so enrichment does not burn the search budget.
+Uses POST https://api.firecrawl.dev/v2/search. Requires FIRECRAWL_API_KEY:
+keyless calls are rejected with 403 from typical home/cloud IPs and only
+add latency. A process-wide circuit breaker skips Firecrawl after the first
+hard failure so enrichment does not burn the search budget.
 """
 
 from __future__ import annotations
@@ -53,8 +53,8 @@ def firecrawl_enabled() -> bool:
         return False
     if _circuit_open:
         return False
-    # Keyless is rejected from many cloud IPs; waiting on it only slows Vercel.
-    if os.environ.get("VERCEL") and not _api_key():
+    # Keyless returns 403 "suspicious IP" from home and cloud; skip unless keyed.
+    if not _api_key():
         return False
     return True
 

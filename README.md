@@ -46,7 +46,7 @@ uvicorn app.main:app
 
 Open http://localhost:8000 for the local UI. `UNILOG_LIVE_FETCH=1` (default on the hosted app) hits manufacturer pages. `UNILOG_LIVE_FETCH=0` turns the network off.
 
-Web search tries **Firecrawl keyless** first (`POST /v2/search`, no API key), then Brave / DuckDuckGo / Bing. Optional `FIRECRAWL_API_KEY` raises rate limits if keyless is blocked. Set `UNILOG_FIRECRAWL=0` to skip it.
+Web search uses Brave / DuckDuckGo / Bing by default. Set `FIRECRAWL_API_KEY` to prefer Firecrawl JSON search first (keyless is rejected from typical IPs and only adds latency). Set `UNILOG_FIRECRAWL=0` to skip Firecrawl even when keyed.
 
 ## Try it
 
