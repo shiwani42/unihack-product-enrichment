@@ -16,6 +16,7 @@
   "env": {
     "UNILOG_LIVE_FETCH": "1",
     "UNILOG_WEB_SEARCH": "1",
+    "UNILOG_FIRECRAWL": "1",
     "UNILOG_OUTPUT_DIR": "/tmp/unilog-output",
     "UNILOG_FETCH_TIMEOUT": "15",
     "UNILOG_FETCH_URL_LIMIT": "6",

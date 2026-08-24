@@ -9,7 +9,7 @@ Demo: https://vimeo.com/1220615209
 ## How it works
 
 <p align="center">
-  <img src="./docs/diagrams/pipeline.png" alt="How one SKU is enriched: input table through identity, host discovery, fetch, and extract into a sourced catalog row. Wikidata, Brave Search, DuckDuckGo, Bing, httpx, and Playwright sit on the path." width="100%">
+  <img src="./docs/diagrams/pipeline.png" alt="How one SKU is enriched: input table through identity, host discovery, fetch, and extract into a sourced catalog row. Wikidata, Firecrawl, Brave Search, DuckDuckGo, Bing, httpx, and Playwright sit on the path." width="100%">
 </p>
 
 <p align="center">
@@ -45,6 +45,8 @@ uvicorn app.main:app
 ```
 
 Open http://localhost:8000 for the local UI. `UNILOG_LIVE_FETCH=1` (default on the hosted app) hits manufacturer pages. `UNILOG_LIVE_FETCH=0` turns the network off.
+
+Web search tries **Firecrawl keyless** first (`POST /v2/search`, no API key), then Brave / DuckDuckGo / Bing. Optional `FIRECRAWL_API_KEY` raises rate limits if keyless is blocked. Set `UNILOG_FIRECRAWL=0` to skip it.
 
 ## Try it
 

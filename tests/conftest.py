@@ -30,6 +30,7 @@ def _offline_by_default(request, monkeypatch):
     if not _has_network_marker(request):
         monkeypatch.setenv("UNILOG_LIVE_FETCH", "0")
         monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
+        monkeypatch.setenv("UNILOG_FIRECRAWL", "0")
         monkeypatch.setenv("UNILOG_WIKIDATA", "0")
     yield
 
