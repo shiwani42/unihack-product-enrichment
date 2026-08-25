@@ -1,12 +1,11 @@
 """Discover product pages via public web search.
 
-Engines are network-dependent: Brave / DuckDuckGo / Bing HTML by default;
-Firecrawl (stable JSON) only when FIRECRAWL_API_KEY is set, tried first.
-Try them until one returns links that mention the MPN. Challenge/captcha/
-403/429 pages are misses, not evidence. The engine that succeeded is tried
-first on the next SKU in this process (and in url_memory across Vercel
-windows). Shopping hosts never pass. Search HTML is never ingested as
-product content.
+Engines are network-dependent: Brave may work on one judge network, DuckDuckGo
+on another, Bing on a third. Try them until one returns links that mention the
+MPN. Challenge/captcha/403/429 pages are misses, not evidence. The engine that
+succeeded is tried first on the next SKU in this process (and in url_memory
+across Vercel windows). Shopping hosts never pass. Search HTML is never
+ingested as product content.
 """
 
 from __future__ import annotations
@@ -20,7 +19,6 @@ import httpx
 from bs4 import BeautifulSoup
 
 from sources.finder import is_blocked_url
-from sources.firecrawl_search import firecrawl_enabled, firecrawl_has_api_key, firecrawl_search_urls
 from sources.source_policy import is_primary_url
 
 BROWSER_HEADERS = {
@@ -34,10 +32,7 @@ BROWSER_HEADERS = {
 SEARCH_TIMEOUT = httpx.Timeout(connect=3.0, read=4.0, write=4.0, pool=3.0)
 SEARCH_ATTEMPT_SEC = 4.0
 SEARCH_BUDGET_SEC = 12.0
-# Prefer Firecrawl only when keyed; keyless cloud IPs often fail and burned the budget.
-SEARCH_ENGINES_KEYED = ("firecrawl", "brave", "ddg_html", "ddg_lite", "bing")
-SEARCH_ENGINES_HTML = ("brave", "ddg_html", "ddg_lite", "bing", "firecrawl")
-SEARCH_ENGINES = SEARCH_ENGINES_KEYED
+SEARCH_ENGINES = ("brave", "ddg_html", "ddg_lite", "bing")
 SEARCH_429_BACKOFF_SEC = 0.8
 SEARCH_429_BACKOFF_CAP_SEC = 8.0
 _last_engine: str | None = None
@@ -54,7 +49,7 @@ _CHALLENGE_MARKERS = (
     "checking your browser",
     "verify you are human",
 )
-_ENGINE_HOSTS = ("duckduckgo.", "bing.com", "google.", "brave.", "yahoo.", "microsoft.com", "firecrawl.")
+_ENGINE_HOSTS = ("duckduckgo.", "bing.com", "google.", "brave.", "yahoo.", "microsoft.com")
 
 
 def _decode_bing_u(raw: str) -> str:
@@ -218,19 +213,14 @@ def last_search_engine() -> str | None:
 
 def set_last_search_engine(name: str | None) -> None:
     global _last_engine
-    allowed = SEARCH_ENGINES_KEYED
-    _last_engine = name if name in allowed else None
+    _last_engine = name if name in SEARCH_ENGINES else None
 
 
 def engine_order() -> tuple[str, ...]:
-    """Last winner first. Keyed Firecrawl leads; keyless trails HTML engines."""
-    base = SEARCH_ENGINES_KEYED if firecrawl_has_api_key() else SEARCH_ENGINES_HTML
-    available = tuple(
-        engine for engine in base if engine != "firecrawl" or firecrawl_enabled()
-    )
-    if _last_engine in available:
-        return (_last_engine,) + tuple(engine for engine in available if engine != _last_engine)
-    return available
+    """Last winner first so a judge network that only has Brave (or only DDG) stays fast."""
+    if _last_engine in SEARCH_ENGINES:
+        return (_last_engine,) + tuple(engine for engine in SEARCH_ENGINES if engine != _last_engine)
+    return SEARCH_ENGINES
 
 
 def search_queries(
@@ -348,10 +338,10 @@ async def collect_search_result_urls(
     brand_name: str = "",
     limit: int = 12,
 ) -> list[str]:
-    """Try keyed Firecrawl then Brave / DuckDuckGo / Bing; keep MPN-matching links.
+    """Try Brave, DuckDuckGo, then Bing over IPv4 first; keep MPN-matching links.
 
-    Firecrawl returns structured JSON (no SERP scraping) when an API key is
-    set; otherwise only HTML engines run. IPv4 first for HTML scrapers;
+    This network rate-limits Brave on IPv6 (429) and often cannot reach DDG.
+    IPv4 is tried first; dual-stack is only a fallback when IPv4 cannot connect.
     429 is a miss after backoff, not evidence.
     """
     import time
@@ -362,33 +352,14 @@ async def collect_search_result_urls(
     deadline = time.monotonic() + SEARCH_BUDGET_SEC
     winner = ""
     backoff = SEARCH_429_BACKOFF_SEC
-
     async with _client(ipv4=True) as ipv4_client, _client() as dual_client:
         for query in queries:
-            if time.monotonic() >= deadline or len(found) >= limit:
+            if time.monotonic() >= deadline:
                 break
             got_engine = False
             for engine in engines:
                 if time.monotonic() >= deadline:
                     break
-                if engine == "firecrawl":
-                    if time.monotonic() >= deadline - 0.5:
-                        continue
-                    urls = [
-                        url
-                        for url in await firecrawl_search_urls(query, limit=max(limit, 8))
-                        if _mentions_mpn(url, mpn) and not is_blocked_url(url)
-                    ]
-                    if not urls:
-                        # Circuit may have opened; skip Firecrawl for later queries.
-                        continue
-                    for url in urls:
-                        if url not in found:
-                            found.append(url)
-                    winner = "firecrawl"
-                    got_engine = True
-                    break
-
                 status, html = await _engine_html(ipv4_client, engine, query)
                 if status == 0:
                     status, html = await _engine_html(dual_client, engine, query)

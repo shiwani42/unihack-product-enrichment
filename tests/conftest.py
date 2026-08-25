@@ -18,14 +18,11 @@ def pytest_configure(config):
 
 @pytest.fixture(autouse=True)
 def _reset_search_engine():
-    from sources.firecrawl_search import reset_firecrawl_circuit
     from sources.web_search import set_last_search_engine
 
     set_last_search_engine(None)
-    reset_firecrawl_circuit()
     yield
     set_last_search_engine(None)
-    reset_firecrawl_circuit()
 
 
 @pytest.fixture(autouse=True)
@@ -33,7 +30,6 @@ def _offline_by_default(request, monkeypatch):
     if not _has_network_marker(request):
         monkeypatch.setenv("UNILOG_LIVE_FETCH", "0")
         monkeypatch.setenv("UNILOG_WEB_SEARCH", "0")
-        monkeypatch.setenv("UNILOG_FIRECRAWL", "0")
         monkeypatch.setenv("UNILOG_WIKIDATA", "0")
     yield
 

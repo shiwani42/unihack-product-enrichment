@@ -88,11 +88,6 @@ SEARCH_URL_LIMIT = int(os.environ.get("UNILOG_SEARCH_URL_LIMIT", "8"))
 PDF_URL_LIMIT = int(os.environ.get("UNILOG_PDF_URL_LIMIT", "8"))
 FETCH_PDFS = os.environ.get("UNILOG_FETCH_PDFS", "1").strip().lower() not in {"0", "false", "no"}
 WEB_SEARCH_ENABLED = os.environ.get("UNILOG_WEB_SEARCH", "1").strip().lower() not in {"0", "false", "no"}
-FIRECRAWL_ENABLED = os.environ.get("UNILOG_FIRECRAWL", "1").strip().lower() not in {"0", "false", "no"}
-FIRECRAWL_API_KEY = (
-    os.environ.get("FIRECRAWL_API_KEY", "").strip()
-    or os.environ.get("FIRECRAWL_APIKEY", "").strip()
-)
 HTTP_RETRY_ATTEMPTS = int(os.environ.get("UNILOG_HTTP_RETRIES", "3"))
 HTTP_RETRY_BASE_DELAY = float(os.environ.get("UNILOG_HTTP_RETRY_DELAY", "0.5"))
 RAW_CACHE_MAX_FILES = int(os.environ.get("UNILOG_RAW_CACHE_MAX_FILES", "300"))
